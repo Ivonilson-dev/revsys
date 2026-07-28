@@ -1,0 +1,226 @@
+<%- include('../parciais/cabecalho') %>
+<%- include('../parciais/menu') %>
+
+<div class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8">
+  <div class="max-w-7xl mx-auto space-y-6">
+    
+    <!-- Cabeçalho -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Gerenciamento de Agendamentos</h1>
+        <p class="text-slate-500 mt-1">Veja todos os agendamentos do sistema ou filtre por período e cliente.</p>
+      </div>
+      <div class="flex items-center space-x-3">
+        <a href="/agendamentos/calendario-tela" class="inline-flex items-center space-x-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow-md shadow-brand-500/10 hover:shadow-brand-500/20 active:scale-[0.98] transition-all text-sm">
+          <i data-lucide="calendar" class="w-4 h-4"></i>
+          <span>Ver Agenda Visual (Calendário)</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Filtros de Busca -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+      <form action="/agendamentos" method="GET" class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+        
+        <!-- Filtro Data -->
+        <div>
+          <label for="data" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Data</label>
+          <input type="date" id="data" name="data" value="<%= filtros.data || '' %>"
+                 class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:outline-none focus:border-brand-500 transition-all">
+        </div>
+
+        <!-- Filtro Status -->
+        <div>
+          <label for="status" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Status</label>
+          <select id="status" name="status"
+                  class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:outline-none focus:border-brand-500 transition-all">
+            <option value="">Todos</option>
+            <option value="agendado" <%= filtros.status === 'agendado' ? 'selected' : '' %>>Agendado</option>
+            <option value="concluido" <%= filtros.status === 'concluido' ? 'selected' : '' %>>Concluído</option>
+            <option value="cancelado" <%= filtros.status === 'cancelado' ? 'selected' : '' %>>Cancelado</option>
+          </select>
+        </div>
+
+        <!-- Filtro Cliente -->
+        <div>
+          <label for="cliente_id" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Cliente</label>
+          <select id="cliente_id" name="cliente_id"
+                  class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:outline-none focus:border-brand-500 transition-all">
+            <option value="">Todos</option>
+            <% clientes.forEach(cli => { %>
+              <option value="<%= cli.id %>" <%= filtros.cliente_id == cli.id ? 'selected' : '' %>><%= cli.usuario.nome %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- Botões -->
+        <div class="flex gap-2">
+          <button type="submit" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-4 rounded-xl text-xs transition-all hover:shadow-md">
+            Filtrar
+          </button>
+          <% if (filtros.data || filtros.status || filtros.cliente_id) { %>
+            <a href="/agendamentos" class="flex-1 text-center border border-slate-200 hover:bg-slate-50 text-slate-700 py-2 px-4 rounded-xl text-xs transition-all font-semibold">
+              Limpar
+            </a>
+          <% } %>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Tabela / Cards de Agendamentos -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      
+      <!-- Visualização Desktop (Tabela) -->
+      <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/70 border-b border-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider">
+              <th class="p-4 pl-6">Data / Horário</th>
+              <th class="p-4">Cliente</th>
+              <th class="p-4">Veículo (Placa)</th>
+              <th class="p-4">Motivo da Revisão</th>
+              <th class="p-4">Status</th>
+              <th class="p-4 pr-6 text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-slate-700 text-sm">
+            <% if (agendamentos.length === 0) { %>
+              <tr>
+                <td colspan="6" class="p-8 text-center text-slate-400">
+                  <i data-lucide="calendar" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
+                  Nenhum agendamento encontrado para os filtros informados.
+                </td>
+              </tr>
+            <% } else { %>
+              <% agendamentos.forEach(a => { %>
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                  <td class="p-4 pl-6 font-semibold">
+                    <%= new Date(a.data_agendada).toLocaleDateString('pt-BR') %> às <%= a.horario_agendado %>
+                  </td>
+                  <td class="p-4">
+                    <%= a.cliente ? a.cliente.usuario.nome : 'N/I' %>
+                  </td>
+                  <td class="p-4">
+                    <a href="/veiculos/<%= a.veiculo_id %>" class="text-brand-500 hover:underline font-mono uppercase font-bold">
+                      <%= a.veiculo ? a.veiculo.placa : 'Placa N/I' %>
+                    </a>
+                  </td>
+                  <td class="p-4 text-slate-500 italic">"<%= a.motivo_revisao %>"</td>
+                  <td class="p-4">
+                    <% if (a.status === 'agendado') { %>
+                      <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-sky-55 text-sky-700 border border-sky-200 uppercase">Agendado</span>
+                    <% } else if (a.status === 'concluido') { %>
+                      <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-green-55 text-green-700 border border-green-200 uppercase">Concluído</span>
+                    <% } else { %>
+                      <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-55 text-red-700 border border-red-200 uppercase">Cancelado</span>
+                    <% } %>
+                  </td>
+                  <td class="p-4 pr-6 text-right space-x-2">
+                    <% if (a.status === 'agendado' && ['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
+                      <!-- Concluir -->
+                      <button onclick="alterarStatus(<%= a.id %>, 'concluido')" class="text-xs font-bold text-green-600 hover:text-green-700 bg-green-50 px-2.5 py-1.5 rounded-lg border border-green-200 transition-colors">
+                        Concluir
+                      </button>
+                      <!-- Cancelar -->
+                      <button onclick="alterarStatus(<%= a.id %>, 'cancelado')" class="text-xs font-bold text-red-650 hover:text-red-700 bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-200 transition-colors">
+                        Cancelar
+                      </button>
+                    <% } else { %>
+                      <span class="text-xs text-slate-400 italic">Sem ações</span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Visualização Mobile (Cards) -->
+      <div class="block md:hidden divide-y divide-slate-100">
+        <% if (agendamentos.length === 0) { %>
+          <div class="p-8 text-center text-slate-400">
+            Nenhum agendamento encontrado.
+          </div>
+        <% } else { %>
+          <% agendamentos.forEach(a => { %>
+            <div class="p-4 space-y-3 hover:bg-slate-50/50 transition-colors">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-900">
+                  <%= new Date(a.data_agendada).toLocaleDateString('pt-BR') %> às <%= a.horario_agendado %>
+                </span>
+                <% if (a.status === 'agendado') { %>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-100 text-sky-800">AGENDADO</span>
+                <% } else if (a.status === 'concluido') { %>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-green-100 text-green-800">CONCLUÍDO</span>
+                <% } else { %>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-800">CANCELADO</span>
+                <% } %>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-2 text-xs text-slate-500">
+                <div>
+                  <span class="block text-slate-400 font-bold uppercase tracking-wider text-[9px]">Cliente</span>
+                  <span class="text-slate-800"><%= a.cliente ? a.cliente.usuario.nome : 'N/I' %></span>
+                </div>
+                <div>
+                  <span class="block text-slate-400 font-bold uppercase tracking-wider text-[9px]">Veículo (Placa)</span>
+                  <a href="/veiculos/<%= a.veiculo_id %>" class="text-brand-500 font-bold underline uppercase"><%= a.veiculo ? a.veiculo.placa : 'N/I' %></a>
+                </div>
+                <div class="col-span-2">
+                  <span class="block text-slate-400 font-bold uppercase tracking-wider text-[9px]">Motivo</span>
+                  <span class="text-slate-800 italic truncate block">"<%= a.motivo_revisao %>"</span>
+                </div>
+              </div>
+
+              <!-- Ações no Mobile -->
+              <% if (a.status === 'agendado' && ['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
+                <div class="flex gap-2 pt-2 border-t border-slate-100">
+                  <button onclick="alterarStatus(<%= a.id %>, 'concluido')" class="flex-1 text-center py-2 px-3 rounded-lg bg-green-50 border border-green-200 text-green-700 font-bold text-xs">
+                    Concluir
+                  </button>
+                  <button onclick="alterarStatus(<%= a.id %>, 'cancelado')" class="flex-1 text-center py-2 px-3 rounded-lg bg-red-50 border border-red-200 text-red-700 font-bold text-xs">
+                    Cancelar
+                  </button>
+                </div>
+              <% } %>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+  async function alterarStatus(id, novoStatus) {
+    if (!confirm(`Deseja alterar o status deste agendamento para ${novoStatus.toUpperCase()}?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/agendamentos/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: novoStatus })
+      });
+
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        const txt = await response.text();
+        alert('Erro ao atualizar agendamento: ' + txt);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro de conexão ao atualizar agendamento.');
+    }
+  }
+</script>
+
+<%- include('../parciais/rodape') %>

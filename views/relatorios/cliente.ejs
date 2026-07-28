@@ -1,0 +1,108 @@
+<%- include('../parciais/cabecalho') %>
+<%- include('../parciais/menu') %>
+
+<div class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8">
+  <div class="max-w-6xl mx-auto space-y-6">
+    
+    <!-- Link Voltar -->
+    <a href="/relatorios" class="inline-flex items-center space-x-1 text-slate-500 hover:text-slate-900 transition-colors text-sm font-semibold">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+      <span>Voltar para Relatórios</span>
+    </a>
+
+    <!-- Cabeçalho do Relatório -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <span class="text-xs font-bold text-brand-500 uppercase tracking-widest block font-mono">Relatório por Cliente</span>
+        <h1 class="text-3xl font-bold text-slate-900 tracking-tight mt-1"><%= cliente.usuario.nome %></h1>
+        <p class="text-slate-550 mt-1">E-mail: <span class="text-slate-700 font-medium"><%= cliente.usuario.email %></span> | Tel/WhatsApp: <span class="text-slate-700 font-medium"><%= cliente.telefone_whatsapp || 'Não informado' %></span></p>
+      </div>
+      <div>
+        <a href="/clientes/<%= cliente.id %>" class="inline-flex items-center justify-center bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-4 rounded-xl text-xs transition-colors shadow-sm">
+          Ficha do Cliente
+        </a>
+      </div>
+    </div>
+
+    <!-- Lista de Veículos e Status -->
+    <div class="space-y-6">
+      <% if (veiculosComStatus.length === 0) { %>
+        <div class="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 shadow-sm">
+          Nenhum veículo registrado para este cliente.
+        </div>
+      <% } else { %>
+        <% veiculosComStatus.forEach(item => { %>
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <!-- Barra do Veículo -->
+            <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="flex items-center space-x-4">
+                <span class="px-2.5 py-1 rounded bg-slate-900 text-white font-mono font-bold text-xs uppercase border border-slate-750 tracking-wider">
+                  <%= item.veiculo.placa %>
+                </span>
+                <div>
+                  <h3 class="text-base font-bold text-slate-900">
+                    <%= item.veiculo.modelo ? item.veiculo.modelo.marca.nome + ' ' + item.veiculo.modelo.nome : 'Modelo N/I' %>
+                  </h3>
+                  <span class="text-xs text-slate-450 mt-0.5 block">KM Atual: <span class="font-bold text-slate-700"><%= item.veiculo.km_atual %> km</span> | Ano: <%= item.veiculo.ano %></span>
+                </div>
+              </div>
+              <div>
+                <% if (item.statusGeral === 'vencido') { %>
+                  <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200 uppercase tracking-wide">Possui Alerta Vencido</span>
+                <% } else if (item.statusGeral === 'proximo') { %>
+                  <span class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-200 uppercase tracking-wide">Possui Alerta Próximo</span>
+                <% } else { %>
+                  <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200 uppercase tracking-wide">Tudo em Dia</span>
+                <% } %>
+              </div>
+            </div>
+
+            <!-- Tabela de Alertas de Peças do Veículo -->
+            <div class="p-4 md:p-6 overflow-x-auto">
+              <% if (item.alertas.length === 0) { %>
+                <div class="text-center text-slate-400 py-4 text-xs">
+                  Sem trocas de peças registradas para este veículo.
+                </div>
+              <% } else { %>
+                <table class="w-full text-left text-xs">
+                  <thead>
+                    <tr class="text-slate-400 font-bold uppercase tracking-wider border-b border-slate-200 pb-2">
+                      <th class="pb-3">Componente / Peça</th>
+                      <th class="pb-3">Data Última Troca</th>
+                      <th class="pb-3">Previsão (KM / Tempo)</th>
+                      <th class="pb-3">Alerta</th>
+                      <th class="pb-3 text-right">Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100 text-slate-700">
+                    <% item.alertas.forEach(al => { %>
+                      <tr>
+                        <td class="py-3 font-semibold text-slate-900"><%= al.peca.nome %></td>
+                        <td class="py-3"><%= new Date(al.troca.data_troca).toLocaleDateString('pt-BR') %></td>
+                        <td class="py-3">
+                          <%= al.troca.km_previsto_proximo ? al.troca.km_previsto_proximo + ' km' : 'Sem previsão por KM' %> / 
+                          <%= al.troca.data_prevista_proximo ? new Date(al.troca.data_prevista_proximo).toLocaleDateString('pt-BR') : 'Sem data' %>
+                        </td>
+                        <td class="py-3">
+                          <span class="px-2 py-0.5 rounded font-bold uppercase text-[9px] <%= al.alerta.cor %>">
+                            <%= al.alerta.mensagem %>
+                          </span>
+                        </td>
+                        <td class="py-3 text-right">
+                          <a href="/veiculos/<%= item.veiculo.id %>" class="text-brand-500 hover:underline font-bold text-[11px]">Resolver</a>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  </tbody>
+                </table>
+              <% } %>
+            </div>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+
+  </div>
+</div>
+
+<%- include('../parciais/rodape') %>

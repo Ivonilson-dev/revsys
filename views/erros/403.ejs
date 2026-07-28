@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>403 - Acesso Negado | RevSys</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f4f6fa',
+              100: '#e9edf5',
+              200: '#cbd6e7',
+              300: '#9cb3d3',
+              400: '#688cbb',
+              500: '#0052cc', // Azul corporativo premium
+              600: '#0047b3',
+              700: '#003b94',
+              800: '#002f75',
+              900: '#001b44',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex items-center justify-center p-4">
+
+  <div class="max-w-md w-full text-center space-y-6">
+    <div class="w-20 h-20 mx-auto rounded-3xl bg-red-100 text-red-650 flex items-center justify-center shadow-lg shadow-red-100/10">
+      <i data-lucide="shield-alert" class="w-10 h-10"></i>
+    </div>
+
+    <div class="space-y-2">
+      <h1 class="text-6xl font-extrabold text-slate-900 tracking-tight">403</h1>
+      <h2 class="text-xl font-bold text-slate-800">Acesso Não Autorizado</h2>
+      <p class="text-slate-500 text-sm leading-relaxed">
+        Você não possui permissões suficientes para acessar esta página. Se acredita que isso é um erro, entre em contato com o administrador do sistema.
+      </p>
+    </div>
+
+    <div class="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="/dashboard" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2.5 px-6 rounded-xl shadow-md shadow-brand-500/10 hover:shadow-brand-500/20 transition-all text-sm flex items-center justify-center space-x-2">
+        <i data-lucide="home" class="w-4 h-4"></i>
+        <span>Ir para o Início</span>
+      </a>
+      <a href="/logout" class="border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold py-2.5 px-6 rounded-xl transition-all text-sm flex items-center justify-center space-x-2 bg-white">
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+        <span>Sair da Conta</span>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

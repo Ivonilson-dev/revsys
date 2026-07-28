@@ -1,0 +1,116 @@
+<%- include('../parciais/cabecalho') %>
+<%- include('../parciais/menu') %>
+
+<div class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8">
+  <div class="max-w-6xl mx-auto space-y-6">
+    
+    <!-- Link Voltar -->
+    <a href="/relatorios" class="inline-flex items-center space-x-1 text-slate-500 hover:text-slate-900 transition-colors text-sm font-semibold">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+      <span>Voltar para Relatórios</span>
+    </a>
+
+    <!-- Cabeçalho do Relatório -->
+    <div>
+      <span class="text-xs font-bold text-brand-500 uppercase tracking-widest block font-mono">Relatório por Peça</span>
+      <h1 class="text-3xl font-bold text-slate-900 tracking-tight mt-1"><%= peca.nome %> (<%= peca.marca.nome %>)</h1>
+      <p class="text-slate-500 mt-1">Exibindo histórico de substituições desta peça em todos os veículos.</p>
+    </div>
+
+    <!-- Tabela / Cards -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      
+      <!-- Visualização Desktop (Tabela) -->
+      <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/70 border-b border-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider">
+              <th class="p-4 pl-6">Data Troca</th>
+              <th class="p-4">Veículo (Placa)</th>
+              <th class="p-4">Proprietário</th>
+              <th class="p-4">KM na Troca</th>
+              <th class="p-4">Executado por</th>
+              <th class="p-4 pr-6 text-right">Prontuário</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-slate-700 text-sm">
+            <% if (trocas.length === 0) { %>
+              <tr>
+                <td colspan="6" class="p-8 text-center text-slate-400">
+                  Nenhuma troca registrada para esta peça.
+                </td>
+              </tr>
+            <% } else { %>
+              <% trocas.forEach(t => { %>
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                  <td class="p-4 pl-6 font-semibold"><%= new Date(t.data_troca).toLocaleDateString('pt-BR') %></td>
+                  <td class="p-4">
+                    <span class="px-2 py-0.5 rounded bg-slate-900 text-white font-mono font-bold text-xs uppercase border border-slate-700 tracking-wider">
+                      <%= t.veiculo ? t.veiculo.placa : 'N/I' %>
+                    </span>
+                  </td>
+                  <td class="p-4 text-slate-650">
+                    <%= t.veiculo && t.veiculo.cliente ? t.veiculo.cliente.usuario.nome : 'N/I' %>
+                  </td>
+                  <td class="p-4"><%= t.km_na_troca %> km</td>
+                  <td class="p-4 text-slate-500"><%= t.executado_por %></td>
+                  <td class="p-4 pr-6 text-right">
+                    <a href="/veiculos/<%= t.veiculo_id %>" class="text-brand-500 hover:text-brand-600 font-semibold text-xs flex items-center justify-end gap-1">
+                      <span>Prontuário</span>
+                      <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Visualização Mobile (Cards) -->
+      <div class="block md:hidden divide-y divide-slate-100">
+        <% if (trocas.length === 0) { %>
+          <div class="p-8 text-center text-slate-400">
+            Nenhuma troca registrada para esta peça.
+          </div>
+        <% } else { %>
+          <% trocas.forEach(t => { %>
+            <div class="p-4 space-y-3 hover:bg-slate-50/50 transition-colors">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-900"><%= new Date(t.data_troca).toLocaleDateString('pt-BR') %></span>
+                <span class="px-2 py-0.5 rounded bg-slate-900 text-white font-mono font-bold text-xs uppercase border border-slate-700 tracking-wider">
+                  <%= t.veiculo ? t.veiculo.placa : 'N/I' %>
+                </span>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-2 text-xs text-slate-500">
+                <div>
+                  <span class="block text-slate-400 font-bold uppercase tracking-wider text-[9px]">KM na Troca</span>
+                  <span class="text-slate-800"><%= t.km_na_troca %> km</span>
+                </div>
+                <div>
+                  <span class="block text-slate-400 font-bold uppercase tracking-wider text-[9px]">Mecânico</span>
+                  <span class="text-slate-800 truncate block"><%= t.executado_por %></span>
+                </div>
+                <div class="col-span-2">
+                  <span class="block text-slate-400 font-bold uppercase tracking-wider text-[9px]">Cliente</span>
+                  <span class="text-slate-800"><%= t.veiculo && t.veiculo.cliente ? t.veiculo.cliente.usuario.nome : 'N/I' %></span>
+                </div>
+              </div>
+
+              <div class="pt-2 border-t border-slate-100 flex justify-end">
+                <a href="/veiculos/<%= t.veiculo_id %>" class="text-brand-500 hover:underline text-xs font-bold">
+                  Ver Prontuário do Veículo
+                </a>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<%- include('../parciais/rodape') %>

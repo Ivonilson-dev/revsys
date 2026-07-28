@@ -1,0 +1,115 @@
+<!-- Cabeçalho Mobile -->
+<div class="md:hidden w-full bg-slate-900 text-white flex items-center justify-between p-4 z-40 border-b border-slate-800 shrink-0">
+  <div class="flex items-center space-x-2">
+    <div class="bg-brand-500 p-2 rounded-lg text-white">
+      <i data-lucide="wrench" class="w-6 h-6"></i>
+    </div>
+    <span class="text-xl font-bold tracking-tight">RevSys</span>
+  </div>
+  <button id="btnMenuMobile" class="p-2 hover:bg-slate-800 rounded-lg focus:outline-none transition-colors">
+    <i data-lucide="menu" class="w-6 h-6"></i>
+  </button>
+</div>
+
+<!-- Menu Lateral / Navegação (Desktop & Mobile Drawer) -->
+<aside id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out z-50 w-64 bg-slate-900 text-slate-300 flex flex-col justify-between shrink-0 h-full border-r border-slate-800">
+  <div>
+    <!-- Logo e Info do Usuário -->
+    <div class="p-6 border-b border-slate-800">
+      <div class="flex items-center space-x-3 mb-6">
+        <div class="bg-brand-500 p-2.5 rounded-xl text-white shadow-md shadow-brand-500/20">
+          <i data-lucide="wrench" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <span class="text-2xl font-bold text-white tracking-tight block">RevSys</span>
+          <span class="text-[10px] text-brand-200 uppercase tracking-widest font-semibold font-mono">Oficina Pro</span>
+        </div>
+      </div>
+      
+      <!-- Usuário Conectado -->
+      <% if (usuarioLogado) { %>
+        <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-800/80 flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center text-white font-bold text-sm select-none">
+            <%= usuarioLogado.nome.substring(0, 2).toUpperCase() %>
+          </div>
+          <div class="overflow-hidden">
+            <span class="text-sm font-semibold text-white block truncate leading-tight"><%= usuarioLogado.nome %></span>
+            <span class="text-[10px] text-slate-400 capitalize block mt-0.5"><%= usuarioLogado.papel === 'mecanico' ? 'Mecânico' : usuarioLogado.papel %></span>
+          </div>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Links de Navegação -->
+    <nav class="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-220px)]">
+      <% if (usuarioLogado && usuarioLogado.papel !== 'cliente') { %>
+        <!-- Painel / Dashboard -->
+        <a href="/painel" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-800 hover:text-white transition-colors <%= urlAtiva === '/painel' ? 'bg-brand-600 text-white font-medium' : '' %>">
+          <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <!-- Clientes -->
+        <a href="/clientes" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-800 hover:text-white transition-colors <%= urlAtiva.startsWith('/clientes') ? 'bg-brand-600 text-white font-medium' : '' %>">
+          <i data-lucide="users" class="w-5 h-5"></i>
+          <span>Clientes</span>
+        </a>
+
+        <!-- Veículos -->
+        <a href="/veiculos" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-800 hover:text-white transition-colors <%= urlAtiva.startsWith('/veiculos') ? 'bg-brand-600 text-white font-medium' : '' %>">
+          <i data-lucide="car" class="w-5 h-5"></i>
+          <span>Veículos</span>
+        </a>
+
+        <!-- Agendamentos -->
+        <a href="/agendamentos/calendario-tela" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-800 hover:text-white transition-colors <%= urlAtiva.startsWith('/agendamentos') ? 'bg-brand-600 text-white font-medium' : '' %>">
+          <i data-lucide="calendar" class="w-5 h-5"></i>
+          <span>Agendamentos</span>
+        </a>
+
+        <!-- Cadastros Auxiliares -->
+        <% if (['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
+          <a href="/cadastros" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-800 hover:text-white transition-colors <%= urlAtiva === '/cadastros' ? 'bg-brand-600 text-white font-medium' : '' %>">
+            <i data-lucide="settings" class="w-5 h-5"></i>
+            <span>Cadastros Base</span>
+          </a>
+        <% } %>
+
+        <!-- Relatórios -->
+        <% if (['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
+          <a href="/relatorios" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-800 hover:text-white transition-colors <%= urlAtiva.startsWith('/relatorios') ? 'bg-brand-600 text-white font-medium' : '' %>">
+            <i data-lucide="file-text" class="w-5 h-5"></i>
+            <span>Relatórios</span>
+          </a>
+        <% } %>
+      <% } else if (usuarioLogado && usuarioLogado.papel === 'cliente') { %>
+        <!-- Área do Cliente -->
+        <a href="/cliente/veiculos" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-800 hover:text-white transition-colors <%= urlAtiva.startsWith('/cliente') ? 'bg-brand-600 text-white font-medium' : '' %>">
+          <i data-lucide="car" class="w-5 h-5"></i>
+          <span>Meus Veículos</span>
+        </a>
+      <% } %>
+    </nav>
+  </div>
+
+  <!-- Rodapé do Menu (Sair / Fechar no Mobile) -->
+  <div class="p-4 border-t border-slate-800 space-y-2">
+    <a href="/sair" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-red-950 hover:text-red-300 text-slate-400 transition-colors w-full">
+      <i data-lucide="log-out" class="w-5 h-5 text-red-500"></i>
+      <span>Sair do Sistema</span>
+    </a>
+    
+    <!-- Botão Fechar Menu no Mobile -->
+    <button id="btnFecharMenu" class="md:hidden flex items-center justify-center space-x-2 p-2.5 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-400 text-xs w-full">
+      <i data-lucide="x" class="w-4 h-4"></i>
+      <span>Fechar Menu</span>
+    </button>
+  </div>
+</aside>
+
+<!-- Overlay no Mobile para fechar sidebar clicando fora -->
+<div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden"></div>
+
+<!-- Container Principal do Conteúdo -->
+<main class="flex-1 flex flex-col overflow-hidden h-full">
+  <!-- Conteúdo de cada página é renderizado abaixo -->
