@@ -39,16 +39,24 @@
                    class="w-full bg-slate-100 border border-slate-200 text-slate-400 rounded-xl py-2.5 px-3.5 text-sm cursor-not-allowed">
           </div>
 
+          <!-- Seleção de Marca -->
+          <div>
+            <label for="marca_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Marca do Veículo *</label>
+            <select id="marca_id" required
+                    class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3.5 text-sm focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+              <option value="" disabled selected>Selecione a Marca...</option>
+              <% marcas.forEach(m => { %>
+                <option value="<%= m.id %>"><%= m.nome %></option>
+              <% }) %>
+            </select>
+          </div>
+
           <!-- Seleção de Modelo -->
           <div>
-            <label for="modelo_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Marca / Modelo do Veículo *</label>
-            <select id="modelo_id" name="modelo_id" required
-                    class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3.5 text-sm focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
-              <% modelos.forEach(mod => { %>
-                <option value="<%= mod.id %>" <%= (veiculo.modelo_id == mod.id) ? 'selected' : '' %>>
-                  <%= mod.marca.nome %> - <%= mod.nome %>
-                </option>
-              <% }) %>
+            <label for="modelo_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Modelo do Veículo *</label>
+            <select id="modelo_id" name="modelo_id" required disabled
+                    class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3.5 text-sm focus:outline-none focus:border-brand-500 focus:bg-white transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+              <option value="" disabled selected>Selecione primeiro a Marca...</option>
             </select>
           </div>
 
@@ -112,6 +120,57 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    // Dados de modelos passados pelo servidor
+    const todosModelos = <%- JSON.stringify(modelos.map(m => ({ id: m.id, nome: m.nome, marca_veiculo_id: m.marca_veiculo_id }))) %>;
+    const modeloSelecionadoId = "<%= veiculo.modelo_id || '' %>";
+
+    const marcaSelect = document.getElementById('marca_id');
+    const modeloSelect = document.getElementById('modelo_id');
+
+    function atualizarModelos(marcaId, modeloIdParaSelecionar = '') {
+      modeloSelect.innerHTML = '<option value="" disabled selected>Selecione o Modelo...</option>';
+      
+      if (!marcaId) {
+        modeloSelect.disabled = true;
+        return;
+      }
+
+      const modelosFiltrados = todosModelos
+        .filter(m => String(m.marca_veiculo_id) === String(marcaId))
+        .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+      if (modelosFiltrados.length === 0) {
+        modeloSelect.innerHTML = '<option value="" disabled selected>Nenhum modelo cadastrado para esta marca</option>';
+        modeloSelect.disabled = true;
+        return;
+      }
+
+      modelosFiltrados.forEach(m => {
+        const option = document.createElement('option');
+        option.value = m.id;
+        option.textContent = m.nome;
+        if (String(m.id) === String(modeloIdParaSelecionar)) {
+          option.selected = true;
+        }
+        modeloSelect.appendChild(option);
+      });
+
+      modeloSelect.disabled = false;
+    }
+
+    marcaSelect.addEventListener('change', (e) => {
+      atualizarModelos(e.target.value);
+    });
+
+    // Pré-selecionar a marca e o modelo atual do veículo na página de edição
+    if (modeloSelecionadoId) {
+      const modeloAtual = todosModelos.find(m => String(m.id) === String(modeloSelecionadoId));
+      if (modeloAtual) {
+        marcaSelect.value = modeloAtual.marca_veiculo_id;
+        atualizarModelos(modeloAtual.marca_veiculo_id, modeloSelecionadoId);
+      }
+    }
+
     const placaInput = document.getElementById('placa');
     if (placaInput) {
       IMask(placaInput, {

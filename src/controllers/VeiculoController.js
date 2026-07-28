@@ -57,6 +57,10 @@ class VeiculoController {
         order: [[{ model: Usuario, as: 'usuario' }, 'nome', 'ASC']]
       });
 
+      const marcas = await MarcaVeiculo.findAll({
+        order: [['nome', 'ASC']]
+      });
+
       const modelos = await ModeloVeiculo.findAll({
         include: [{ model: MarcaVeiculo, as: 'marca' }],
         order: [['nome', 'ASC']]
@@ -65,6 +69,7 @@ class VeiculoController {
       return res.render('veiculos/novo', {
         titulo: 'Cadastrar Veículo',
         clientes,
+        marcas,
         modelos,
         clienteId: clienteId || '',
         erro: null,
@@ -92,7 +97,8 @@ class VeiculoController {
         erro: 'Formato de placa inválido (deve ser padrão antigo AAA-9999 ou Mercosul AAA9A99).',
         dados: dadosForm,
         clientes: await Cliente.findAll({ include: [{ model: Usuario, as: 'usuario' }] }),
-        modelos: await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }] }),
+        marcas: await MarcaVeiculo.findAll({ order: [['nome', 'ASC']] }),
+        modelos: await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }], order: [['nome', 'ASC']] }),
         clienteId: cliente_id
       });
     }
@@ -106,7 +112,8 @@ class VeiculoController {
           erro: 'Este veículo (placa) já está cadastrado no sistema.',
           dados: dadosForm,
           clientes: await Cliente.findAll({ include: [{ model: Usuario, as: 'usuario' }] }),
-          modelos: await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }] }),
+          marcas: await MarcaVeiculo.findAll({ order: [['nome', 'ASC']] }),
+          modelos: await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }], order: [['nome', 'ASC']] }),
           clienteId: cliente_id
         });
       }
@@ -230,6 +237,10 @@ class VeiculoController {
         return res.status(404).send('Veículo não encontrado');
       }
 
+      const marcas = await MarcaVeiculo.findAll({
+        order: [['nome', 'ASC']]
+      });
+
       const modelos = await ModeloVeiculo.findAll({
         include: [{ model: MarcaVeiculo, as: 'marca' }],
         order: [['nome', 'ASC']]
@@ -238,6 +249,7 @@ class VeiculoController {
       return res.render('veiculos/editar', {
         titulo: `Editar Veículo: ${veiculo.placa}`,
         veiculo,
+        marcas,
         modelos,
         erro: null
       });
@@ -264,10 +276,12 @@ class VeiculoController {
       if (placaLimpa !== veiculo.placa) {
         const veiculoExistente = await Veiculo.findOne({ where: { placa: placaLimpa } });
         if (veiculoExistente) {
-          const modelos = await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }] });
+          const marcas = await MarcaVeiculo.findAll({ order: [['nome', 'ASC']] });
+          const modelos = await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }], order: [['nome', 'ASC']] });
           return res.render('veiculos/editar', {
             titulo: `Editar Veículo: ${veiculo.placa}`,
             veiculo,
+            marcas,
             modelos,
             erro: 'Esta placa já está cadastrada em outro veículo.'
           });
