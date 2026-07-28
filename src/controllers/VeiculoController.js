@@ -1,4 +1,4 @@
-const { Veiculo, Cliente, Usuario, ModeloVeiculo, MarcaVeiculo, RegistroTroca, Peca, MarcaPeca, Agendamento, Oficina } = require('../../models');
+const { Veiculo, Cliente, Usuario, ModeloVeiculo, MarcaVeiculo, RegistroTroca, Peca, MarcaPeca, Agendamento, Oficina, RegistroServico, Servico } = require('../../models');
 const { calcularStatusAlerta } = require('../utils/alertas');
 
 class VeiculoController {
@@ -170,6 +170,16 @@ class VeiculoController {
         order: [['data_troca', 'DESC'], ['id', 'DESC']]
       });
 
+      // Histórico de serviços prestados
+      const historicoServicos = await RegistroServico.findAll({
+        where: { veiculo_id: id },
+        include: [
+          { model: Servico, as: 'servico' },
+          { model: Oficina, as: 'oficina' }
+        ],
+        order: [['data_servico', 'DESC'], ['id', 'DESC']]
+      });
+
       // Calcular alertas atuais (com base na última troca de cada peça)
       const ultimasTrocas = {};
       historicoTrocas.forEach(troca => {
@@ -193,13 +203,20 @@ class VeiculoController {
       // Agendamentos do veículo
       const agendamentos = await Agendamento.findAll({
         where: { veiculo_id: id },
-        include: [{ model: Usuario, as: 'criador' }],
+        include: [{ model: Usuario, as: 'criador' }, { model: Servico, as: 'servico' }],
         order: [['data_agendada', 'DESC'], ['horario_agendado', 'DESC']]
       });
 
-      // Carregar peças e oficinas para formulários rápidos
+      // Carregar peças, serviços e oficinas para formulários rápidos
       const pecas = await Peca.findAll({
         include: [{ model: MarcaPeca, as: 'marca' }],
+        order: [
+          [{ model: MarcaPeca, as: 'marca' }, 'nome', 'ASC'],
+          ['nome', 'ASC']
+        ]
+      });
+
+      const servicos = await Servico.findAll({
         order: [['nome', 'ASC']]
       });
 
@@ -209,9 +226,11 @@ class VeiculoController {
         titulo: `Veículo: ${veiculo.placa}`,
         veiculo,
         historicoTrocas,
+        historicoServicos,
         alertasPecas,
         agendamentos,
         pecas,
+        servicos,
         oficinas,
         sucesso
       });

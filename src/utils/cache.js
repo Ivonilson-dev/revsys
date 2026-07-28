@@ -13,6 +13,7 @@ module.exports = {
     MODELOS_VEICULO: 'modelos_veiculo_list',
     MARCAS_PECA: 'marcas_peca_list',
     PECAS: 'pecas_list',
-    OFICINAS: 'oficinas_list'
+    OFICINAS: 'oficinas_list',
+    SERVICOS: 'servicos_list'
   }
 };

@@ -1,4 +1,4 @@
-const { Agendamento, Cliente, Veiculo, Usuario } = require('../../models');
+const { Agendamento, Cliente, Veiculo, Usuario, Servico } = require('../../models');
 const { Op } = require('sequelize');
 
 // Configuração de Horário Comercial (RF-34)
@@ -29,7 +29,8 @@ class AgendamentoController {
         include: [
           { model: Cliente, as: 'cliente', include: [{ model: Usuario, as: 'usuario' }] },
           { model: Veiculo, as: 'veiculo' },
-          { model: Usuario, as: 'criador' }
+          { model: Usuario, as: 'criador' },
+          { model: Servico, as: 'servico' }
         ],
         order: [['data_agendada', 'DESC'], ['horario_agendado', 'ASC']]
       });
@@ -39,10 +40,15 @@ class AgendamentoController {
         order: [[{ model: Usuario, as: 'usuario' }, 'nome', 'ASC']]
       });
 
+      const servicos = await Servico.findAll({
+        order: [['nome', 'ASC']]
+      });
+
       return res.render('agendamentos/index', {
         titulo: 'Lista de Agendamentos',
         agendamentos,
         clientes,
+        servicos,
         filtros: { data, status, cliente_id }
       });
     } catch (error) {
@@ -59,9 +65,14 @@ class AgendamentoController {
         order: [[{ model: Usuario, as: 'usuario' }, 'nome', 'ASC']]
       });
 
+      const servicos = await Servico.findAll({
+        order: [['nome', 'ASC']]
+      });
+
       return res.render('agendamentos/calendario', {
         titulo: 'Agenda de Revisões',
         clientes,
+        servicos,
         horariosComerciais: HORARIOS_COMERCIAIS
       });
     } catch (error) {
@@ -81,12 +92,13 @@ class AgendamentoController {
             [Op.between]: [start.split('T')[0], end.split('T')[0]]
           },
           status: {
-            [Op.ne]: 'cancelado' // não exibir cancelados no calendário ou exibir com outra cor
+            [Op.ne]: 'cancelado'
           }
         },
         include: [
           { model: Cliente, as: 'cliente', include: [{ model: Usuario, as: 'usuario' }] },
-          { model: Veiculo, as: 'veiculo' }
+          { model: Veiculo, as: 'veiculo' },
+          { model: Servico, as: 'servico' }
         ]
       });
 
@@ -94,14 +106,20 @@ class AgendamentoController {
         let cor = '#0ea5e9'; // Azul default para agendado
         if (a.status === 'concluido') cor = '#10b981'; // Verde para concluído
 
+        const servicoNome = a.servico ? a.servico.nome : '';
+        const tituloExibicao = servicoNome 
+          ? `${a.horario_agendado} - ${a.cliente.usuario.nome} (${a.veiculo.placa}) - ${servicoNome}`
+          : `${a.horario_agendado} - ${a.cliente.usuario.nome} (${a.veiculo.placa})`;
+
         return {
           id: a.id,
-          title: `${a.horario_agendado} - ${a.cliente.usuario.nome} (${a.veiculo.placa})`,
+          title: tituloExibicao,
           start: `${a.data_agendada}T${a.horario_agendado}:00`,
           end: `${a.data_agendada}T${parseInt(a.horario_agendado) + 1}:00`,
           color: cor,
           extendedProps: {
             motivo: a.motivo_revisao,
+            servico: servicoNome,
             status: a.status,
             cliente: a.cliente.usuario.nome,
             placa: a.veiculo.placa,
@@ -126,7 +144,6 @@ class AgendamentoController {
     }
 
     try {
-      // Buscar agendamentos não cancelados para a data
       const agendamentos = await Agendamento.findAll({
         where: {
           data_agendada: data,
@@ -152,20 +169,18 @@ class AgendamentoController {
 
   // POST /agendamentos
   static async cadastrar(req, res) {
-    const { cliente_id, veiculo_id, data_agendada, horario_agendado, motivo_revisao, observacoes } = req.body;
+    const { cliente_id, veiculo_id, servico_id, data_agendada, horario_agendado, motivo_revisao, observacoes } = req.body;
     const criado_por = req.session.usuario.id;
 
     if (!cliente_id || !veiculo_id || !data_agendada || !horario_agendado || !motivo_revisao) {
       return res.status(400).send('Todos os campos obrigatórios devem ser preenchidos.');
     }
 
-    // Validar horário comercial
     if (!HORARIOS_COMERCIAIS.includes(horario_agendado)) {
       return res.status(400).send('Horário fora do período comercial.');
     }
 
     try {
-      // Regra de ocupação (RF-20): Impedir agendamento no mesmo horário
       const agendamentoExistente = await Agendamento.findOne({
         where: {
           data_agendada,
@@ -183,6 +198,7 @@ class AgendamentoController {
       await Agendamento.create({
         cliente_id,
         veiculo_id,
+        servico_id: servico_id ? parseInt(servico_id) : null,
         data_agendada,
         horario_agendado,
         motivo_revisao,

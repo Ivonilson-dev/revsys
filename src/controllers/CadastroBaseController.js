@@ -1,4 +1,4 @@
-const { MarcaVeiculo, ModeloVeiculo, MarcaPeca, Peca, Oficina } = require('../../models');
+const { MarcaVeiculo, ModeloVeiculo, MarcaPeca, Peca, Oficina, Servico } = require('../../models');
 const cache = require('../utils/cache');
 
 class CadastroBaseController {
@@ -34,7 +34,10 @@ class CadastroBaseController {
       if (!pecas) {
         pecas = await Peca.findAll({
           include: [{ model: MarcaPeca, as: 'marca' }],
-          order: [['nome', 'ASC']]
+          order: [
+            [{ model: MarcaPeca, as: 'marca' }, 'nome', 'ASC'],
+            ['nome', 'ASC']
+          ]
         });
         cache.set(cache.keys.PECAS, pecas);
       }
@@ -46,6 +49,13 @@ class CadastroBaseController {
         cache.set(cache.keys.OFICINAS, oficinas);
       }
 
+      // Obter Serviços (com cache)
+      let servicos = cache.get(cache.keys.SERVICOS);
+      if (!servicos) {
+        servicos = await Servico.findAll({ order: [['nome', 'ASC']] });
+        cache.set(cache.keys.SERVICOS, servicos);
+      }
+
       return res.render('cadastros/index', {
         titulo: 'Tabelas Auxiliares',
         marcasVeiculo,
@@ -53,6 +63,7 @@ class CadastroBaseController {
         marcasPeca,
         pecas,
         oficinas,
+        servicos,
         erro: req.query.erro || null,
         sucesso: req.query.sucesso || null
       });
@@ -68,7 +79,7 @@ class CadastroBaseController {
     if (!nome) return res.redirect('/cadastros?erro=Nome da marca é obrigatório.');
     try {
       await MarcaVeiculo.create({ nome });
-      cache.del(cache.keys.MARCAS_VEICULO); // Invalida o cache
+      cache.del(cache.keys.MARCAS_VEICULO);
       return res.redirect('/cadastros?sucesso=Marca de veículo cadastrada!');
     } catch (error) {
       return res.redirect('/cadastros?erro=Erro ao cadastrar marca de veículo (pode ser duplicada).');
@@ -124,6 +135,64 @@ class CadastroBaseController {
       return res.redirect('/cadastros?sucesso=Oficina cadastrada!');
     } catch (error) {
       return res.redirect('/cadastros?erro=Erro ao cadastrar oficina (CNPJ duplicado).');
+    }
+  }
+
+  // POST /servicos (CRUD - Criar Serviço)
+  static async criarServico(req, res) {
+    const { nome, descricao, categoria, preco_padrao } = req.body;
+    if (!nome) return res.redirect('/cadastros?erro=Nome do serviço é obrigatório.');
+    try {
+      await Servico.create({
+        nome,
+        descricao: descricao || null,
+        categoria: categoria || 'Geral',
+        preco_padrao: preco_padrao ? parseFloat(preco_padrao) : null
+      });
+      cache.del(cache.keys.SERVICOS);
+      return res.redirect('/cadastros?sucesso=Serviço cadastrado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao criar serviço:', error);
+      return res.redirect('/cadastros?erro=Erro ao cadastrar serviço (pode ser nome duplicado).');
+    }
+  }
+
+  // PUT /servicos/:id (CRUD - Editar Serviço)
+  static async editarServico(req, res) {
+    const { id } = req.params;
+    const { nome, descricao, categoria, preco_padrao } = req.body;
+    try {
+      const s = await Servico.findByPk(id);
+      if (!s) return res.redirect('/cadastros?erro=Serviço não encontrado.');
+
+      await s.update({
+        nome: nome || s.nome,
+        descricao: descricao !== undefined ? descricao : s.descricao,
+        categoria: categoria || s.categoria,
+        preco_padrao: preco_padrao ? parseFloat(preco_padrao) : null
+      });
+
+      cache.del(cache.keys.SERVICOS);
+      return res.redirect('/cadastros?sucesso=Serviço atualizado!');
+    } catch (error) {
+      console.error('Erro ao editar serviço:', error);
+      return res.redirect('/cadastros?erro=Erro ao atualizar serviço.');
+    }
+  }
+
+  // DELETE /servicos/:id (CRUD - Excluir Serviço)
+  static async deletarServico(req, res) {
+    const { id } = req.params;
+    try {
+      const s = await Servico.findByPk(id);
+      if (!s) return res.redirect('/cadastros?erro=Serviço não encontrado.');
+
+      await s.destroy();
+      cache.del(cache.keys.SERVICOS);
+      return res.redirect('/cadastros?sucesso=Serviço excluído com sucesso!');
+    } catch (error) {
+      console.error('Erro ao deletar serviço:', error);
+      return res.redirect('/cadastros?erro=Não é possível excluir serviço associado a históricos.');
     }
   }
 }

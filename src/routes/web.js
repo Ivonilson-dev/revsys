@@ -10,6 +10,7 @@ const PainelController = require('../controllers/PainelController');
 const ClienteController = require('../controllers/ClienteController');
 const VeiculoController = require('../controllers/VeiculoController');
 const TrocaController = require('../controllers/TrocaController');
+const ServicoController = require('../controllers/ServicoController');
 const AgendamentoController = require('../controllers/AgendamentoController');
 const CadastroBaseController = require('../controllers/CadastroBaseController');
 const ClienteAreaController = require('../controllers/ClienteAreaController');
@@ -48,9 +49,11 @@ router.get('/veiculos/:id/editar', estaAutenticado, temPapel('admin', 'gerente',
 router.put('/veiculos/:id', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), VeiculoController.editar);
 router.delete('/veiculos/:id', estaAutenticado, temPapel('admin', 'gerente'), VeiculoController.deletar);
 
-// 6. Troca de Peças
+// 6. Troca de Peças e Registro de Serviços Prestados
 router.post('/troca', estaAutenticado, temPapel('admin', 'gerente', 'atendente', 'mecanico'), TrocaController.registrar);
 router.delete('/troca/:id', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), TrocaController.deletar);
+router.post('/registro-servico', estaAutenticado, temPapel('admin', 'gerente', 'atendente', 'mecanico'), ServicoController.registrar);
+router.delete('/registro-servico/:id', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), ServicoController.deletar);
 
 // 7. Agendamentos
 router.get('/agendamentos', estaAutenticado, temPapel('admin', 'gerente', 'atendente', 'mecanico'), AgendamentoController.listar);
@@ -60,13 +63,16 @@ router.get('/agendamentos/horarios-disponiveis', estaAutenticado, temPapel('admi
 router.post('/agendamentos', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), AgendamentoController.cadastrar);
 router.put('/agendamentos/:id', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), AgendamentoController.atualizar);
 
-// 8. Cadastros Auxiliares (Marcas, Modelos, Peças, Oficinas)
+// 8. Cadastros Auxiliares (Marcas, Modelos, Peças, Serviços, Oficinas)
 router.get('/cadastros', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.exibirPainelCadastros);
 router.post('/marcas-veiculo', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.criarMarcaVeiculo);
 router.post('/modelos-veiculo', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.criarModeloVeiculo);
 router.post('/marcas-peca', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.criarMarcaPeca);
 router.post('/pecas', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.criarPeca);
 router.post('/oficinas', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.criarOficina);
+router.post('/servicos', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.criarServico);
+router.put('/servicos/:id', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.editarServico);
+router.delete('/servicos/:id', estaAutenticado, temPapel('admin', 'gerente'), CadastroBaseController.deletarServico);
 
 // 9. Relatórios
 router.get('/relatorios', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), RelatorioController.exibirMenu);

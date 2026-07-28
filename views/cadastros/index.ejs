@@ -152,6 +152,83 @@
         </div>
       </section>
 
+      <!-- Bloco: Serviços da Oficina (CRUD) -->
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6 lg:col-span-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="wrench" class="w-5 h-5 text-brand-500"></i>
+              <span>Serviços da Oficina</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Cadastre e gerencie serviços automotivos sem substituição necessária de peças (ex: Alinhamento, Balanceamento, Higienização de Ar, etc.).</p>
+          </div>
+          <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg self-start sm:self-auto">
+            Total: <%= servicos.length %> cadastrados
+          </span>
+        </div>
+
+        <form action="/servicos" method="POST" class="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">Nome do Serviço *</label>
+            <input type="text" name="nome" required placeholder="Ex: Alinhamento 3D, Sangria de Freio..."
+                   class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">Categoria</label>
+            <input type="text" name="categoria" placeholder="Ex: Suspensão, Freios, Motor..."
+                   class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">Preço Padrão (R$)</label>
+            <input type="number" step="0.01" min="0" name="preco_padrao" placeholder="Ex: 150.00"
+                   class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+          </div>
+          <div class="flex items-end">
+            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Cadastrar Serviço</span>
+            </button>
+          </div>
+          <div class="sm:col-span-4">
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">Descrição / Detalhes (Opcional)</label>
+            <input type="text" name="descricao" placeholder="Breve descrição dos procedimentos inclusos..."
+                   class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl py-1.5 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+          </div>
+        </form>
+
+        <div class="border border-slate-100 rounded-xl max-h-[220px] overflow-y-auto divide-y divide-slate-100 pr-1">
+          <% if (servicos.length === 0) { %>
+            <div class="p-6 text-center text-slate-400 text-xs">Nenhum serviço cadastrado.</div>
+          <% } else { %>
+            <% servicos.forEach(s => { %>
+              <div class="p-3 text-xs text-slate-700 flex items-center justify-between hover:bg-slate-50/50">
+                <div class="space-y-0.5">
+                  <div class="font-bold text-slate-800 flex items-center gap-2">
+                    <span><%= s.nome %></span>
+                    <% if (s.categoria) { %>
+                      <span class="text-[9px] font-semibold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded uppercase"><%= s.categoria %></span>
+                    <% } %>
+                  </div>
+                  <% if (s.descricao) { %>
+                    <p class="text-[11px] text-slate-400 italic"><%= s.descricao %></p>
+                  <% } %>
+                </div>
+                <div class="flex items-center space-x-3 shrink-0">
+                  <% if (s.preco_padrao) { %>
+                    <span class="font-semibold text-emerald-600">R$ <%= Number(s.preco_padrao).toFixed(2) %></span>
+                  <% } %>
+                  <form action="/servicos/<%= s.id %>?_method=DELETE" method="POST" onsubmit="return confirm('Excluir este serviço?');" class="inline">
+                    <button type="submit" class="text-red-400 hover:text-red-600 p-1 transition-colors" title="Excluir serviço">
+                      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+      </section>
+
       <!-- Bloco: Oficinas Parceiras/Locais -->
       <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6 lg:col-span-2">
         <div>

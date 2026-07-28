@@ -138,81 +138,71 @@
           </div>
         </section>
 
-        <!-- Linha do Tempo de Trocas (RF-15) -->
+        <!-- Linha do Tempo de Manutenções (Trocas de Peças e Serviços Prestados) -->
         <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-          <div>
-            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <i data-lucide="git-commit" class="w-5 h-5 text-brand-500"></i>
-              <span>Linha do Tempo de Manutenções</span>
-            </h2>
-            <p class="text-xs text-slate-500 mt-0.5">Histórico completo de trocas do veículo, ordenado da mais recente para a mais antiga.</p>
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="git-commit" class="w-5 h-5 text-brand-500"></i>
+                <span>Linha do Tempo de Manutenções</span>
+              </h2>
+              <p class="text-xs text-slate-500 mt-0.5">Histórico completo de trocas de peças e serviços prestados no veículo.</p>
+            </div>
           </div>
 
-          <div class="relative pl-6 border-l border-slate-200 space-y-8">
-            <% if (historicoTrocas.length === 0) { %>
-              <div class="text-center text-slate-400 py-6 pr-6">
-                <i data-lucide="wrench" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
-                Nenhum registro de troca encontrado para este veículo.
-              </div>
-            <% } else { %>
-              <% historicoTrocas.forEach(troca => { %>
-                <div class="relative">
-                  <!-- Indicador visual (Bolinha) -->
-                  <div class="absolute -left-[31px] top-1.5 w-4.5 h-4.5 rounded-full border-2 border-white bg-brand-500 shadow-sm flex items-center justify-center">
-                    <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
-                  </div>
-
-                  <!-- Conteúdo do Registro -->
-                  <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/60 shadow-sm space-y-3">
+          <!-- Histórico de Serviços (Sem Peça) -->
+          <% if (historicoServicos && historicoServicos.length > 0) { %>
+            <div class="space-y-3">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                <i data-lucide="wrench" class="w-4 h-4 text-emerald-500"></i>
+                <span>Serviços Prestados (<%= historicoServicos.length %>)</span>
+              </h3>
+              <div class="space-y-3">
+                <% historicoServicos.forEach(serv => { %>
+                  <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/60 shadow-sm space-y-2">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <h4 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
-                        <i data-lucide="package" class="w-4 h-4 text-slate-500"></i>
-                        <span><%= troca.peca.nome %></span>
-                        <span class="text-xs font-normal text-slate-500">(<%= troca.peca.marca.nome %>)</span>
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i>
+                        <span><%= serv.servico.nome %></span>
+                        <% if (serv.servico.categoria) { %>
+                          <span class="text-[10px] font-medium text-slate-500 bg-slate-200/60 px-1.5 py-0.5 rounded uppercase"><%= serv.servico.categoria %></span>
+                        <% } %>
                       </h4>
                       <span class="text-xs font-semibold text-slate-400 bg-white border border-slate-200 px-2 py-0.5 rounded-md self-start sm:self-auto shrink-0 shadow-sm">
-                        <%= new Date(troca.data_troca).toLocaleDateString('pt-BR') %>
+                        <%= new Date(serv.data_servico).toLocaleDateString('pt-BR') %>
                       </span>
                     </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-slate-500 border-t border-slate-200/50 pt-2.5">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-slate-500 border-t border-slate-200/50 pt-2">
                       <div>
-                        <span class="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">KM na Troca</span>
-                        <span class="text-slate-800 font-semibold mt-0.5 block"><%= troca.km_na_troca %> km</span>
+                        <span class="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">KM no Serviço</span>
+                        <span class="text-slate-800 font-semibold mt-0.5 block"><%= serv.km_no_servico %> km</span>
                       </div>
                       <div>
                         <span class="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Próxima (KM)</span>
-                        <span class="text-slate-800 font-semibold mt-0.5 block"><%= troca.km_previsto_proximo || 'Não Definido' %></span>
+                        <span class="text-slate-800 font-semibold mt-0.5 block"><%= serv.km_previsto_proximo ? serv.km_previsto_proximo + ' km' : 'N/I' %></span>
                       </div>
                       <div>
                         <span class="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Próxima (Data)</span>
                         <span class="text-slate-800 font-semibold mt-0.5 block">
-                          <%= troca.data_prevista_proximo ? new Date(troca.data_prevista_proximo).toLocaleDateString('pt-BR') : 'Não Definido' %>
+                          <%= serv.data_prevista_proximo ? new Date(serv.data_prevista_proximo).toLocaleDateString('pt-BR') : 'N/I' %>
                         </span>
                       </div>
                       <div>
                         <span class="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Executado por</span>
-                        <span class="text-slate-800 font-semibold mt-0.5 block truncate" title="<%= troca.executado_por %>"><%= troca.executado_por %></span>
+                        <span class="text-slate-800 font-semibold mt-0.5 block truncate"><%= serv.executado_por %></span>
                       </div>
                     </div>
 
-                    <% if (troca.oficina || troca.nome_oficina_manual) { %>
-                      <div class="text-xs bg-white border border-slate-200/50 p-2 rounded-lg flex items-center gap-1.5 text-slate-600">
-                        <i data-lucide="home" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
-                        <span class="font-medium">Oficina:</span>
-                        <span><%= troca.oficina ? troca.oficina.nome : troca.nome_oficina_manual %></span>
-                      </div>
-                    <% } %>
-
-                    <% if (troca.observacoes) { %>
-                      <div class="text-xs text-slate-500 bg-slate-100 p-2.5 rounded-lg italic">
-                        "<%= troca.observacoes %>"
+                    <% if (serv.observacoes) { %>
+                      <div class="text-xs text-slate-500 bg-slate-100 p-2 rounded-lg italic">
+                        "<%= serv.observacoes %>"
                       </div>
                     <% } %>
 
                     <% if (['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
                       <div class="flex justify-end pt-1">
-                        <form action="/troca/<%= troca.id %>?_method=DELETE" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar esse registro de troca?')" class="inline">
+                        <form action="/registro-servico/<%= serv.id %>?_method=DELETE" method="POST" onsubmit="return confirm('Apagar registro deste serviço?')" class="inline">
                           <button type="submit" class="text-red-500 hover:text-red-700 text-xs font-bold flex items-center gap-1">
                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                             <span>Apagar Registro</span>
@@ -221,9 +211,93 @@
                       </div>
                     <% } %>
                   </div>
+                <% }) %>
+              </div>
+            </div>
+          <% } %>
+
+          <!-- Trocas de Peças -->
+          <div class="space-y-3 pt-2">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+              <i data-lucide="package" class="w-4 h-4 text-brand-500"></i>
+              <span>Trocas de Peças (<%= historicoTrocas.length %>)</span>
+            </h3>
+
+            <div class="relative pl-6 border-l border-slate-200 space-y-6">
+              <% if (historicoTrocas.length === 0) { %>
+                <div class="text-center text-slate-400 py-6 pr-6">
+                  <i data-lucide="wrench" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
+                  Nenhum registro de troca de peça encontrado para este veículo.
                 </div>
-              <% }) %>
-            <% } %>
+              <% } else { %>
+                <% historicoTrocas.forEach(troca => { %>
+                  <div class="relative">
+                    <div class="absolute -left-[31px] top-1.5 w-4.5 h-4.5 rounded-full border-2 border-white bg-brand-500 shadow-sm flex items-center justify-center">
+                      <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/60 shadow-sm space-y-3">
+                      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h4 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                          <i data-lucide="package" class="w-4 h-4 text-slate-500"></i>
+                          <span><%= troca.peca.nome %></span>
+                          <span class="text-xs font-normal text-slate-500">(<%= troca.peca.marca.nome %>)</span>
+                        </h4>
+                        <span class="text-xs font-semibold text-slate-400 bg-white border border-slate-200 px-2 py-0.5 rounded-md self-start sm:self-auto shrink-0 shadow-sm">
+                          <%= new Date(troca.data_troca).toLocaleDateString('pt-BR') %>
+                        </span>
+                      </div>
+
+                      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-slate-500 border-t border-slate-200/50 pt-2.5">
+                        <div>
+                          <span class="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">KM na Troca</span>
+                          <span class="text-slate-800 font-semibold mt-0.5 block"><%= troca.km_na_troca %> km</span>
+                        </div>
+                        <div>
+                          <span class="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Próxima (KM)</span>
+                          <span class="text-slate-800 font-semibold mt-0.5 block"><%= troca.km_previsto_proximo || 'Não Definido' %></span>
+                        </div>
+                        <div>
+                          <span class="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Próxima (Data)</span>
+                          <span class="text-slate-800 font-semibold mt-0.5 block">
+                            <%= troca.data_prevista_proximo ? new Date(troca.data_prevista_proximo).toLocaleDateString('pt-BR') : 'Não Definido' %>
+                          </span>
+                        </div>
+                        <div>
+                          <span class="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Executado por</span>
+                          <span class="text-slate-800 font-semibold mt-0.5 block truncate" title="<%= troca.executado_por %>"><%= troca.executado_por %></span>
+                        </div>
+                      </div>
+
+                      <% if (troca.oficina || troca.nome_oficina_manual) { %>
+                        <div class="text-xs bg-white border border-slate-200/50 p-2 rounded-lg flex items-center gap-1.5 text-slate-600">
+                          <i data-lucide="home" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                          <span class="font-medium">Oficina:</span>
+                          <span><%= troca.oficina ? troca.oficina.nome : troca.nome_oficina_manual %></span>
+                        </div>
+                      <% } %>
+
+                      <% if (troca.observacoes) { %>
+                        <div class="text-xs text-slate-500 bg-slate-100 p-2.5 rounded-lg italic">
+                          "<%= troca.observacoes %>"
+                        </div>
+                      <% } %>
+
+                      <% if (['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
+                        <div class="flex justify-end pt-1">
+                          <form action="/troca/<%= troca.id %>?_method=DELETE" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar esse registro de troca?')" class="inline">
+                            <button type="submit" class="text-red-500 hover:text-red-700 text-xs font-bold flex items-center gap-1">
+                              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                              <span>Apagar Registro</span>
+                            </button>
+                          </form>
+                        </div>
+                      <% } %>
+                    </div>
+                  </div>
+                <% }) %>
+              <% } %>
+            </div>
           </div>
         </section>
 
@@ -231,6 +305,68 @@
 
       <!-- Coluna Direita: Registro Rápido e Agendamentos (1/3) -->
       <div class="space-y-8">
+        
+        <!-- Formulário Rápido: Registrar Serviço Realizado (Sem Peça) -->
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="wrench" class="w-5 h-5 text-emerald-500"></i>
+              <span>Registrar Serviço Realizado</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Registre um serviço que não exigiu troca de peças.</p>
+          </div>
+
+          <form action="/registro-servico" method="POST" class="space-y-4">
+            <input type="hidden" name="veiculo_id" value="<%= veiculo.id %>">
+            
+            <!-- Serviço -->
+            <div>
+              <label for="servico_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">Serviço Executado *</label>
+              <select id="servico_id" name="servico_id" required
+                      class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:outline-none focus:border-emerald-500 focus:bg-white transition-all">
+                <option value="" disabled selected>Selecione o serviço...</option>
+                <% servicos.forEach(s => { %>
+                  <option value="<%= s.id %>"><%= s.nome %> <%= s.categoria ? '(' + s.categoria + ')' : '' %></option>
+                <% }) %>
+              </select>
+            </div>
+
+            <!-- KM no Serviço -->
+            <div>
+              <label for="km_no_servico" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">KM Atual *</label>
+              <input type="number" id="km_no_servico" name="km_no_servico" required min="0" value="<%= veiculo.km_atual %>"
+                     class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:outline-none focus:border-emerald-500 focus:bg-white transition-all">
+            </div>
+
+            <!-- Data do Serviço -->
+            <div>
+              <label for="data_servico" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">Data do Serviço *</label>
+              <input type="date" id="data_servico" name="data_servico" required value="<%= new Date().toISOString().split('T')[0] %>"
+                     class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:outline-none focus:border-emerald-500 focus:bg-white transition-all">
+            </div>
+
+            <!-- Executado Por -->
+            <div>
+              <label for="executado_por_servico" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">Quem executou? *</label>
+              <input type="text" id="executado_por_servico" name="executado_por" required value="<%= usuarioLogado.nome %>"
+                     class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:outline-none focus:border-emerald-500 focus:bg-white transition-all">
+            </div>
+
+            <!-- Observações -->
+            <div>
+              <label for="observacoes_servico" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">Observações</label>
+              <textarea id="observacoes_servico" name="observacoes" rows="2" placeholder="Detalhes técnicos do serviço..."
+                        class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:outline-none focus:border-emerald-500 focus:bg-white transition-all resize-none"></textarea>
+            </div>
+
+            <button type="submit" 
+                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl shadow-md shadow-emerald-500/10 active:scale-[0.98] transition-all text-xs flex items-center justify-center space-x-2">
+              <span>Registrar Serviço</span>
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+            </button>
+
+          </form>
+        </section>
         
         <!-- Formulário Rápido de Registro de Troca (RF-11/RF-12/RF-13) -->
         <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">

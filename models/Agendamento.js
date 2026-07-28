@@ -16,6 +16,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'criado_por',
         as: 'criador'
       });
+      Agendamento.belongsTo(models.Servico, {
+        foreignKey: 'servico_id',
+        as: 'servico'
+      });
     }
   }
 
@@ -27,6 +31,10 @@ module.exports = (sequelize, DataTypes) => {
     veiculo_id: {
       type: DataTypes.INTEGER,
       allowNull: false
+    },
+    servico_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true
     },
     data_agendada: {
       type: DataTypes.DATEONLY,
