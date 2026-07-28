@@ -197,9 +197,24 @@
 
 <script>
   async function alterarStatus(id, novoStatus) {
-    if (!confirm(`Deseja alterar o status deste agendamento para ${novoStatus.toUpperCase()}?`)) {
-      return;
-    }
+    const acaoTexto = novoStatus === 'concluido' ? 'Concluir' : 'Cancelar';
+    const result = await Swal.fire({
+      title: `${acaoTexto} Agendamento?`,
+      text: `Deseja alterar o status deste agendamento para ${novoStatus.toUpperCase()}?`,
+      icon: novoStatus === 'concluido' ? 'question' : 'warning',
+      showCancelButton: true,
+      confirmButtonColor: novoStatus === 'concluido' ? '#10b981' : '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: `Sim, ${acaoTexto.toLowerCase()}!`,
+      cancelButtonText: 'Manter',
+      customClass: {
+        popup: 'rounded-2xl font-sans',
+        confirmButton: 'rounded-xl font-semibold px-4 py-2 text-sm',
+        cancelButton: 'rounded-xl font-semibold px-4 py-2 text-sm'
+      }
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       const response = await fetch(`/agendamentos/${id}`, {
@@ -214,11 +229,11 @@
         window.location.reload();
       } else {
         const txt = await response.text();
-        alert('Erro ao atualizar agendamento: ' + txt);
+        exibirAlertaModal('Atenção', 'Erro ao atualizar agendamento: ' + txt, 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('Erro de conexão ao atualizar agendamento.');
+      exibirAlertaModal('Erro de Conexão', 'Não foi possível se comunicar com o servidor.', 'error');
     }
   }
 </script>

@@ -17,7 +17,7 @@
             <span>Editar Veículo</span>
           </a>
           <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
-            <form action="/veiculos/<%= veiculo.id %>?_method=DELETE" method="POST" onsubmit="return confirm('Tem certeza que deseja deletar este veículo? Todos os registros de trocas de peças serão apagados!')" class="inline">
+            <form action="/veiculos/<%= veiculo.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Todos os registros de trocas de peças e serviços deste veículo serão apagados de forma permanente!', 'Excluir Veículo?'); return false;" class="inline">
               <button type="submit" class="inline-flex items-center space-x-1.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-semibold py-2 px-4 rounded-xl text-sm transition-all shadow-sm">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                 <span>Excluir Veículo</span>
@@ -202,7 +202,7 @@
 
                     <% if (['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
                       <div class="flex justify-end pt-1">
-                        <form action="/registro-servico/<%= serv.id %>?_method=DELETE" method="POST" onsubmit="return confirm('Apagar registro deste serviço?')" class="inline">
+                        <form action="/registro-servico/<%= serv.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Deseja remover este serviço do histórico do veículo?', 'Apagar Registro de Serviço?'); return false;" class="inline">
                           <button type="submit" class="text-red-500 hover:text-red-700 text-xs font-bold flex items-center gap-1">
                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                             <span>Apagar Registro</span>
@@ -285,7 +285,7 @@
 
                       <% if (['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
                         <div class="flex justify-end pt-1">
-                          <form action="/troca/<%= troca.id %>?_method=DELETE" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar esse registro de troca?')" class="inline">
+                          <form action="/troca/<%= troca.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja apagar esse registro de troca de peça?', 'Excluir Troca de Peça?'); return false;" class="inline">
                             <button type="submit" class="text-red-500 hover:text-red-700 text-xs font-bold flex items-center gap-1">
                               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                               <span>Apagar Registro</span>

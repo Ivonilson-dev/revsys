@@ -52,7 +52,7 @@
 
         <div>
           <% if (cliente.consentimento_lgpd) { %>
-            <form action="/cliente/revogar-consentimento" method="POST" onsubmit="return confirm('ATENÇÃO: Ao revogar, você não receberá mais notificações no WhatsApp sobre vencimento de peças ou agendamentos. Deseja revogar?')">
+            <form action="/cliente/revogar-consentimento" method="POST" onsubmit="confirmarAcaoModal(event, 'Ao revogar, você não receberá mais notificações sobre vencimento de peças ou agendamentos.', 'Revogar Consentimento?'); return false;">
               <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-xl shadow-sm hover:shadow-md transition-all">
                 Revogar Consentimento
               </button>

@@ -217,7 +217,7 @@
                   <% if (s.preco_padrao) { %>
                     <span class="font-semibold text-emerald-600">R$ <%= Number(s.preco_padrao).toFixed(2) %></span>
                   <% } %>
-                  <form action="/servicos/<%= s.id %>?_method=DELETE" method="POST" onsubmit="return confirm('Excluir este serviço?');" class="inline">
+                  <form action="/servicos/<%= s.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir este serviço do catálogo da oficina?', 'Excluir Serviço?'); return false;" class="inline">
                     <button type="submit" class="text-red-400 hover:text-red-600 p-1 transition-colors" title="Excluir serviço">
                       <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                     </button>

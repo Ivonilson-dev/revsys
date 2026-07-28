@@ -58,6 +58,47 @@
       });
     }
 
+    // Funções Globais para Alertas e Confirmações com SweetAlert2
+    function confirmarAcaoModal(e, mensagem, titulo = 'Tem certeza?', textoBotao = 'Sim, confirmar!') {
+      if (e) e.preventDefault();
+      const target = e ? (e.target.tagName === 'FORM' ? e.target : e.target.closest('form')) : null;
+      
+      return Swal.fire({
+        title: titulo,
+        text: mensagem,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: textoBotao,
+        cancelButtonText: 'Cancelar',
+        customClass: {
+          popup: 'rounded-2xl font-sans',
+          confirmButton: 'rounded-xl font-semibold px-4 py-2 text-sm',
+          cancelButton: 'rounded-xl font-semibold px-4 py-2 text-sm'
+        }
+      }).then((result) => {
+        if (result.isConfirmed && target) {
+          target.submit();
+        }
+        return result.isConfirmed;
+      });
+    }
+
+    function exibirAlertaModal(titulo, texto, icone = 'info') {
+      return Swal.fire({
+        title: titulo,
+        text: texto,
+        icon: icone,
+        confirmButtonColor: '#0284c7',
+        confirmButtonText: 'Entendido',
+        customClass: {
+          popup: 'rounded-2xl font-sans',
+          confirmButton: 'rounded-xl font-semibold px-4 py-2 text-sm'
+        }
+      });
+    }
+
     // Auto-fechar alertas de sucesso/erro após 5 segundos
     setTimeout(() => {
       const alerta = document.getElementById('alerta-global');
