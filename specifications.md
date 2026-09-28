@@ -12,8 +12,7 @@ O **RevSys** é um sistema web de gestão automotiva e manutenção preventiva p
 - **View Engine**: EJS (Server-Side Rendering com componentes e layouts modulares)
 - **ORM & Banco de Dados**:
   - **Sequelize ORM** (v6)
-  - **MySQL 8.0+** (Ambiente principal de produção/desenvolvimento)
-  - **SQLite** (Suporte a desenvolvimento local/testes rápidos via `database.sqlite`)
+  - **MySQL 8.0+** (Ambiente de desenvolvimento e produção)
 - **Estilização e UI**:
   - TailwindCSS (com design moderno em dark/light contrast, cards com cantos arredondados `rounded-2xl`, micro-interações)
   - **Lucide Icons** (ícones vetoriais dinâmicos)

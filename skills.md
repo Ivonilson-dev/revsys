@@ -142,4 +142,4 @@ Ao criar ou alterar campos em um modelo Sequelize:
 1. Atualize a classe correspondente em `models/`.
 2. Adicione/ajuste a instrução DDL equivalente no arquivo `banco.sql`.
 3. Atualize o seeder em `seeders/20260717000001-dados-iniciais.js`.
-4. Se o banco MySQL ou SQLite local já estiver em execução, execute um script scratch via `sequelize.query()` ou `ALTER TABLE` para aplicar a alteração no banco ativo sem perder dados.
+4. Se o banco MySQL local já estiver em execução, execute um script scratch via `sequelize.query()` ou `ALTER TABLE` para aplicar a alteração no banco ativo sem perder dados.

@@ -4,18 +4,18 @@
 <!-- Carregar IMask via CDN para máscaras nos inputs (RNF-15) -->
 <script src="https://unpkg.com/imask"></script>
 
-<div class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8">
+<div class="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 md:p-8 pb-24 md:pb-8 smooth-scroll">
   <div class="max-w-3xl mx-auto space-y-6">
     
     <!-- Link Voltar -->
-    <a href="/clientes" class="inline-flex items-center space-x-1 text-slate-500 hover:text-slate-900 transition-colors text-sm font-semibold">
-      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    <a href="/clientes" class="inline-flex items-center space-x-1.5 text-slate-600 hover:text-slate-900 transition-colors text-base font-semibold">
+      <i data-lucide="arrow-left" class="w-5 h-5"></i>
       <span>Voltar para Clientes</span>
     </a>
 
     <!-- Alerta de Erro -->
     <% if (erro) { %>
-      <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-800 text-sm flex items-start space-x-2 shadow-sm">
+      <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-800 text-base font-medium flex items-start space-x-2 shadow-sm">
         <i data-lucide="alert-circle" class="w-5 h-5 shrink-0 mt-0.5 text-red-600"></i>
         <span><%= erro %></span>
       </div>
@@ -23,8 +23,8 @@
 
     <!-- Título -->
     <div>
-      <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Cadastrar Novo Cliente</h1>
-      <p class="text-slate-500 mt-1">Insira as informações do cliente. Uma senha provisória de acesso será gerada automaticamente.</p>
+      <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Cadastrar Novo Cliente</h1>
+      <p class="text-slate-600 text-base md:text-lg mt-1 font-normal">Insira as informações do cliente. Uma senha provisória de acesso será gerada automaticamente.</p>
     </div>
 
     <!-- Card de Formulário -->
@@ -33,122 +33,122 @@
         
         <!-- Seção 1: Dados Pessoais -->
         <div class="space-y-4">
-          <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">Dados Pessoais</h2>
+          <h2 class="text-base font-bold text-slate-700 uppercase tracking-wider border-b border-slate-100 pb-2">Dados Pessoais</h2>
           
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div class="col-span-1 sm:col-span-2">
-              <label for="nome" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Nome Completo *</label>
+              <label for="nome" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">Nome Completo *</label>
               <input type="text" id="nome" name="nome" required value="<%= dados.nome || '' %>"
                      placeholder="Ex: João da Silva"
-                     class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3.5 text-sm placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+                     class="w-full bg-slate-50/50 border border-slate-300 text-slate-900 rounded-xl py-3 px-4 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
             </div>
 
             <div>
-              <label for="cpfInput" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">CPF *</label>
+              <label for="cpfInput" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">CPF *</label>
               <input type="text" id="cpfInput" name="cpfInput" required value="<%= dados.cpfInput || '' %>"
                      placeholder="000.000.000-00"
-                     class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3.5 text-sm placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+                     class="w-full bg-slate-50/50 border border-slate-300 text-slate-900 font-mono rounded-xl py-3 px-4 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
             </div>
 
             <div>
-              <label for="email" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">E-mail *</label>
+              <label for="email" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">E-mail *</label>
               <input type="email" id="email" name="email" required value="<%= dados.email || '' %>"
                      placeholder="exemplo@email.com"
-                     class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3.5 text-sm placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+                     class="w-full bg-slate-50/50 border border-slate-300 text-slate-900 rounded-xl py-3 px-4 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
             </div>
 
             <div>
-              <label for="telefone" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Telefone Principal</label>
+              <label for="telefone" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">Telefone Principal</label>
               <input type="text" id="telefone" name="telefone" value="<%= dados.telefone || '' %>"
                      placeholder="(00) 00000-0000"
-                     class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3.5 text-sm placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+                     class="w-full bg-slate-50/50 border border-slate-300 text-slate-900 rounded-xl py-3 px-4 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
             </div>
 
             <div>
-              <label for="telefone_whatsapp" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">WhatsApp para Contatos</label>
+              <label for="telefone_whatsapp" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">WhatsApp para Contatos</label>
               <input type="text" id="telefone_whatsapp" name="telefone_whatsapp" value="<%= dados.telefone_whatsapp || '' %>"
                      placeholder="(00) 00000-0000"
-                     class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3.5 text-sm placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+                     class="w-full bg-slate-50/50 border border-slate-300 text-slate-900 rounded-xl py-3 px-4 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
             </div>
           </div>
         </div>
 
         <!-- Seção 2: Endereço -->
         <div class="space-y-4">
-          <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">Endereço Residencial</h2>
+          <h2 class="text-base font-bold text-slate-700 uppercase tracking-wider border-b border-slate-100 pb-2">Endereço Residencial</h2>
           
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div>
-              <label for="cep" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">CEP</label>
+              <label for="cep" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">CEP</label>
               <input type="text" id="cep" name="cep" value="<%= dados.cep || '' %>"
                      placeholder="00000-000"
-                     class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3.5 text-sm placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+                     class="w-full bg-slate-50/50 border border-slate-300 text-slate-900 rounded-xl py-3 px-4 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
             </div>
 
             <div class="sm:col-span-2">
-              <label for="logradouro" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Logradouro / Rua</label>
+              <label for="logradouro" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">Logradouro / Rua</label>
               <input type="text" id="logradouro" name="logradouro" value="<%= dados.logradouro || '' %>"
                      placeholder="Ex: Av. Brasil"
-                     class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3.5 text-sm placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+                     class="w-full bg-slate-50/50 border border-slate-300 text-slate-900 rounded-xl py-3 px-4 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
             </div>
 
             <div>
-              <label for="numero" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Número</label>
+              <label for="numero" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">Número</label>
               <input type="text" id="numero" name="numero" value="<%= dados.numero || '' %>"
                      placeholder="Ex: 123 ou S/N"
-                     class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3.5 text-sm placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+                     class="w-full bg-slate-50/50 border border-slate-300 text-slate-900 rounded-xl py-3 px-4 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
             </div>
 
             <div>
-              <label for="bairro" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Bairro</label>
+              <label for="bairro" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">Bairro</label>
               <input type="text" id="bairro" name="bairro" value="<%= dados.bairro || '' %>"
                      placeholder="Ex: Centro"
-                     class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3.5 text-sm placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+                     class="w-full bg-slate-50/50 border border-slate-300 text-slate-900 rounded-xl py-3 px-4 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
             </div>
 
             <div>
-              <label for="cidade" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Cidade</label>
+              <label for="cidade" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">Cidade</label>
               <input type="text" id="cidade" name="cidade" value="<%= dados.cidade || '' %>"
                      placeholder="Ex: São Paulo"
-                     class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3.5 text-sm placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+                     class="w-full bg-slate-50/50 border border-slate-300 text-slate-900 rounded-xl py-3 px-4 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
             </div>
 
             <div>
-              <label for="estado" class="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Estado (UF)</label>
+              <label for="estado" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">Estado (UF)</label>
               <input type="text" id="estado" name="estado" maxlength="2" value="<%= dados.estado || '' %>"
                      placeholder="Ex: SP"
-                     class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3.5 text-sm placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all uppercase">
+                     class="w-full bg-slate-50/50 border border-slate-300 text-slate-900 rounded-xl py-3 px-4 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all uppercase">
             </div>
           </div>
         </div>
 
         <!-- Seção 3: Consentimento LGPD (Obrigatório - RF-31) -->
-        <div class="bg-slate-50 rounded-2xl p-4 sm:p-6 border border-slate-200/80 space-y-4">
-          <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+        <div class="bg-slate-50 rounded-2xl p-5 sm:p-6 border border-slate-200 space-y-4">
+          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
             <i data-lucide="shield-check" class="w-5 h-5 text-brand-500"></i>
             <span>Consentimento de Dados (LGPD)</span>
           </h2>
-          <p class="text-xs text-slate-500 leading-relaxed">
+          <p class="text-sm text-slate-600 leading-relaxed font-normal">
             Coletamos apenas dados necessários para fins de contato comercial e manutenção veicular. Em conformidade com a LGPD, o cliente tem direito à privacidade, acesso aos dados e exclusão ou revogação a qualquer momento na área do cliente.
           </p>
-          <div class="flex items-start space-x-3">
+          <div class="flex items-start space-x-3 pt-1">
             <input type="checkbox" id="consentimento_lgpd" name="consentimento_lgpd" value="true" required
                    class="w-5 h-5 text-brand-600 bg-white border-slate-300 rounded focus:ring-brand-500 focus:ring-2 mt-0.5 cursor-pointer shrink-0">
-            <label for="consentimento_lgpd" class="text-xs font-medium text-slate-700 leading-relaxed cursor-pointer select-none">
-              Declaro que obtive a anuência do cliente, que leu e concorda com a <a href="#" class="text-brand-500 underline font-semibold hover:text-brand-600">Política de Privacidade</a> e com o tratamento dos seus dados pessoais conforme a LGPD. *
+            <label for="consentimento_lgpd" class="text-sm font-medium text-slate-800 leading-relaxed cursor-pointer select-none">
+              Declaro que obtive a anuência do cliente, que leu e concorda com a <a href="#" class="text-brand-600 underline font-bold hover:text-brand-700">Política de Privacidade</a> e com o tratamento dos seus dados pessoais conforme a LGPD. *
             </label>
           </div>
         </div>
 
         <!-- Botões de Ação -->
-        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-          <a href="/clientes" class="px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-all">
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-4 border-t border-slate-100">
+          <a href="/clientes" class="w-full sm:w-auto text-center px-5 py-3 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 text-base font-semibold transition-all">
             Cancelar
           </a>
           <button type="submit" 
-                  class="bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2.5 px-6 rounded-xl shadow-md shadow-brand-500/10 hover:shadow-brand-500/20 active:scale-[0.98] transition-all text-sm flex items-center space-x-2">
+                  class="w-full sm:w-auto justify-center bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 px-6 rounded-xl shadow-md shadow-brand-500/10 hover:shadow-brand-500/20 active:scale-[0.98] transition-all text-base flex items-center space-x-2">
             <span>Salvar Cliente</span>
-            <i data-lucide="check" class="w-4 h-4"></i>
+            <i data-lucide="check" class="w-5 h-5"></i>
           </button>
         </div>
 
@@ -163,26 +163,30 @@
   document.addEventListener('DOMContentLoaded', () => {
     // Máscara CPF
     const cpfInput = document.getElementById('cpfInput');
-    if (cpfInput) {
+    if (cpfInput && typeof IMask !== 'undefined') {
       IMask(cpfInput, { mask: '000.000.000-00' });
     }
 
     // Máscara CEP
     const cepInput = document.getElementById('cep');
-    if (cepInput) {
+    if (cepInput && typeof IMask !== 'undefined') {
       IMask(cepInput, { mask: '00000-000' });
     }
 
-    // Máscara Telefone
+    // Máscara Telefone Dinâmica (Fixo ou Celular)
+    const telMask = [
+      { mask: '(00) 0000-0000' },
+      { mask: '(00) 00000-0000' }
+    ];
+
     const telInput = document.getElementById('telefone');
-    if (telInput) {
-      IMask(telInput, { mask: '(00) 00000-0000' });
+    if (telInput && typeof IMask !== 'undefined') {
+      IMask(telInput, { mask: telMask });
     }
 
-    // Máscara WhatsApp
     const whatsappInput = document.getElementById('telefone_whatsapp');
-    if (whatsappInput) {
-      IMask(whatsappInput, { mask: '(00) 00000-0000' });
+    if (whatsappInput && typeof IMask !== 'undefined') {
+      IMask(whatsappInput, { mask: telMask });
     }
   });
 </script>

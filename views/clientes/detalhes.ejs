@@ -1,79 +1,100 @@
 <%- include('../parciais/cabecalho') %>
 <%- include('../parciais/menu') %>
 
-<div class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8">
+<div class="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 md:p-8 pb-24 md:pb-8 smooth-scroll">
   <div class="max-w-6xl mx-auto space-y-6">
     
-    <!-- Link Voltar & Notificações de Sucesso -->
+    <!-- Link Voltar & Ações -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <a href="/clientes" class="inline-flex items-center space-x-1 text-slate-500 hover:text-slate-900 transition-colors text-sm font-semibold">
-        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+      <a href="/clientes" class="inline-flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors text-base font-semibold">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
         <span>Voltar para Clientes</span>
       </a>
-      <% if (['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
-        <div class="flex items-center space-x-2">
-          <a href="/clientes/<%= cliente.id %>/editar" class="inline-flex items-center space-x-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-xl text-sm transition-all shadow-sm">
-            <i data-lucide="edit-2" class="w-4 h-4"></i>
+      <% 
+        let telLimpo = cliente.telefone_whatsapp ? String(cliente.telefone_whatsapp).replace(/\D/g, '') : '';
+        if (telLimpo.length === 10 || telLimpo.length === 11) {
+          telLimpo = '55' + telLimpo;
+        }
+        const msgWhats = `Olá ${cliente.usuario.nome}, tudo bem? Entramos em contato da oficina a respeito do seu veículo.`;
+      %>
+      <div class="grid grid-cols-1 xs:grid-cols-2 sm:flex sm:items-center gap-2.5 w-full sm:w-auto">
+        <% if (telLimpo) { %>
+          <a href="https://wa.me/<%= telLimpo %>?text=<%= encodeURIComponent(msgWhats) %>" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold py-2.5 px-4 rounded-xl text-sm sm:text-base transition-all shadow-sm">
+            <svg class="w-5 h-5 fill-current shrink-0" width="20" height="20" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436.002 9.858-4.419 9.86-9.86 0-2.636-1.027-5.115-2.89-6.981-1.864-1.865-4.347-2.89-6.985-2.891-5.439 0-9.861 4.417-9.865 9.86-.001 1.745.454 3.447 1.32 4.965l-.995 3.637 3.73-.976zm9.953-6.85c-.29-.145-1.713-.846-1.979-.942-.266-.097-.459-.145-.653.146-.193.29-.749.942-.919 1.135-.169.193-.339.217-.629.072-.29-.144-1.226-.452-2.335-1.441-.864-.771-1.447-1.724-1.616-2.014-.169-.29-.018-.447.127-.591.131-.13.29-.339.435-.508.145-.169.193-.29.29-.483.097-.193.048-.363-.024-.508-.072-.145-.653-1.573-.895-2.153-.235-.568-.475-.49-.653-.5-.169-.008-.363-.009-.556-.009-.193 0-.508.072-.773.362-.266.29-1.014.99-1.014 2.415 0 1.425 1.038 2.802 1.183 2.995.145.193 2.043 3.12 4.949 4.373.692.298 1.232.476 1.652.61.697.221 1.33.19 1.83.115.557-.083 1.713-.699 1.954-1.376.241-.676.241-1.256.169-1.376-.073-.12-.266-.193-.556-.339z"/></svg>
+            <span>Conversar no WhatsApp</span>
+          </a>
+        <% } %>
+        <% if (['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
+          <a href="/clientes/<%= cliente.id %>/editar" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-bold py-2.5 px-4 rounded-xl text-sm sm:text-base transition-all shadow-sm">
+            <i data-lucide="edit-2" class="w-4.5 h-4.5"></i>
             <span>Editar Cadastro</span>
           </a>
           
           <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
-            <form action="/clientes/<%= cliente.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Deletar este cliente removerá todos os seus veículos e histórico de forma irreversível!', 'Excluir Cliente?'); return false;" class="inline">
-              <button type="submit" class="inline-flex items-center space-x-1.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-semibold py-2 px-4 rounded-xl text-sm transition-all shadow-sm">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <form action="/clientes/<%= cliente.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Deletar este cliente removerá todos os seus veículos e histórico de forma irreversível!', 'Excluir Cliente?'); return false;" class="w-full sm:w-auto inline">
+              <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-bold py-2.5 px-4 rounded-xl text-sm sm:text-base transition-all shadow-sm">
+                <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
                 <span>Excluir Cliente</span>
               </button>
             </form>
           <% } %>
-        </div>
-      <% } %>
+        <% } %>
+      </div>
     </div>
 
     <!-- Mensagens -->
     <% if (sucessoMsg) { %>
-      <div id="alerta-global" class="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-800 text-sm flex items-start space-x-2 shadow-sm">
+      <div id="alerta-global" class="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-800 text-base font-medium flex items-start space-x-2 shadow-sm">
         <i data-lucide="check-circle" class="w-5 h-5 shrink-0 mt-0.5 text-green-600"></i>
         <span><%= sucessoMsg %></span>
       </div>
     <% } %>
 
     <!-- Layout: Ficha do Cliente e Veículos -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
       
       <!-- Ficha de Cadastro (1/3) -->
       <div class="space-y-6">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-6 border-b border-slate-100">
-            <div class="w-12 h-12 rounded-2xl bg-brand-100 text-brand-600 flex items-center justify-center font-extrabold text-lg select-none mb-4">
+          <div class="p-5 sm:p-6 border-b border-slate-100">
+            <div class="w-14 h-14 rounded-2xl bg-brand-100 text-brand-600 flex items-center justify-center font-black text-xl select-none mb-4">
               <%= cliente.usuario.nome.substring(0, 2).toUpperCase() %>
             </div>
-            <h2 class="text-xl font-bold text-slate-900 leading-tight"><%= cliente.usuario.nome %></h2>
-            <span class="text-xs text-slate-400 block mt-1 uppercase font-bold tracking-wider">Cliente cadastrado</span>
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 leading-tight"><%= cliente.usuario.nome %></h2>
+            <span class="text-xs text-slate-500 block mt-1 uppercase font-bold tracking-wider">Cliente cadastrado</span>
           </div>
 
-          <div class="p-6 space-y-4 text-sm">
+          <div class="p-5 sm:p-6 space-y-4 sm:space-y-5 text-base">
             <div>
-              <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider">CPF</span>
-              <span class="font-mono font-semibold text-slate-800 mt-0.5 block"><%= cliente.cpf %></span>
+              <span class="block text-xs font-bold text-slate-500 uppercase tracking-wider">CPF</span>
+              <span class="font-mono font-bold text-slate-900 text-base sm:text-lg mt-0.5 block"><%= formatarCPF(cliente.cpf) %></span>
             </div>
             
             <div>
-              <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider">E-mail</span>
-              <span class="text-slate-800 mt-0.5 block truncate"><%= cliente.usuario.email %></span>
+              <span class="block text-xs font-bold text-slate-500 uppercase tracking-wider">E-mail</span>
+              <span class="text-slate-800 font-medium mt-0.5 block truncate text-sm sm:text-base"><%= cliente.usuario.email %></span>
             </div>
 
             <div>
-              <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Telefone / WhatsApp</span>
-              <span class="text-slate-800 mt-0.5 block"><%= cliente.telefone_whatsapp || 'Não informado' %></span>
+              <span class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Telefone / WhatsApp</span>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="text-slate-900 font-bold text-sm sm:text-base"><%= cliente.telefone_whatsapp ? formatarTelefone(cliente.telefone_whatsapp) : 'Não informado' %></span>
+                <% if (telLimpo) { %>
+                  <a href="https://wa.me/<%= telLimpo %>?text=<%= encodeURIComponent(msgWhats) %>" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#25D366] hover:bg-[#128C7E] text-white text-xs font-bold transition-all shadow-sm shrink-0" title="Conversar no WhatsApp">
+                    <svg class="w-4 h-4 fill-current shrink-0" width="16" height="16" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436.002 9.858-4.419 9.86-9.86 0-2.636-1.027-5.115-2.89-6.981-1.864-1.865-4.347-2.89-6.985-2.891-5.439 0-9.861 4.417-9.865 9.86-.001 1.745.454 3.447 1.32 4.965l-.995 3.637 3.73-.976zm9.953-6.85c-.29-.145-1.713-.846-1.979-.942-.266-.097-.459-.145-.653.146-.193.29-.749.942-.919 1.135-.169.193-.339.217-.629.072-.29-.144-1.226-.452-2.335-1.441-.864-.771-1.447-1.724-1.616-2.014-.169-.29-.018-.447.127-.591.131-.13.29-.339.435-.508.145-.169.193-.29.29-.483.097-.193.048-.363-.024-.508-.072-.145-.653-1.573-.895-2.153-.235-.568-.475-.49-.653-.5-.169-.008-.363-.009-.556-.009-.193 0-.508.072-.773.362-.266.29-1.014.99-1.014 2.415 0 1.425 1.038 2.802 1.183 2.995.145.193 2.043 3.12 4.949 4.373.692.298 1.232.476 1.652.61.697.221 1.33.19 1.83.115.557-.083 1.713-.699 1.954-1.376.241-.676.241-1.256.169-1.376-.073-.12-.266-.193-.556-.339z"/></svg>
+                    <span>WhatsApp</span>
+                  </a>
+                <% } %>
+              </div>
             </div>
 
             <div class="pt-4 border-t border-slate-100">
-              <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Endereço Registrado</span>
-              <div class="text-slate-600 leading-relaxed text-xs">
+              <span class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Endereço Registrado</span>
+              <div class="text-slate-700 leading-relaxed text-sm">
                 <% if (cliente.logradouro) { %>
-                  <p><%= cliente.logradouro %>, Nº <%= cliente.numero %></p>
+                  <p class="font-medium"><%= cliente.logradouro %>, Nº <%= cliente.numero %></p>
                   <p><%= cliente.bairro %> - <%= cliente.cidade %>/<%= cliente.estado %></p>
-                  <p>CEP: <%= cliente.cep || 'N/I' %></p>
+                  <p>CEP: <%= cliente.cep ? formatarCEP(cliente.cep) : 'N/I' %></p>
                 <% } else { %>
                   <p class="italic text-slate-400">Endereço não cadastrado.</p>
                 <% } %>
@@ -81,15 +102,15 @@
             </div>
 
             <div class="pt-4 border-t border-slate-100 space-y-2">
-              <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Consentimento LGPD</span>
+              <span class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Consentimento LGPD</span>
               <div class="flex items-center space-x-2">
                 <% if (cliente.consentimento_lgpd) { %>
-                  <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200">
+                  <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-300">
                     CONCEDIDO
                   </span>
-                  <span class="text-[10px] text-slate-400"><%= new Date(cliente.data_consentimento_lgpd).toLocaleDateString('pt-BR') %></span>
+                  <span class="text-xs text-slate-500 font-medium"><%= new Date(cliente.data_consentimento_lgpd).toLocaleDateString('pt-BR') %></span>
                 <% } else { %>
-                  <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200">
+                  <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-300">
                     REVOGADO / INATIVO
                   </span>
                 <% } %>
@@ -104,16 +125,16 @@
         
         <!-- Veículos Cadastrados -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-6 border-b border-slate-100 flex items-center justify-between gap-4">
+          <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <i data-lucide="car" class="w-5 h-5 text-brand-500"></i>
+              <h3 class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2.5">
+                <i data-lucide="car" class="w-6 h-6 text-brand-500"></i>
                 <span>Veículos do Cliente</span>
               </h3>
-              <p class="text-xs text-slate-400 mt-0.5">Veículos registrados para emissão de alertas.</p>
+              <p class="text-xs sm:text-sm text-slate-500 mt-1">Veículos registrados para emissão de alertas e manutenções.</p>
             </div>
             <% if (['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
-              <a href="/veiculos/novo?cliente_id=<%= cliente.id %>" class="inline-flex items-center space-x-1.5 bg-brand-50 hover:bg-brand-100 border border-brand-200 text-brand-700 font-bold py-2 px-3 rounded-lg text-xs transition-colors shrink-0">
+              <a href="/veiculos/novo?cliente_id=<%= cliente.id %>" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-brand-50 hover:bg-brand-100 border border-brand-200 text-brand-700 font-bold py-2.5 px-4 rounded-xl text-sm sm:text-base transition-colors shrink-0">
                 <i data-lucide="plus" class="w-4 h-4"></i>
                 <span>Adicionar Veículo</span>
               </a>
@@ -122,34 +143,34 @@
 
           <div class="divide-y divide-slate-100">
             <% if (cliente.veiculos && cliente.veiculos.length === 0) { %>
-              <div class="p-12 text-center text-slate-400">
-                <i data-lucide="car" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
-                <p class="text-sm">Nenhum veículo cadastrado para este cliente.</p>
+              <div class="p-8 sm:p-12 text-center text-slate-500 text-base font-medium">
+                <i data-lucide="car" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
+                <p>Nenhum veículo cadastrado para este cliente.</p>
               </div>
             <% } else { %>
               <% cliente.veiculos.forEach(veiculo => { %>
-                <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors">
-                  <div class="flex items-center space-x-4">
+                <div class="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors">
+                  <div class="flex flex-col xs:flex-row xs:items-center gap-3.5 sm:space-x-4">
                     <!-- Placa Estilizada -->
-                    <div class="bg-slate-950 text-white font-mono font-bold text-sm border-2 border-slate-800 rounded-lg px-3 py-1.5 shadow-sm uppercase tracking-wider select-none">
+                    <div class="bg-slate-950 text-white font-mono font-bold text-sm sm:text-base border-2 border-slate-800 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 shadow-sm uppercase tracking-wider select-none self-start xs:self-auto">
                       <%= veiculo.placa %>
                     </div>
                     <div>
-                      <span class="text-base font-bold text-slate-900 block">
+                      <span class="text-base sm:text-lg font-bold text-slate-900 block">
                         <%= veiculo.modelo ? veiculo.modelo.marca.nome + ' ' + veiculo.modelo.nome : 'Modelo não cadastrado' %>
                       </span>
-                      <div class="flex items-center gap-3 text-xs text-slate-500 mt-1">
-                        <span>Ano: <span class="font-medium text-slate-700"><%= veiculo.ano %></span></span>
+                      <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-slate-600 mt-1 font-medium">
+                        <span>Ano: <span class="font-bold text-slate-800"><%= veiculo.ano %></span></span>
                         <span>•</span>
-                        <span>Cor: <span class="font-medium text-slate-700"><%= veiculo.cor %></span></span>
+                        <span>Cor: <span class="font-bold text-slate-800 capitalize"><%= veiculo.cor %></span></span>
                         <span>•</span>
-                        <span>KM atual: <span class="font-medium text-slate-700"><%= veiculo.km_atual %> km</span></span>
+                        <span>KM: <span class="font-bold text-slate-800"><%= Number(veiculo.km_atual).toLocaleString('pt-BR') %> km</span></span>
                       </div>
                     </div>
                   </div>
                   <div>
-                    <a href="/veiculos/<%= veiculo.id %>" class="inline-flex items-center space-x-1.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-3 rounded-lg text-xs shadow-sm hover:shadow-md transition-colors">
-                      <i data-lucide="wrench" class="w-3.5 h-3.5"></i>
+                    <a href="/veiculos/<%= veiculo.id %>" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl text-sm sm:text-base shadow-md hover:shadow-lg transition-colors">
+                      <i data-lucide="wrench" class="w-4 h-4"></i>
                       <span>Ver Prontuário / Alertas</span>
                     </a>
                   </div>

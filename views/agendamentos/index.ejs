@@ -1,17 +1,17 @@
 <%- include('../parciais/cabecalho') %>
 <%- include('../parciais/menu') %>
 
-<div class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8">
+<div class="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 md:p-8 pb-24 md:pb-8 smooth-scroll">
   <div class="max-w-7xl mx-auto space-y-6">
     
     <!-- Cabeçalho -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Gerenciamento de Agendamentos</h1>
-        <p class="text-slate-500 mt-1">Veja todos os agendamentos do sistema ou filtre por período e cliente.</p>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Gerenciamento de Agendamentos</h1>
+        <p class="text-slate-600 text-xs sm:text-sm md:text-base mt-1 font-normal">Veja todos os agendamentos do sistema ou filtre por período e cliente.</p>
       </div>
-      <div class="flex items-center space-x-3">
-        <a href="/agendamentos/calendario-tela" class="inline-flex items-center space-x-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow-md shadow-brand-500/10 hover:shadow-brand-500/20 active:scale-[0.98] transition-all text-sm">
+      <div>
+        <a href="/agendamentos/calendario-tela" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 px-4 rounded-xl shadow-md shadow-brand-500/10 hover:shadow-brand-500/20 active:scale-[0.98] transition-all text-xs sm:text-sm text-center">
           <i data-lucide="calendar" class="w-4 h-4"></i>
           <span>Ver Agenda Visual (Calendário)</span>
         </a>
@@ -19,22 +19,22 @@
     </div>
 
     <!-- Filtros de Busca -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-      <form action="/agendamentos" method="GET" class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+      <form action="/agendamentos" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end">
         
         <!-- Filtro Data -->
         <div>
-          <label for="data" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Data</label>
+          <label for="data" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Data</label>
           <input type="date" id="data" name="data" value="<%= filtros.data || '' %>"
-                 class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:outline-none focus:border-brand-500 transition-all">
+                 class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2 px-3 text-sm focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
         </div>
 
         <!-- Filtro Status -->
         <div>
-          <label for="status" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Status</label>
+          <label for="status" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Status</label>
           <select id="status" name="status"
-                  class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:outline-none focus:border-brand-500 transition-all">
-            <option value="">Todos</option>
+                  class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2 px-3 text-sm focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
+            <option value="">Todos os Status</option>
             <option value="agendado" <%= filtros.status === 'agendado' ? 'selected' : '' %>>Agendado</option>
             <option value="concluido" <%= filtros.status === 'concluido' ? 'selected' : '' %>>Concluído</option>
             <option value="cancelado" <%= filtros.status === 'cancelado' ? 'selected' : '' %>>Cancelado</option>
@@ -43,10 +43,10 @@
 
         <!-- Filtro Cliente -->
         <div>
-          <label for="cliente_id" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Cliente</label>
+          <label for="cliente_id" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Cliente</label>
           <select id="cliente_id" name="cliente_id"
-                  class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:outline-none focus:border-brand-500 transition-all">
-            <option value="">Todos</option>
+                  class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2 px-3 text-sm focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
+            <option value="">Todos os Clientes</option>
             <% clientes.forEach(cli => { %>
               <option value="<%= cli.id %>" <%= filtros.cliente_id == cli.id ? 'selected' : '' %>><%= cli.usuario.nome %></option>
             <% }) %>
@@ -55,11 +55,11 @@
 
         <!-- Botões -->
         <div class="flex gap-2">
-          <button type="submit" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-4 rounded-xl text-xs transition-all hover:shadow-md">
+          <button type="submit" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition-all shadow-sm">
             Filtrar
           </button>
           <% if (filtros.data || filtros.status || filtros.cliente_id) { %>
-            <a href="/agendamentos" class="flex-1 text-center border border-slate-200 hover:bg-slate-50 text-slate-700 py-2 px-4 rounded-xl text-xs transition-all font-semibold">
+            <a href="/agendamentos" class="flex-1 text-center border border-slate-300 hover:bg-slate-50 text-slate-700 py-2.5 px-4 rounded-xl text-sm transition-all font-semibold">
               Limpar
             </a>
           <% } %>
@@ -75,7 +75,7 @@
       <div class="hidden md:block overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-slate-50/70 border-b border-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider">
+            <tr class="bg-slate-100/80 border-b border-slate-200 text-slate-700 text-xs sm:text-sm font-bold uppercase tracking-wider">
               <th class="p-4 pl-6">Data / Horário</th>
               <th class="p-4">Cliente</th>
               <th class="p-4">Veículo (Placa)</th>
@@ -84,46 +84,61 @@
               <th class="p-4 pr-6 text-right">Ações</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 text-slate-700 text-sm">
+          <tbody class="divide-y divide-slate-100 text-slate-800 text-base">
             <% if (agendamentos.length === 0) { %>
               <tr>
-                <td colspan="6" class="p-8 text-center text-slate-400">
+                <td colspan="6" class="p-8 text-center text-slate-500 font-medium">
                   <i data-lucide="calendar" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
                   Nenhum agendamento encontrado para os filtros informados.
                 </td>
               </tr>
             <% } else { %>
               <% agendamentos.forEach(a => { %>
-                <tr class="hover:bg-slate-50/50 transition-colors">
-                  <td class="p-4 pl-6 font-semibold">
-                    <%= new Date(a.data_agendada).toLocaleDateString('pt-BR') %> às <%= a.horario_agendado %>
+                <% 
+                  let telAg = a.cliente && a.cliente.telefone_whatsapp ? String(a.cliente.telefone_whatsapp).replace(/\D/g, '') : '';
+                  if (telAg.length === 10 || telAg.length === 11) {
+                    telAg = '55' + telAg;
+                  }
+                  const dataFormatada = new Date(a.data_agendada).toLocaleDateString('pt-BR');
+                  const msgWhatsAg = `Olá ${a.cliente && a.cliente.usuario ? a.cliente.usuario.nome : ''}, tudo bem? Entramos em contato da oficina referente ao seu agendamento do dia ${dataFormatada} às ${a.horario_agendado}.`;
+                %>
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                  <td class="p-4 pl-6 font-bold text-slate-900">
+                    <%= dataFormatada %> às <%= a.horario_agendado %>
+                  </td>
+                  <td class="p-4 font-semibold text-slate-800">
+                    <div class="flex items-center gap-2">
+                      <span><%= a.cliente ? a.cliente.usuario.nome : 'N/I' %></span>
+                      <% if (telAg) { %>
+                        <a href="https://wa.me/<%= telAg %>?text=<%= encodeURIComponent(msgWhatsAg) %>" target="_blank" rel="noopener noreferrer" class="p-1 rounded-lg bg-[#25D366] hover:bg-[#128C7E] text-white transition-all shadow-sm shrink-0" title="Chamar cliente no WhatsApp">
+                          <svg class="w-4 h-4 fill-current shrink-0" width="16" height="16" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436.002 9.858-4.419 9.86-9.86 0-2.636-1.027-5.115-2.89-6.981-1.864-1.865-4.347-2.89-6.985-2.891-5.439 0-9.861 4.417-9.865 9.86-.001 1.745.454 3.447 1.32 4.965l-.995 3.637 3.73-.976zm9.953-6.85c-.29-.145-1.713-.846-1.979-.942-.266-.097-.459-.145-.653.146-.193.29-.749.942-.919 1.135-.169.193-.339.217-.629.072-.29-.144-1.226-.452-2.335-1.441-.864-.771-1.447-1.724-1.616-2.014-.169-.29-.018-.447.127-.591.131-.13.29-.339.435-.508.145-.169.193-.29.29-.483.097-.193.048-.363-.024-.508-.072-.145-.653-1.573-.895-2.153-.235-.568-.475-.49-.653-.5-.169-.008-.363-.009-.556-.009-.193 0-.508.072-.773.362-.266.29-1.014.99-1.014 2.415 0 1.425 1.038 2.802 1.183 2.995.145.193 2.043 3.12 4.949 4.373.692.298 1.232.476 1.652.61.697.221 1.33.19 1.83.115.557-.083 1.713-.699 1.954-1.376.241-.676.241-1.256.169-1.376-.073-.12-.266-.193-.556-.339z"/></svg>
+                        </a>
+                      <% } %>
+                    </div>
                   </td>
                   <td class="p-4">
-                    <%= a.cliente ? a.cliente.usuario.nome : 'N/I' %>
-                  </td>
-                  <td class="p-4">
-                    <a href="/veiculos/<%= a.veiculo_id %>" class="text-brand-500 hover:underline font-mono uppercase font-bold">
+                    <a href="/veiculos/<%= a.veiculo_id %>" class="px-2.5 py-1 rounded bg-slate-900 text-white font-mono uppercase font-bold text-xs hover:bg-slate-800 transition-colors border border-slate-700">
                       <%= a.veiculo ? a.veiculo.placa : 'Placa N/I' %>
                     </a>
                   </td>
-                  <td class="p-4 text-slate-500 italic">"<%= a.motivo_revisao %>"</td>
+                  <td class="p-4 text-slate-600 italic">"<%= a.motivo_revisao %>"</td>
                   <td class="p-4">
                     <% if (a.status === 'agendado') { %>
-                      <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-sky-55 text-sky-700 border border-sky-200 uppercase">Agendado</span>
+                      <span class="px-3 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-800 border border-sky-200 uppercase">Agendado</span>
                     <% } else if (a.status === 'concluido') { %>
-                      <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-green-55 text-green-700 border border-green-200 uppercase">Concluído</span>
+                      <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase">Concluído</span>
                     <% } else { %>
-                      <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-55 text-red-700 border border-red-200 uppercase">Cancelado</span>
+                      <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200 uppercase">Cancelado</span>
                     <% } %>
                   </td>
                   <td class="p-4 pr-6 text-right space-x-2">
                     <% if (a.status === 'agendado' && ['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
                       <!-- Concluir -->
-                      <button onclick="alterarStatus(<%= a.id %>, 'concluido')" class="text-xs font-bold text-green-600 hover:text-green-700 bg-green-50 px-2.5 py-1.5 rounded-lg border border-green-200 transition-colors">
+                      <button onclick="alterarStatus(<%= a.id %>, 'concluido')" class="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-200 transition-colors">
                         Concluir
                       </button>
                       <!-- Cancelar -->
-                      <button onclick="alterarStatus(<%= a.id %>, 'cancelado')" class="text-xs font-bold text-red-650 hover:text-red-700 bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-200 transition-colors">
+                      <button onclick="alterarStatus(<%= a.id %>, 'cancelado')" class="text-xs font-bold text-red-700 hover:text-red-800 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 transition-colors">
                         Cancelar
                       </button>
                     <% } else { %>
@@ -140,47 +155,64 @@
       <!-- Visualização Mobile (Cards) -->
       <div class="block md:hidden divide-y divide-slate-100">
         <% if (agendamentos.length === 0) { %>
-          <div class="p-8 text-center text-slate-400">
+          <div class="p-8 text-center text-slate-500 font-medium">
             Nenhum agendamento encontrado.
           </div>
         <% } else { %>
           <% agendamentos.forEach(a => { %>
-            <div class="p-4 space-y-3 hover:bg-slate-50/50 transition-colors">
-              <div class="flex items-center justify-between">
-                <span class="font-bold text-slate-900">
-                  <%= new Date(a.data_agendada).toLocaleDateString('pt-BR') %> às <%= a.horario_agendado %>
+            <% 
+              let telAgMobile = a.cliente && a.cliente.telefone_whatsapp ? String(a.cliente.telefone_whatsapp).replace(/\D/g, '') : '';
+              if (telAgMobile.length === 10 || telAgMobile.length === 11) {
+                telAgMobile = '55' + telAgMobile;
+              }
+              const dataFormatadaMob = new Date(a.data_agendada).toLocaleDateString('pt-BR');
+              const msgWhatsAgMob = `Olá ${a.cliente && a.cliente.usuario ? a.cliente.usuario.nome : ''}, tudo bem? Entramos em contato da oficina referente ao seu agendamento do dia ${dataFormatadaMob} às ${a.horario_agendado}.`;
+            %>
+            <div class="p-4 sm:p-5 space-y-3 hover:bg-slate-50/70 transition-colors">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-bold text-slate-900 text-sm sm:text-base leading-snug">
+                  <%= dataFormatadaMob %> às <%= a.horario_agendado %>
                 </span>
                 <% if (a.status === 'agendado') { %>
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-100 text-sky-800">AGENDADO</span>
+                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 shrink-0">AGENDADO</span>
                 <% } else if (a.status === 'concluido') { %>
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-green-100 text-green-800">CONCLUÍDO</span>
+                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 shrink-0">CONCLUÍDO</span>
                 <% } else { %>
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-800">CANCELADO</span>
+                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-red-100 text-red-800 shrink-0">CANCELADO</span>
                 <% } %>
               </div>
               
-              <div class="grid grid-cols-2 gap-2 text-xs text-slate-500">
+              <div class="grid grid-cols-2 gap-2.5 text-xs text-slate-600">
                 <div>
-                  <span class="block text-slate-400 font-bold uppercase tracking-wider text-[9px]">Cliente</span>
-                  <span class="text-slate-800"><%= a.cliente ? a.cliente.usuario.nome : 'N/I' %></span>
+                  <span class="block text-slate-500 font-bold uppercase tracking-wider text-[10px]">Cliente</span>
+                  <div class="flex items-center gap-1.5 mt-0.5">
+                    <span class="text-slate-900 font-semibold text-sm truncate"><%= a.cliente ? a.cliente.usuario.nome : 'N/I' %></span>
+                    <% if (telAgMobile) { %>
+                      <a href="https://wa.me/<%= telAgMobile %>?text=<%= encodeURIComponent(msgWhatsAgMob) %>" target="_blank" rel="noopener noreferrer" class="p-1 rounded-lg bg-[#25D366] hover:bg-[#128C7E] text-white shrink-0 shadow-sm" title="Chamar no WhatsApp">
+                        <svg class="w-4 h-4 fill-current shrink-0" width="16" height="16" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436.002 9.858-4.419 9.86-9.86 0-2.636-1.027-5.115-2.89-6.981-1.864-1.865-4.347-2.89-6.985-2.891-5.439 0-9.861 4.417-9.865 9.86-.001 1.745.454 3.447 1.32 4.965l-.995 3.637 3.73-.976zm9.953-6.85c-.29-.145-1.713-.846-1.979-.942-.266-.097-.459-.145-.653.146-.193.29-.749.942-.919 1.135-.169.193-.339.217-.629.072-.29-.144-1.226-.452-2.335-1.441-.864-.771-1.447-1.724-1.616-2.014-.169-.29-.018-.447.127-.591.131-.13.29-.339.435-.508.145-.169.193-.29.29-.483.097-.193.048-.363-.024-.508-.072-.145-.653-1.573-.895-2.153-.235-.568-.475-.49-.653-.5-.169-.008-.363-.009-.556-.009-.193 0-.508.072-.773.362-.266.29-1.014.99-1.014 2.415 0 1.425 1.038 2.802 1.183 2.995.145.193 2.043 3.12 4.949 4.373.692.298 1.232.476 1.652.61.697.221 1.33.19 1.83.115.557-.083 1.713-.699 1.954-1.376.241-.676.241-1.256.169-1.376-.073-.12-.266-.193-.556-.339z"/></svg>
+                      </a>
+                    <% } %>
+                  </div>
                 </div>
                 <div>
-                  <span class="block text-slate-400 font-bold uppercase tracking-wider text-[9px]">Veículo (Placa)</span>
-                  <a href="/veiculos/<%= a.veiculo_id %>" class="text-brand-500 font-bold underline uppercase"><%= a.veiculo ? a.veiculo.placa : 'N/I' %></a>
+                  <span class="block text-slate-500 font-bold uppercase tracking-wider text-[10px]">Veículo (Placa)</span>
+                  <a href="/veiculos/<%= a.veiculo_id %>" class="text-slate-900 font-mono font-bold uppercase text-sm hover:text-brand-600">
+                    <%= a.veiculo ? a.veiculo.placa : 'N/I' %>
+                  </a>
                 </div>
                 <div class="col-span-2">
-                  <span class="block text-slate-400 font-bold uppercase tracking-wider text-[9px]">Motivo</span>
-                  <span class="text-slate-800 italic truncate block">"<%= a.motivo_revisao %>"</span>
+                  <span class="block text-slate-500 font-bold uppercase tracking-wider text-[10px]">Motivo</span>
+                  <span class="text-slate-800 italic block text-xs sm:text-sm">"<%= a.motivo_revisao %>"</span>
                 </div>
               </div>
 
               <!-- Ações no Mobile -->
               <% if (a.status === 'agendado' && ['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
-                <div class="flex gap-2 pt-2 border-t border-slate-100">
-                  <button onclick="alterarStatus(<%= a.id %>, 'concluido')" class="flex-1 text-center py-2 px-3 rounded-lg bg-green-50 border border-green-200 text-green-700 font-bold text-xs">
+                <div class="flex gap-2 pt-2.5 border-t border-slate-100">
+                  <button onclick="alterarStatus(<%= a.id %>, 'concluido')" class="flex-1 text-center py-2 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-xs sm:text-sm active:scale-[0.98] transition-all">
                     Concluir
                   </button>
-                  <button onclick="alterarStatus(<%= a.id %>, 'cancelado')" class="flex-1 text-center py-2 px-3 rounded-lg bg-red-50 border border-red-200 text-red-700 font-bold text-xs">
+                  <button onclick="alterarStatus(<%= a.id %>, 'cancelado')" class="flex-1 text-center py-2 px-3 rounded-xl bg-red-50 border border-red-200 text-red-800 font-bold text-xs sm:text-sm active:scale-[0.98] transition-all">
                     Cancelar
                   </button>
                 </div>
@@ -209,8 +241,8 @@
       cancelButtonText: 'Manter',
       customClass: {
         popup: 'rounded-2xl font-sans',
-        confirmButton: 'rounded-xl font-semibold px-4 py-2 text-sm',
-        cancelButton: 'rounded-xl font-semibold px-4 py-2 text-sm'
+        confirmButton: 'rounded-xl font-bold px-4 py-2.5 text-sm',
+        cancelButton: 'rounded-xl font-bold px-4 py-2.5 text-sm'
       }
     });
 

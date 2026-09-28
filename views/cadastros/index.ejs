@@ -1,225 +1,225 @@
 <%- include('../parciais/cabecalho') %>
 <%- include('../parciais/menu') %>
 
-<div class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8">
-  <div class="max-w-7xl mx-auto space-y-8">
+<div class="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 md:p-8 pb-24 md:pb-8 smooth-scroll">
+  <div class="max-w-7xl mx-auto space-y-6 sm:space-y-8">
     
     <!-- Cabeçalho -->
     <div>
-      <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Tabelas Auxiliares</h1>
-      <p class="text-slate-500 mt-1">Gerencie os dados básicos que alimentam os cadastros de clientes, veículos e peças.</p>
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Tabelas Auxiliares</h1>
+      <p class="text-slate-600 text-sm sm:text-base md:text-lg mt-1 font-normal">Gerencie os dados básicos que alimentam os cadastros de clientes, veículos e peças.</p>
     </div>
 
     <!-- Alertas -->
     <% if (erro) { %>
-      <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-800 text-sm flex items-start space-x-2 shadow-sm">
+      <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-800 text-base font-medium flex items-start space-x-2 shadow-sm">
         <i data-lucide="alert-circle" class="w-5 h-5 shrink-0 mt-0.5 text-red-600"></i>
         <span><%= erro %></span>
       </div>
     <% } %>
 
     <% if (sucesso) { %>
-      <div id="alerta-global" class="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-800 text-sm flex items-start space-x-2 shadow-sm">
+      <div id="alerta-global" class="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-800 text-base font-medium flex items-start space-x-2 shadow-sm">
         <i data-lucide="check-circle" class="w-5 h-5 shrink-0 mt-0.5 text-green-600"></i>
         <span><%= sucesso %></span>
       </div>
     <% } %>
 
     <!-- Tabs/Grid de Tabelas Auxiliares -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
       
       <!-- Bloco: Marcas de Veículo -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5">
         <div>
-          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <i data-lucide="car" class="w-5 h-5 text-brand-500"></i>
+          <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2.5">
+            <i data-lucide="car" class="w-6 h-6 text-brand-500"></i>
             <span>Marcas de Veículos</span>
           </h2>
-          <p class="text-xs text-slate-400 mt-0.5">Cadastre novas fabricantes de automóveis.</p>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1">Cadastre novas fabricantes de automóveis.</p>
         </div>
 
-        <form action="/marcas-veiculo" method="POST" class="flex gap-2">
+        <form action="/marcas-veiculo" method="POST" class="flex flex-col xs:flex-row gap-2.5">
           <input type="text" name="nome" required placeholder="Ex: Toyota, Honda, Ford..."
-                 class="flex-1 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
-          <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1 shrink-0">
-            <i data-lucide="plus" class="w-4 h-4"></i>
+                 class="flex-1 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+          <button type="submit" class="w-full xs:w-auto bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-5 rounded-xl text-base transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
+            <i data-lucide="plus" class="w-5 h-5"></i>
             <span>Cadastrar</span>
           </button>
         </form>
 
-        <div class="border border-slate-100 rounded-xl max-h-[160px] overflow-y-auto divide-y divide-slate-100 pr-1">
+        <div class="border border-slate-200 rounded-xl max-h-[200px] overflow-y-auto divide-y divide-slate-100 pr-1">
           <% marcasVeiculo.forEach(m => { %>
-            <div class="p-2.5 text-xs text-slate-700 font-medium"><%= m.nome %></div>
+            <div class="p-3 text-sm md:text-base text-slate-800 font-semibold hover:bg-slate-50/70 transition-colors"><%= m.nome %></div>
           <% }) %>
         </div>
       </section>
 
       <!-- Bloco: Modelos de Veículo -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5">
         <div>
-          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <i data-lucide="car-front" class="w-5 h-5 text-brand-500"></i>
+          <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2.5">
+            <i data-lucide="car-front" class="w-6 h-6 text-brand-500"></i>
             <span>Modelos de Veículos</span>
           </h2>
-          <p class="text-xs text-slate-400 mt-0.5">Associe novos modelos a marcas existentes.</p>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1">Associe novos modelos a marcas existentes.</p>
         </div>
 
-        <form action="/modelos-veiculo" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <form action="/modelos-veiculo" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           <select name="marca_veiculo_id" required
-                  class="bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
-            <option value="" disabled selected>Selecione a Marca...</option>
+                  class="bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3 text-sm md:text-base focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
+            <option value="" disabled selected>Marca...</option>
             <% marcasVeiculo.forEach(m => { %>
               <option value="<%= m.id %>"><%= m.nome %></option>
             <% }) %>
           </select>
-          <input type="text" name="nome" required placeholder="Ex: Corolla, Civic, Ka..."
-                 class="bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
-          <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-1">
-            <i data-lucide="plus" class="w-4 h-4"></i>
+          <input type="text" name="nome" required placeholder="Ex: Corolla, Civic..."
+                 class="bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+          <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl text-base transition-all flex items-center justify-center gap-1.5 shadow-sm">
+            <i data-lucide="plus" class="w-5 h-5"></i>
             <span>Cadastrar</span>
           </button>
         </form>
 
-        <div class="border border-slate-100 rounded-xl max-h-[160px] overflow-y-auto divide-y divide-slate-100 pr-1">
+        <div class="border border-slate-200 rounded-xl max-h-[200px] overflow-y-auto divide-y divide-slate-100 pr-1">
           <% modelosVeiculo.forEach(mod => { %>
-            <div class="p-2.5 text-xs text-slate-700 font-medium flex justify-between">
+            <div class="p-3 text-sm md:text-base text-slate-800 font-semibold flex justify-between items-center hover:bg-slate-50/70 transition-colors">
               <span><%= mod.nome %></span>
-              <span class="text-[10px] text-slate-400 uppercase tracking-wider font-bold"><%= mod.marca ? mod.marca.nome : '' %></span>
+              <span class="text-xs text-slate-500 uppercase tracking-wider font-bold bg-slate-100 px-2 py-0.5 rounded"><%= mod.marca ? mod.marca.nome : '' %></span>
             </div>
           <% }) %>
         </div>
       </section>
 
       <!-- Bloco: Marcas de Peça -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5">
         <div>
-          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <i data-lucide="package" class="w-5 h-5 text-brand-500"></i>
+          <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2.5">
+            <i data-lucide="package" class="w-6 h-6 text-brand-500"></i>
             <span>Fabricantes de Peças</span>
           </h2>
-          <p class="text-xs text-slate-400 mt-0.5">Gerencie os fabricantes e fornecedores de peças.</p>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1">Gerencie os fabricantes e fornecedores de peças.</p>
         </div>
 
-        <form action="/marcas-peca" method="POST" class="flex gap-2">
+        <form action="/marcas-peca" method="POST" class="flex flex-col xs:flex-row gap-2.5">
           <input type="text" name="nome" required placeholder="Ex: Bosch, Fram, Metal Leve..."
-                 class="flex-1 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
-          <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1 shrink-0">
-            <i data-lucide="plus" class="w-4 h-4"></i>
+                 class="flex-1 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+          <button type="submit" class="w-full xs:w-auto bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-5 rounded-xl text-base transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
+            <i data-lucide="plus" class="w-5 h-5"></i>
             <span>Cadastrar</span>
           </button>
         </form>
 
-        <div class="border border-slate-100 rounded-xl max-h-[160px] overflow-y-auto divide-y divide-slate-100 pr-1">
+        <div class="border border-slate-200 rounded-xl max-h-[200px] overflow-y-auto divide-y divide-slate-100 pr-1">
           <% marcasPeca.forEach(mp => { %>
-            <div class="p-2.5 text-xs text-slate-700 font-medium"><%= mp.nome %></div>
+            <div class="p-3 text-sm md:text-base text-slate-800 font-semibold hover:bg-slate-50/70 transition-colors"><%= mp.nome %></div>
           <% }) %>
         </div>
       </section>
 
       <!-- Bloco: Peças -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5">
         <div>
-          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <i data-lucide="package-search" class="w-5 h-5 text-brand-500"></i>
+          <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2.5">
+            <i data-lucide="package-search" class="w-6 h-6 text-brand-500"></i>
             <span>Peças / Componentes</span>
           </h2>
-          <p class="text-xs text-slate-400 mt-0.5">Cadastre componentes de desgaste para monitoramento.</p>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1">Cadastre componentes de desgaste para monitoramento.</p>
         </div>
 
-        <form action="/pecas" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <form action="/pecas" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           <select name="marca_peca_id" required
-                  class="bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
-            <option value="" disabled selected>Selecione a Marca...</option>
+                  class="bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3 text-sm md:text-base focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
+            <option value="" disabled selected>Marca...</option>
             <% marcasPeca.forEach(mp => { %>
               <option value="<%= mp.id %>"><%= mp.nome %></option>
             <% }) %>
           </select>
-          <input type="text" name="nome" required placeholder="Ex: Filtro de Óleo, Pastilha de Freio..."
-                 class="bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
-          <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-1">
-            <i data-lucide="plus" class="w-4 h-4"></i>
+          <input type="text" name="nome" required placeholder="Ex: Filtro de Óleo, Pastilha..."
+                 class="bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
+          <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl text-base transition-all flex items-center justify-center gap-1.5 shadow-sm">
+            <i data-lucide="plus" class="w-5 h-5"></i>
             <span>Cadastrar</span>
           </button>
         </form>
 
-        <div class="border border-slate-100 rounded-xl max-h-[160px] overflow-y-auto divide-y divide-slate-100 pr-1">
+        <div class="border border-slate-200 rounded-xl max-h-[200px] overflow-y-auto divide-y divide-slate-100 pr-1">
           <% pecas.forEach(p => { %>
-            <div class="p-2.5 text-xs text-slate-700 font-medium flex justify-between">
+            <div class="p-3 text-sm md:text-base text-slate-800 font-semibold flex justify-between items-center hover:bg-slate-50/70 transition-colors">
               <span><%= p.nome %></span>
-              <span class="text-[10px] text-slate-400 uppercase tracking-wider font-bold"><%= p.marca ? p.marca.nome : '' %></span>
+              <span class="text-xs text-slate-500 uppercase tracking-wider font-bold bg-slate-100 px-2 py-0.5 rounded"><%= p.marca ? p.marca.nome : '' %></span>
             </div>
           <% }) %>
         </div>
       </section>
 
       <!-- Bloco: Serviços da Oficina (CRUD) -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6 lg:col-span-2">
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5 lg:col-span-2">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <i data-lucide="wrench" class="w-5 h-5 text-brand-500"></i>
+            <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2.5">
+              <i data-lucide="wrench" class="w-6 h-6 text-brand-500"></i>
               <span>Serviços da Oficina</span>
             </h2>
-            <p class="text-xs text-slate-400 mt-0.5">Cadastre e gerencie serviços automotivos sem substituição necessária de peças (ex: Alinhamento, Balanceamento, Higienização de Ar, etc.).</p>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">Cadastre e gerencie serviços automotivos sem substituição de peças (ex: Alinhamento, Balanceamento, Higienização de Ar, etc.).</p>
           </div>
-          <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg self-start sm:self-auto">
+          <span class="text-xs sm:text-sm font-bold px-3 py-1 bg-slate-100 text-slate-700 rounded-lg self-start sm:self-auto border border-slate-200">
             Total: <%= servicos.length %> cadastrados
           </span>
         </div>
 
-        <form action="/servicos" method="POST" class="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+        <form action="/servicos" method="POST" class="grid grid-cols-1 sm:grid-cols-4 gap-4 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200">
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-1">Nome do Serviço *</label>
-            <input type="text" name="nome" required placeholder="Ex: Alinhamento 3D, Sangria de Freio..."
-                   class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nome do Serviço *</label>
+            <input type="text" name="nome" required placeholder="Ex: Alinhamento 3D..."
+                   class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all font-medium">
           </div>
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-1">Categoria</label>
-            <input type="text" name="categoria" placeholder="Ex: Suspensão, Freios, Motor..."
-                   class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Categoria</label>
+            <input type="text" name="categoria" placeholder="Ex: Suspensão, Freios..."
+                   class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
           </div>
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-1">Preço Padrão (R$)</label>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Preço Padrão (R$)</label>
             <input type="number" step="0.01" min="0" name="preco_padrao" placeholder="Ex: 150.00"
-                   class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+                   class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all font-bold">
           </div>
           <div class="flex items-end">
-            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm">
-              <i data-lucide="plus" class="w-4 h-4"></i>
-              <span>Cadastrar Serviço</span>
+            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-5 rounded-xl text-base transition-all flex items-center justify-center gap-2 shadow-sm">
+              <i data-lucide="plus" class="w-5 h-5"></i>
+              <span>Cadastrar</span>
             </button>
           </div>
           <div class="sm:col-span-4">
-            <label class="block text-[10px] font-bold text-slate-500 mb-1">Descrição / Detalhes (Opcional)</label>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Descrição / Detalhes (Opcional)</label>
             <input type="text" name="descricao" placeholder="Breve descrição dos procedimentos inclusos..."
-                   class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl py-1.5 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+                   class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
           </div>
         </form>
 
-        <div class="border border-slate-100 rounded-xl max-h-[220px] overflow-y-auto divide-y divide-slate-100 pr-1">
+        <div class="border border-slate-200 rounded-xl max-h-[250px] overflow-y-auto divide-y divide-slate-100 pr-1">
           <% if (servicos.length === 0) { %>
-            <div class="p-6 text-center text-slate-400 text-xs">Nenhum serviço cadastrado.</div>
+            <div class="p-8 text-center text-slate-500 text-base font-medium">Nenhum serviço cadastrado.</div>
           <% } else { %>
             <% servicos.forEach(s => { %>
-              <div class="p-3 text-xs text-slate-700 flex items-center justify-between hover:bg-slate-50/50">
-                <div class="space-y-0.5">
-                  <div class="font-bold text-slate-800 flex items-center gap-2">
+              <div class="p-3.5 text-base text-slate-800 flex flex-col xs:flex-row xs:items-center justify-between gap-2.5 hover:bg-slate-50/70 transition-colors">
+                <div class="space-y-1">
+                  <div class="font-bold text-slate-900 flex items-center gap-2.5 flex-wrap">
                     <span><%= s.nome %></span>
                     <% if (s.categoria) { %>
-                      <span class="text-[9px] font-semibold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded uppercase"><%= s.categoria %></span>
+                      <span class="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded uppercase tracking-wider"><%= s.categoria %></span>
                     <% } %>
                   </div>
                   <% if (s.descricao) { %>
-                    <p class="text-[11px] text-slate-400 italic"><%= s.descricao %></p>
+                    <p class="text-xs sm:text-sm text-slate-500 italic"><%= s.descricao %></p>
                   <% } %>
                 </div>
-                <div class="flex items-center space-x-3 shrink-0">
+                <div class="flex items-center justify-between xs:justify-end space-x-4 shrink-0 pt-2 xs:pt-0 border-t xs:border-t-0 border-slate-100">
                   <% if (s.preco_padrao) { %>
-                    <span class="font-semibold text-emerald-600">R$ <%= Number(s.preco_padrao).toFixed(2) %></span>
+                    <span class="font-bold text-emerald-600 text-base">R$ <%= Number(s.preco_padrao).toFixed(2) %></span>
                   <% } %>
                   <form action="/servicos/<%= s.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir este serviço do catálogo da oficina?', 'Excluir Serviço?'); return false;" class="inline">
-                    <button type="submit" class="text-red-400 hover:text-red-600 p-1 transition-colors" title="Excluir serviço">
-                      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    <button type="submit" class="text-red-500 hover:text-red-700 p-1.5 transition-colors" title="Excluir serviço">
+                      <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
                     </button>
                   </form>
                 </div>
@@ -230,67 +230,67 @@
       </section>
 
       <!-- Bloco: Oficinas Parceiras/Locais -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6 lg:col-span-2">
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5 lg:col-span-2">
         <div>
-          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <i data-lucide="home" class="w-5 h-5 text-brand-500"></i>
+          <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2.5">
+            <i data-lucide="home" class="w-6 h-6 text-brand-500"></i>
             <span>Oficinas Cadastradas</span>
           </h2>
-          <p class="text-xs text-slate-400 mt-0.5">Cadastre as filiais ou oficinas parceiras autorizadas.</p>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1">Cadastre as filiais ou oficinas parceiras autorizadas.</p>
         </div>
 
-        <form action="/oficinas" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <form action="/oficinas" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200">
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-1">Nome Oficina *</label>
-            <input type="text" name="nome" required placeholder="Ex: Oficina Central, Filial Sul..."
-                   class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nome Oficina *</label>
+            <input type="text" name="nome" required placeholder="Ex: Oficina Central, Filial..."
+                   class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all font-medium">
           </div>
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-1">CNPJ *</label>
-            <input type="text" name="cnpj" required placeholder="Apenas números..."
-                   class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">CNPJ *</label>
+            <input type="text" name="cnpj" id="cnpj" data-mask="cnpj" required placeholder="00.000.000/0000-00"
+                   class="w-full bg-white border border-slate-300 text-slate-900 font-mono rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
           </div>
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-1">WhatsApp de Contato</label>
-            <input type="text" name="whatsapp_numero" placeholder="Ex: 5511999998888..."
-                   class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">WhatsApp de Contato</label>
+            <input type="text" name="whatsapp_numero" id="whatsapp_numero" data-mask="telefone" placeholder="(00) 00000-0000"
+                   class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
           </div>
           <div class="sm:col-span-2">
-            <label class="block text-[10px] font-bold text-slate-500 mb-1">Endereço Completo</label>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Endereço Completo</label>
             <input type="text" name="endereco" placeholder="Rua, número, bairro..."
-                   class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+                   class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
           </div>
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-1">E-mail</label>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">E-mail</label>
             <input type="email" name="email" placeholder="contato@oficina.com..."
-                   class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+                   class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
           </div>
           
           <div class="sm:col-span-3 flex justify-end">
-            <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 px-6 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-sm">
-              <i data-lucide="plus" class="w-4 h-4"></i>
+            <button type="submit" class="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-7 rounded-xl text-base transition-all flex items-center justify-center gap-2 shadow-sm">
+              <i data-lucide="plus" class="w-5 h-5"></i>
               <span>Cadastrar Oficina</span>
             </button>
           </div>
         </form>
 
-        <div class="border border-slate-100 rounded-xl divide-y divide-slate-100 overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-700">
+        <div class="border border-slate-200 rounded-xl divide-y divide-slate-100 overflow-x-auto">
+          <table class="w-full text-left text-sm sm:text-base text-slate-800">
             <thead>
-              <tr class="bg-slate-50 font-bold uppercase tracking-wider text-slate-400">
-                <th class="p-3">Nome</th>
-                <th class="p-3">CNPJ</th>
-                <th class="p-3">WhatsApp</th>
-                <th class="p-3">E-mail</th>
+              <tr class="bg-slate-100/80 font-bold uppercase tracking-wider text-slate-700 text-xs sm:text-sm border-b border-slate-200">
+                <th class="p-3.5 pl-4 sm:pl-5">Nome</th>
+                <th class="p-3.5">CNPJ</th>
+                <th class="p-3.5">WhatsApp</th>
+                <th class="p-3.5">E-mail</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-slate-100">
               <% oficinas.forEach(o => { %>
-                <tr class="hover:bg-slate-50/50">
-                  <td class="p-3 font-semibold text-slate-900"><%= o.nome %></td>
-                  <td class="p-3 font-mono"><%= o.cnpj %></td>
-                  <td class="p-3"><%= o.whatsapp_numero || 'N/I' %></td>
-                  <td class="p-3"><%= o.email || 'N/I' %></td>
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                  <td class="p-3.5 pl-4 sm:pl-5 font-bold text-slate-900"><%= o.nome %></td>
+                  <td class="p-3.5 font-mono text-xs sm:text-sm font-semibold text-slate-700"><%= formatarCNPJ(o.cnpj) %></td>
+                  <td class="p-3.5 font-medium"><%= o.whatsapp_numero ? formatarTelefone(o.whatsapp_numero) : 'N/I' %></td>
+                  <td class="p-3.5 text-slate-600"><%= o.email || 'N/I' %></td>
                 </tr>
               <% }) %>
             </tbody>

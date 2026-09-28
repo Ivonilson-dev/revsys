@@ -2,7 +2,7 @@
 <html lang="pt-BR" class="h-full bg-slate-50">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <title><%= typeof titulo !== 'undefined' ? titulo : 'RevSys - Controle de Reposição' %></title>
   
   <!-- Fontes do Google -->
@@ -15,6 +15,9 @@
 
   <!-- SweetAlert2 para alertas e confirmações modernas -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- IMask para máscaras em inputs de CPF, CNPJ, telefone, placa e CEP (RNF-15) -->
+  <script src="https://unpkg.com/imask"></script>
 
   <!-- Tailwind CSS CDN com configuração customizada -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -41,18 +44,41 @@
               cinza: '#334155',
               premium: '#0f172a'
             }
+          },
+          screens: {
+            'xs': '420px',
+          },
+          spacing: {
+            '3.5': '0.875rem', // 14px
+            '4.5': '1.125rem', // 18px
           }
         }
       }
     }
   </script>
 
-  <!-- FullCalendar CSS se a tela precisar (estaremos carregando via CDN nas views específicas se necessário) -->
   <style>
     body {
       font-family: 'Outfit', sans-serif;
       -webkit-tap-highlight-color: transparent;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
+    
+    /* Suporte a Safe Areas para iPhone e dispositivos modernos com notch */
+    .safe-top {
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+    .safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    
+    /* Rolagem suave em dispositivos móveis */
+    .smooth-scroll {
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+    }
+
     /* Estilizar scrollbars */
     ::-webkit-scrollbar {
       width: 6px;
@@ -63,11 +89,11 @@
     }
     ::-webkit-scrollbar-thumb {
       background: #cbd5e1;
-      border-radius: 3px;
+      border-radius: 4px;
     }
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
   </style>
 </head>
-<body class="h-full flex flex-col md:flex-row overflow-hidden">
+<body class="h-full flex flex-col md:flex-row overflow-hidden bg-slate-50 text-slate-800">

@@ -31,10 +31,20 @@ app.use(session({
 }));
 
 // Disponibilizar variáveis locais globais nas views EJS
+const formatadores = require('./src/utils/formatadores');
+
 app.use((req, res, next) => {
   res.locals.usuarioLogado = req.session.usuario || null;
   res.locals.urlAtiva = req.originalUrl;
   
+  // Helpers de formatação para as views EJS
+  res.locals.formatarCPF = formatadores.formatarCPF;
+  res.locals.formatarCNPJ = formatadores.formatarCNPJ;
+  res.locals.formatarCPFCNPJ = formatadores.formatarCPFCNPJ;
+  res.locals.formatarTelefone = formatadores.formatarTelefone;
+  res.locals.formatarCEP = formatadores.formatarCEP;
+  res.locals.formatarPlaca = formatadores.formatarPlaca;
+
   // Capturar mensagens de sucesso/erro passadas na query string
   res.locals.sucessoMsg = req.query.sucesso || null;
   res.locals.erroMsg = req.query.erro || null;

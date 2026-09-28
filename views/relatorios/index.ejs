@@ -1,117 +1,117 @@
 <%- include('../parciais/cabecalho') %>
 <%- include('../parciais/menu') %>
 
-<div class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8">
+<div class="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 md:p-8 pb-24 md:pb-8 smooth-scroll">
   <div class="max-w-6xl mx-auto space-y-8">
     
     <!-- Cabeçalho -->
     <div>
-      <h1 class="text-3xl font-bold text-slate-900 tracking-tight font-sans">Relatórios e Consultas</h1>
-      <p class="text-slate-500 mt-1">Gere relatórios de revisões, trocas realizadas, status de frotas e agenda de atendimento.</p>
+      <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight font-sans">Relatórios e Consultas</h1>
+      <p class="text-slate-600 text-base md:text-lg mt-1 font-normal">Gere relatórios de revisões, trocas realizadas, status de frotas e agenda de atendimento.</p>
     </div>
 
     <!-- Layout em Cards de Categorias -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
       
       <!-- Bloco 1: Relatórios Rápidos de Manutenção -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-          <i data-lucide="alert-circle" class="w-5 h-5 text-red-500"></i>
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-7 space-y-4">
+        <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2.5">
+          <i data-lucide="alert-circle" class="w-6 h-6 text-red-500"></i>
           <span>Alertas de Manutenção</span>
         </h2>
-        <p class="text-xs text-slate-400">Consulte de forma agrupada as peças que já venceram o prazo de uso ou estão vencendo nos próximos dias.</p>
+        <p class="text-sm text-slate-500 leading-relaxed font-normal">Consulte de forma agrupada as peças que já venceram o prazo de uso ou estão vencendo nos próximos dias.</p>
         
-        <div class="space-y-2 pt-2">
+        <div class="space-y-3 pt-2">
           <!-- Vencidos -->
-          <a href="/relatorios/vencidos" class="flex items-center justify-between p-3.5 rounded-xl border border-red-100 bg-red-50/30 hover:bg-red-50 text-slate-700 hover:text-slate-950 transition-colors">
-            <span class="text-xs font-semibold flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-red-500"></span>
-              Manutenções Vencidas Atualmente
+          <a href="/relatorios/vencidos" class="flex items-center justify-between p-4 rounded-xl border border-red-200 bg-red-50/40 hover:bg-red-50 text-slate-800 hover:text-slate-950 transition-colors shadow-sm">
+            <span class="text-sm md:text-base font-bold flex items-center gap-2.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0"></span>
+              <span>Manutenções Vencidas Atualmente</span>
             </span>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-red-400"></i>
+            <i data-lucide="chevron-right" class="w-5 h-5 text-red-500"></i>
           </a>
 
           <!-- Próximos 7 Dias -->
-          <a href="/relatorios/proximos" class="flex items-center justify-between p-3.5 rounded-xl border border-yellow-100 bg-yellow-50/30 hover:bg-yellow-50 text-slate-700 hover:text-slate-950 transition-colors">
-            <span class="text-xs font-semibold flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
-              Próximas Trocas (7 dias / Iminente)
+          <a href="/relatorios/proximos" class="flex items-center justify-between p-4 rounded-xl border border-amber-200 bg-amber-50/40 hover:bg-amber-50 text-slate-800 hover:text-slate-950 transition-colors shadow-sm">
+            <span class="text-sm md:text-base font-bold flex items-center gap-2.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
+              <span>Próximas Trocas (7 dias / Iminente)</span>
             </span>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-yellow-400"></i>
+            <i data-lucide="chevron-right" class="w-5 h-5 text-amber-500"></i>
           </a>
         </div>
       </section>
 
       <!-- Bloco 2: Relatórios de Atendimento (Agenda) -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-          <i data-lucide="calendar" class="w-5 h-5 text-indigo-500"></i>
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-7 space-y-4">
+        <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2.5">
+          <i data-lucide="calendar" class="w-6 h-6 text-indigo-500"></i>
           <span>Agenda e Ocupação</span>
         </h2>
-        <p class="text-xs text-slate-400">Visualize as listas consolidadas de agendamentos diários ou mensais da oficina.</p>
+        <p class="text-sm text-slate-500 leading-relaxed font-normal">Visualize as listas consolidadas de agendamentos diários ou mensais da oficina.</p>
         
-        <div class="space-y-2 pt-2">
+        <div class="space-y-3 pt-2">
           <!-- Hoje -->
-          <a href="/relatorios/agendamentos?tipo=dia" class="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-100 text-slate-700 hover:text-slate-950 transition-colors">
-            <span class="text-xs font-semibold flex items-center gap-2">
-              <i data-lucide="clock" class="w-4 h-4 text-brand-500"></i>
-              Agendamentos de Hoje
+          <a href="/relatorios/agendamentos?tipo=dia" class="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-100 text-slate-800 hover:text-slate-950 transition-colors shadow-sm">
+            <span class="text-sm md:text-base font-bold flex items-center gap-2.5">
+              <i data-lucide="clock" class="w-5 h-5 text-brand-500 shrink-0"></i>
+              <span>Agendamentos de Hoje</span>
             </span>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
           </a>
 
           <!-- Mês -->
-          <a href="/relatorios/agendamentos?tipo=mes" class="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-100 text-slate-700 hover:text-slate-950 transition-colors">
-            <span class="text-xs font-semibold flex items-center gap-2">
-              <i data-lucide="calendar-range" class="w-4 h-4 text-brand-500"></i>
-              Agendamentos Deste Mês
+          <a href="/relatorios/agendamentos?tipo=mes" class="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-100 text-slate-800 hover:text-slate-950 transition-colors shadow-sm">
+            <span class="text-sm md:text-base font-bold flex items-center gap-2.5">
+              <i data-lucide="calendar-range" class="w-5 h-5 text-brand-500 shrink-0"></i>
+              <span>Agendamentos Deste Mês</span>
             </span>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
           </a>
         </div>
       </section>
 
       <!-- Bloco 3: Histórico Filtrado por Peça (RF-24) -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-          <i data-lucide="package" class="w-5 h-5 text-brand-500"></i>
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-7 space-y-4">
+        <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2.5">
+          <i data-lucide="package" class="w-6 h-6 text-brand-500"></i>
           <span>Histórico de Substituição por Peça</span>
         </h2>
-        <p class="text-xs text-slate-400">Gere a listagem de todos os veículos que realizaram a substituição de uma peça específica.</p>
+        <p class="text-sm text-slate-500 leading-relaxed font-normal">Gere a listagem de todos os veículos que realizaram a substituição de uma peça específica.</p>
         
-        <form action="/relatorios/peca" method="GET" class="flex gap-2 pt-2">
+        <form action="/relatorios/peca" method="GET" class="flex gap-2.5 pt-2">
           <select name="peca_id" required
-                  class="flex-1 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:outline-none focus:border-brand-500 transition-all">
+                  class="flex-1 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-sm md:text-base focus:outline-none focus:border-brand-500 transition-all font-medium">
             <option value="" disabled selected>Escolha a peça...</option>
             <% pecas.forEach(p => { %>
               <option value="<%= p.id %>"><%= p.nome %> (<%= p.marca ? p.marca.nome : '' %>)</option>
             <% }) %>
           </select>
-          <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1.5 shrink-0">
-            <i data-lucide="file-search" class="w-4 h-4"></i>
+          <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-5 rounded-xl text-base transition-all flex items-center gap-2 shrink-0 shadow-sm">
+            <i data-lucide="file-search" class="w-5 h-5"></i>
             <span>Gerar</span>
           </button>
         </form>
       </section>
 
       <!-- Bloco 4: Prontuário Consolidado por Cliente (RF-25) -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-          <i data-lucide="users" class="w-5 h-5 text-brand-500"></i>
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-7 space-y-4">
+        <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2.5">
+          <i data-lucide="users" class="w-6 h-6 text-brand-500"></i>
           <span>Relatório Consolidado de Cliente</span>
         </h2>
-        <p class="text-xs text-slate-400">Exiba a ficha consolidada de todos os veículos e status de manutenção de um cliente selecionado.</p>
+        <p class="text-sm text-slate-500 leading-relaxed font-normal">Exiba a ficha consolidada de todos os veículos e status de manutenção de um cliente selecionado.</p>
         
-        <form action="/relatorios/cliente" method="GET" class="flex gap-2 pt-2">
+        <form action="/relatorios/cliente" method="GET" class="flex gap-2.5 pt-2">
           <select name="cliente_id" required
-                  class="flex-1 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:outline-none focus:border-brand-500 transition-all">
+                  class="flex-1 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-sm md:text-base focus:outline-none focus:border-brand-500 transition-all font-medium">
             <option value="" disabled selected>Escolha o cliente...</option>
             <% clientes.forEach(cli => { %>
-              <option value="<%= cli.id %>"><%= cli.usuario.nome %> (CPF: <%= cli.cpf %>)</option>
+              <option value="<%= cli.id %>"><%= cli.usuario.nome %> (CPF: <%= formatarCPF(cli.cpf) %>)</option>
             <% }) %>
           </select>
-          <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1.5 shrink-0">
-            <i data-lucide="file-search" class="w-4 h-4"></i>
+          <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-5 rounded-xl text-base transition-all flex items-center gap-2 shrink-0 shadow-sm">
+            <i data-lucide="file-search" class="w-5 h-5"></i>
             <span>Gerar</span>
           </button>
         </form>

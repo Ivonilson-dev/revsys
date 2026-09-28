@@ -573,8 +573,90 @@ INSERT INTO `servicos` (`id`, `nome`, `descricao`, `categoria`, `preco_padrao`) 
 (14, 'Troca e Limpeza do Sistema de Arrefecimento', 'Enxágue do radiador, aplicação de aditivo concentrado e água desmineralizada.', 'Arrefecimento', 160.00),
 (15, 'Verificação e Ajuste de Folga de Válvulas', 'Ajuste mecânico de tuchos e folga de válvulas de admissão/escape.', 'Motor e Injeção', 250.00);
 
--- Credenciais de teste:
--- Administrador: admin@revsys.com (admin123)
--- Gerente: gerente@revsys.com (gerente123)
--- Atendente: atendente@revsys.com (atendente123)
--- Mecânico: mecanico@revsys.com (mecanico123)
+-- ========================================================
+-- DADOS DE TESTE COMPLETOS (Clientes, Veículos, Trocas, Serviços, Agendamentos)
+-- ========================================================
+
+-- Usuários com perfil Cliente (Senha padrão: cliente123)
+INSERT INTO `usuarios` (`id`, `nome`, `email`, `senha_hash`, `papel`, `telefone`) VALUES
+(5, 'Carlos Eduardo Silva', 'cliente1@revsys.com', '$2b$10$LtiL15PjBKadEU04s4Hg1e/5IUxVxQ8YuuKPWxCockhhT7vyyUh1C', 'cliente', '11988887777'),
+(6, 'Mariana Souza Lima', 'cliente2@revsys.com', '$2b$10$LtiL15PjBKadEU04s4Hg1e/5IUxVxQ8YuuKPWxCockhhT7vyyUh1C', 'cliente', '11977776666'),
+(7, 'Roberto Alencar', 'cliente3@revsys.com', '$2b$10$LtiL15PjBKadEU04s4Hg1e/5IUxVxQ8YuuKPWxCockhhT7vyyUh1C', 'cliente', '11966665555')
+ON DUPLICATE KEY UPDATE `nome` = VALUES(`nome`);
+
+-- Clientes (com CPF e dados de endereço criptografados via AES-256 e Blind Index SHA256)
+-- CPFs originais para busca/login:
+-- Cliente 1: 123.456.789-00
+-- Cliente 2: 987.654.321-11
+-- Cliente 3: 456.789.012-22
+INSERT INTO `clientes` (`id`, `usuario_id`, `cpf`, `cpf_hash`, `logradouro`, `numero`, `bairro`, `cidade`, `estado`, `cep`, `telefone_whatsapp`, `consentimento_lgpd`, `data_consentimento_lgpd`) VALUES
+(1, 5, 'c5203bf15983af756b41b0f6d2698169:812c6066afd8203018afdfa58f074f58', 'a8476735b37a541a38402a2e7037c79e2d217fe9780e5e34347156ef61eff42b', '1dfda87c2b30c89d487a20da4728a439:4bbc8b3987ef5c75ffdc622cce9750cb', '2bd444ff7e34263afc322a99da4544bc:ddae0a56b67143318cde0de2c0f82f26', '626bcfc9e632b9e8dc2af70f5f64fb52:8ca96410ca7503d1758e880edbf566ac', '19ba4c8c40589d0cd6663312b5f422f0:29103b2836376cbc0430ba5e6f57f8c3', '9fb89c7ea704de25bb6afdaa91c951ae:6403fff077088bdb377cfec4dcd12379', '2eacb667cc494394ee1bb714dde64261:3f353859c16738d332bf58136d1588ed', '24184c3aba4185fcc4fe302c02e0ccd7:5dba9b644a43b348c11f1446dbedc3d0', 1, '2026-01-15 10:00:00'),
+(2, 6, '2cb4017399b4a207888b9aa93b01f627:f7c3f123154aacfcf98567596619d483', '4eefed8e11001436c539d30be3caa6bc900f624c6acdeded6e3f98b94bfde3b7', 'ac4d5414dd6ba928b83aaf498ecc4f89:76bcd9dca3dfd063fcfcc6280a65571f', 'd35e41ecd8e1e976a4d1effa886c9c2e:b9b877679d3793be0a1e2741bc74f928', '00db4b2e4e0ba725e5b6bbfd6a33c4ce:49d6ef7cafdf8b661189caa41068c832', '453ecb21deccb1eb1f0e2fc65b59d4d7:8f8ba00d19eda7649b8d9138e3166ef7', 'ce38a90cdbd0193c28cea24b25223334:7327c44fa319d0a93ccaa375541aebae', 'f42df06565751f82a6e7f9836b723ef2:191332cceaf724ecd25cefe33deaf57c', 'f494ef241e1216771544503cd0bb0db4:bdf973c53bebc76380440586e92e642f', 1, '2026-02-01 14:30:00'),
+(3, 7, '176583c926c2fe473fec354720546418:f582dc2d53337af9c908f41759229a37', '45278a1717b5d6a4729961c7d0544d2a54ae73c6246f2149d9a7de906fb7f88c', '1a81772b87a374bb202ece64d965b5fe:27071688b5364a044e3ae44f48db69491bc1115a509caa90b491e89100ac29f8', '3efed73ec0c12ccbbba768325f6e20a8:7c6d67c4c8be9d2ace007da935174421', 'ad89ce8769b15f5fceb05663019c3b15:f334405d1145fc215574c7ed0375f495', '385d24aa1abd6d141b107b3407d9a3bc:0158e0a37004912bdf8efc1dcea7c01e', 'd2994181a36057223c9b6192f6c4741e:f8b02d1b4cab7e075d2b43d79fc2f806', 'ca11f4982f2869dd1d124b3e646a7975:5df560f8225abfe7bc81b1b9ac9e6931', 'c9d6ba57e34071028835f86d3ef6bdf0:676422fea2d9dbe3e8b4195467cd6c65', 1, '2026-03-12 09:15:00')
+ON DUPLICATE KEY UPDATE `usuario_id` = VALUES(`usuario_id`);
+
+-- Veículos de Teste (Modelos: 155=Toyota Corolla, 42=Chevrolet Onix, 165=VW Gol, 86=Honda Civic)
+INSERT INTO `veiculos` (`id`, `placa`, `modelo_id`, `cliente_id`, `ano`, `cor`, `km_atual`, `condicao`) VALUES
+(1, 'BRA2E19', 155, 1, 2022, 'Prata', 52000, 'usado'),
+(2, 'ABC1D23', 42, 1, 2021, 'Preto', 38500, 'usado'),
+(3, 'XYZ9K88', 165, 2, 2019, 'Branco', 85000, 'usado'),
+(4, 'RVS2026', 86, 3, 2023, 'Cinza', 18200, 'usado')
+ON DUPLICATE KEY UPDATE `placa` = VALUES(`placa`);
+
+-- Registros de Troca de Peças (Cobrem cenários de Alerta: Vencido, Próximo e Em Dia)
+-- Veículo 1 (Corolla - KM atual: 52.000):
+-- 1. Óleo GTX (peca_id: 13) - VENCIDO (trocado em 40.000 km, previsto para 50.000 km; atual é 52.000)
+-- 2. Filtro de Óleo (peca_id: 34) - VENCIDO (trocado em 40.000 km, previsto para 50.000 km)
+-- 3. Pastilha Dianteira (peca_id: 9) - PRÓXIMO (trocado em 22.000 km, previsto para 52.500 km; faltam apenas 500 km)
+-- 4. Filtro de Ar do Motor (peca_id: 32) - EM DIA (trocado em 50.000 km, previsto para 60.000 km; faltam 8.000 km)
+INSERT INTO `registros_troca` (`id`, `veiculo_id`, `peca_id`, `oficina_id`, `nome_oficina_manual`, `km_na_troca`, `data_troca`, `km_previsto_proximo`, `data_prevista_proximo`, `executado_por`, `observacoes`) VALUES
+(1, 1, 13, 1, NULL, 40000, '2025-08-10', 50000, '2026-02-10', 'Mecânico Oficina', 'Substituição completa do óleo 5W30 sintético GTX.'),
+(2, 1, 34, 1, NULL, 40000, '2025-08-10', 50000, '2026-02-10', 'Mecânico Oficina', 'Filtro lubrificante substituído junto com o óleo.'),
+(3, 1, 9, 1, NULL, 22000, '2025-01-20', 52500, '2026-10-20', 'Mecânico Oficina', 'Pastilhas de freio dianteiras Bosch instaladas.'),
+(4, 1, 32, 1, NULL, 50000, '2026-08-05', 60000, '2027-02-05', 'Mecânico Oficina', 'Filtro de ar do motor substituído na revisão periódica.'),
+(5, 2, 13, 1, NULL, 30000, '2026-03-10', 40000, '2026-09-10', 'Mecânico Oficina', 'Troca de óleo preventiva.')
+ON DUPLICATE KEY UPDATE `veiculo_id` = VALUES(`veiculo_id`);
+
+-- Registros de Serviços
+INSERT INTO `registros_servico` (`id`, `veiculo_id`, `servico_id`, `oficina_id`, `nome_oficina_manual`, `km_no_servico`, `data_servico`, `km_previsto_proximo`, `data_prevista_proximo`, `executado_por`, `observacoes`) VALUES
+(1, 1, 1, 1, NULL, 50000, '2026-08-05', 60000, '2027-02-05', 'Mecânico Oficina', 'Alinhamento 3D de geometria dianteiro e traseiro.'),
+(2, 1, 3, 1, NULL, 50000, '2026-08-05', 60000, '2027-02-05', 'Mecânico Oficina', 'Balanceamento de todas as rodas.'),
+(3, 1, 7, 1, NULL, 45000, '2026-04-12', 55000, '2026-10-12', 'Mecânico Oficina', 'Higienização e ozonização da caixa evaporadora do ar condicionado.')
+ON DUPLICATE KEY UPDATE `veiculo_id` = VALUES(`veiculo_id`);
+
+-- Agendamentos de Teste
+INSERT INTO `agendamentos` (`id`, `cliente_id`, `veiculo_id`, `servico_id`, `data_agendada`, `horario_agendado`, `status`, `motivo_revisao`, `observacoes`, `criado_por`) VALUES
+(1, 1, 1, 1, '2026-10-05', '09:00', 'agendado', 'Revisão periódica e alinhamento 3D', 'Cliente relatou leve vibração no volante.', 3),
+(2, 1, 2, 7, '2026-10-06', '14:00', 'agendado', 'Higienização de ar-condicionado', 'Agendamento solicitado via balcão de atendimento.', 3),
+(3, 2, 3, 13, '2026-09-15', '10:00', 'concluido', 'Sangria de freio e troca de fluido DOT4', 'Serviço executado e testado com sucesso.', 3),
+(4, 3, 4, 8, '2026-09-20', '11:00', 'cancelado', 'Checklist de segurança preventiva', 'Cliente solicitou cancelamento por incompatibilidade de agenda.', 3)
+ON DUPLICATE KEY UPDATE `cliente_id` = VALUES(`cliente_id`);
+
+-- Logs LGPD de Consentimento
+INSERT INTO `logs_lgpd` (`id`, `cliente_id`, `consentimento_dado`, `ip_origem`, `user_agent`) VALUES
+(1, 1, 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0'),
+(2, 2, 1, '127.0.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15'),
+(3, 3, 1, '127.0.0.1', 'Mozilla/5.0 (Linux; Android 13; SM-S901B) Mobile Safari/537.36')
+ON DUPLICATE KEY UPDATE `cliente_id` = VALUES(`cliente_id`);
+
+-- Notificações de Teste
+INSERT INTO `notificacoes` (`id`, `tipo`, `mensagem`, `lida`, `usuario_id`) VALUES
+(1, 'alerta_troca', 'O veículo Toyota Corolla (BRA2E19) está com a troca de Óleo 5W30 GTX vencida por quilometragem.', 0, 1),
+(2, 'lembrete_agendamento', 'Agendamento de revisão confirmado para o veículo BRA2E19 no dia 05/10/2026 às 09:00.', 0, 3),
+(3, 'solicitacao_cliente', 'O cliente Carlos Eduardo Silva solicitou revisão no Onix (ABC1D23).', 0, 2)
+ON DUPLICATE KEY UPDATE `usuario_id` = VALUES(`usuario_id`);
+
+-- ========================================================
+-- CREDENCIAIS DE ACESSO PARA TESTES
+-- ========================================================
+-- Usuários Internos:
+--   Administrador: admin@revsys.com    | Senha: admin123
+--   Gerente:       gerente@revsys.com  | Senha: gerente123
+--   Atendente:     atendente@revsys.com| Senha: atendente123
+--   Mecânico:      mecanico@revsys.com | Senha: mecanico123
+--
+-- Clientes de Teste:
+--   Cliente 1:     cliente1@revsys.com | Senha: cliente123 | CPF: 123.456.789-00
+--   Cliente 2:     cliente2@revsys.com | Senha: cliente123 | CPF: 987.654.321-11
+--   Cliente 3:     cliente3@revsys.com | Senha: cliente123 | CPF: 456.789.012-22
+

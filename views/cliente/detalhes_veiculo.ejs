@@ -1,111 +1,111 @@
 <%- include('../parciais/cabecalho') %>
 <%- include('../parciais/menu') %>
 
-<div class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8">
+<div class="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 md:p-8 pb-24 md:pb-8 smooth-scroll">
   <div class="max-w-5xl mx-auto space-y-6">
     
     <!-- Link Voltar -->
-    <a href="/cliente/veiculos" class="inline-flex items-center space-x-1 text-slate-500 hover:text-slate-900 transition-colors text-sm font-semibold">
-      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    <a href="/cliente/veiculos" class="inline-flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors text-base font-semibold">
+      <i data-lucide="arrow-left" class="w-5 h-5"></i>
       <span>Voltar para Meus Veículos</span>
     </a>
 
     <!-- Identidade do Veículo -->
-    <div class="bg-slate-900 text-white rounded-2xl p-6 md:p-8 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
-      <div class="flex items-center space-x-6">
+    <div class="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 md:p-8 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div class="flex flex-col xs:flex-row xs:items-center gap-4 sm:space-x-6">
         <!-- Placa Em Destaque -->
-        <div class="bg-white text-slate-900 font-mono font-extrabold text-2xl border-4 border-slate-750 rounded-xl px-4 py-2.5 shadow-md uppercase tracking-widest select-none shrink-0">
+        <div class="bg-white text-slate-900 font-mono font-black text-2xl md:text-3xl border-4 border-slate-750 rounded-2xl px-4 py-2 sm:px-5 sm:py-3 shadow-md uppercase tracking-widest select-none self-start xs:self-auto shrink-0">
           <%= veiculo.placa %>
         </div>
         <div>
-          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">
+          <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">
             <%= veiculo.modelo ? veiculo.modelo.marca.nome + ' ' + veiculo.modelo.nome : 'Modelo N/I' %>
           </h1>
-          <p class="text-slate-400 mt-1 text-sm font-medium">Ficha de Manutenções e Histórico de Trocas.</p>
+          <p class="text-slate-300 mt-1 text-sm sm:text-base font-medium">Ficha de Manutenções e Histórico de Trocas.</p>
         </div>
       </div>
       
       <!-- Detalhes Rápidos -->
-      <div class="grid grid-cols-3 gap-4 border-t border-slate-850 pt-4 md:pt-0 md:border-t-0 md:pl-6 md:border-l md:border-slate-800 text-center">
+      <div class="grid grid-cols-3 gap-2 sm:gap-6 border-t border-slate-800 pt-4 md:pt-0 md:border-t-0 md:pl-8 md:border-l md:border-slate-800 text-center">
         <div>
-          <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">KM Atual</span>
-          <span class="text-lg font-extrabold text-white mt-0.5 block"><%= veiculo.km_atual %> km</span>
+          <span class="text-[10px] sm:text-xs uppercase font-bold text-slate-400 block tracking-wider">KM Atual</span>
+          <span class="text-base sm:text-xl md:text-2xl font-black text-white mt-0.5 sm:mt-1 block"><%= Number(veiculo.km_atual).toLocaleString('pt-BR') %> km</span>
         </div>
         <div>
-          <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Ano</span>
-          <span class="text-lg font-extrabold text-white mt-0.5 block"><%= veiculo.ano %></span>
+          <span class="text-[10px] sm:text-xs uppercase font-bold text-slate-400 block tracking-wider">Ano</span>
+          <span class="text-base sm:text-xl md:text-2xl font-black text-white mt-0.5 sm:mt-1 block"><%= veiculo.ano %></span>
         </div>
         <div>
-          <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Cor</span>
-          <span class="text-lg font-extrabold text-white mt-0.5 block capitalize"><%= veiculo.cor %></span>
+          <span class="text-[10px] sm:text-xs uppercase font-bold text-slate-400 block tracking-wider">Cor</span>
+          <span class="text-base sm:text-xl md:text-2xl font-black text-white mt-0.5 sm:mt-1 block capitalize"><%= veiculo.cor %></span>
         </div>
       </div>
     </div>
 
     <!-- Linha do tempo das trocas -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-6">
       <div>
-        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-          <i data-lucide="git-commit" class="w-5 h-5 text-brand-500"></i>
+        <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2.5">
+          <i data-lucide="git-commit" class="w-6 h-6 text-brand-500"></i>
           <span>Histórico de Manutenções Realizadas</span>
         </h2>
-        <p class="text-xs text-slate-500 mt-0.5">Veja todas as substituições efetuadas no seu automóvel em nossa rede autorizada.</p>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1 font-normal">Veja todas as substituições efetuadas no seu automóvel em nossa rede autorizada.</p>
       </div>
 
-      <div class="relative pl-6 border-l border-slate-200 space-y-8 mt-4">
+      <div class="relative pl-6 border-l-2 border-slate-300 space-y-6 mt-4">
         <% if (historicoTrocas.length === 0) { %>
-          <div class="text-center text-slate-400 py-8 pr-6">
-            <i data-lucide="wrench" class="w-8 h-8 mx-auto mb-2 text-slate-350"></i>
+          <div class="text-center text-slate-500 py-10 pr-6 text-base font-medium">
+            <i data-lucide="wrench" class="w-10 h-10 mx-auto mb-3 text-slate-300"></i>
             Nenhuma manutenção registrada para o seu veículo no banco de dados.
           </div>
         <% } else { %>
           <% historicoTrocas.forEach(troca => { %>
             <div class="relative">
               <!-- Indicador visual (Bolinha) -->
-              <div class="absolute -left-[31px] top-1.5 w-4.5 h-4.5 rounded-full border-2 border-white bg-indigo-500 shadow-sm flex items-center justify-center">
-                <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+              <div class="absolute -left-[33px] top-2 w-5 h-5 rounded-full border-2 border-white bg-brand-500 shadow-sm flex items-center justify-center">
+                <span class="w-2 h-2 rounded-full bg-white"></span>
               </div>
 
               <!-- Conteúdo do Registro -->
-              <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/60 shadow-sm space-y-3">
+              <div class="bg-slate-50 rounded-xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3.5">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <h4 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
-                    <i data-lucide="package" class="w-4 h-4 text-slate-500"></i>
+                  <h4 class="font-bold text-slate-900 text-base md:text-lg flex items-center gap-2">
+                    <i data-lucide="package" class="w-5 h-5 text-slate-600"></i>
                     <span><%= troca.peca.nome %></span>
-                    <span class="text-xs font-normal text-slate-500">(<%= troca.peca.marca.nome %>)</span>
+                    <span class="text-sm font-semibold text-slate-500">(<%= troca.peca.marca.nome %>)</span>
                   </h4>
-                  <span class="text-xs font-semibold text-slate-400 bg-white border border-slate-200 px-2 py-0.5 rounded-md self-start sm:self-auto shrink-0 shadow-sm">
+                  <span class="text-xs sm:text-sm font-bold text-slate-700 bg-white border border-slate-300 px-3 py-1 rounded-lg self-start sm:self-auto shrink-0 shadow-sm">
                     <%= new Date(troca.data_troca).toLocaleDateString('pt-BR') %>
                   </span>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-slate-500 border-t border-slate-200/50 pt-2.5">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm text-slate-600 border-t border-slate-200 pt-3">
                   <div>
-                    <span class="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">KM na Troca</span>
-                    <span class="text-slate-800 font-semibold mt-0.5 block"><%= troca.km_na_troca %> km</span>
+                    <span class="block text-xs uppercase font-bold text-slate-500 tracking-wider">KM na Troca</span>
+                    <span class="text-slate-900 font-bold mt-0.5 block text-base"><%= Number(troca.km_na_troca).toLocaleString('pt-BR') %> km</span>
                   </div>
                   <div>
-                    <span class="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Próxima Prevista (KM)</span>
-                    <span class="text-slate-800 font-semibold mt-0.5 block"><%= troca.km_previsto_proximo || 'Não Definido' %></span>
+                    <span class="block text-xs uppercase font-bold text-slate-500 tracking-wider">Próxima Prevista (KM)</span>
+                    <span class="text-slate-900 font-bold mt-0.5 block text-base"><%= troca.km_previsto_proximo ? Number(troca.km_previsto_proximo).toLocaleString('pt-BR') + ' km' : 'Não Definido' %></span>
                   </div>
-                  <div>
-                    <span class="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Data Prevista</span>
-                    <span class="text-slate-800 font-semibold mt-0.5 block">
+                  <div class="col-span-2 sm:col-span-1">
+                    <span class="block text-xs uppercase font-bold text-slate-500 tracking-wider">Data Prevista</span>
+                    <span class="text-slate-900 font-bold mt-0.5 block text-base">
                       <%= troca.data_prevista_proximo ? new Date(troca.data_prevista_proximo).toLocaleDateString('pt-BR') : 'Não Definido' %>
                     </span>
                   </div>
                 </div>
 
                 <% if (troca.oficina || troca.nome_oficina_manual) { %>
-                  <div class="text-xs bg-white border border-slate-200/50 p-2 rounded-lg flex items-center gap-1.5 text-slate-600">
-                    <i data-lucide="home" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
-                    <span class="font-medium">Oficina Executante:</span>
+                  <div class="text-sm bg-white border border-slate-200 p-3 rounded-lg flex items-center gap-2 text-slate-700">
+                    <i data-lucide="home" class="w-4 h-4 text-brand-500 shrink-0"></i>
+                    <span class="font-bold">Oficina Executante:</span>
                     <span><%= troca.oficina ? troca.oficina.nome : troca.nome_oficina_manual %></span>
                   </div>
                 <% } %>
 
                 <% if (troca.observacoes) { %>
-                  <div class="text-xs text-slate-500 bg-slate-150 p-2.5 rounded-lg italic">
+                  <div class="text-sm text-slate-600 bg-slate-100 p-3 rounded-lg italic">
                     "<%= troca.observacoes %>"
                   </div>
                 <% } %>

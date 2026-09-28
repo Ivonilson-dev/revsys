@@ -2,115 +2,118 @@
 <%- include('../parciais/menu') %>
 
 <!-- Conteúdo da Página -->
-<div class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8">
-  <div class="max-w-7xl mx-auto space-y-8">
+<div class="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 md:p-8 pb-24 md:pb-8 smooth-scroll">
+  <div class="max-w-7xl mx-auto space-y-6 sm:space-y-8">
     
     <!-- Cabeçalho do Painel -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Painel da Oficina</h1>
-        <p class="text-slate-500 mt-1">Visão geral do dia, agendamentos e status da frota de clientes.</p>
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Painel da Oficina</h1>
+        <p class="text-slate-600 text-sm sm:text-base md:text-lg mt-1 font-normal">Visão geral do dia, agendamentos e status da frota de clientes.</p>
       </div>
-      <div class="flex items-center space-x-3">
-        <a href="/agendamentos/calendario-tela" class="inline-flex items-center space-x-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow-md shadow-brand-500/10 hover:shadow-brand-500/20 active:scale-[0.98] transition-all text-sm">
-          <i data-lucide="calendar" class="w-4 h-4"></i>
+      <div class="grid grid-cols-1 xs:grid-cols-2 sm:flex sm:items-center gap-2.5 sm:space-x-3 w-full sm:w-auto">
+        <a href="/agendamentos/calendario-tela" class="w-full sm:w-auto justify-center inline-flex items-center space-x-2 bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 px-4 rounded-xl shadow-md shadow-brand-500/10 hover:shadow-brand-500/20 active:scale-[0.98] transition-all text-base text-center">
+          <i data-lucide="calendar" class="w-5 h-5 shrink-0"></i>
           <span>Abrir Calendário</span>
         </a>
-        <a href="/veiculos" class="inline-flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 px-4 rounded-xl shadow-md hover:shadow-xl active:scale-[0.98] transition-all text-sm">
-          <i data-lucide="search" class="w-4 h-4"></i>
+        <a href="/veiculos" class="w-full sm:w-auto justify-center inline-flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-xl active:scale-[0.98] transition-all text-base text-center">
+          <i data-lucide="search" class="w-5 h-5 shrink-0"></i>
           <span>Buscar Veículo</span>
         </a>
       </div>
     </div>
 
     <!-- Cards de Indicadores (Métricas) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6">
       
       <!-- Card: Agendamentos de Hoje -->
-      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all flex items-center space-x-4">
-        <div class="bg-sky-100 p-4 rounded-xl text-sky-600">
-          <i data-lucide="clock" class="w-6 h-6"></i>
+      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all flex items-center space-x-4 sm:space-x-5">
+        <div class="bg-sky-100 p-3.5 sm:p-4 rounded-2xl text-sky-600 shrink-0">
+          <i data-lucide="clock" class="w-6 h-6 sm:w-7 sm:h-7"></i>
         </div>
         <div>
-          <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block">Agendados para Hoje</span>
-          <span class="text-3xl font-extrabold text-slate-800 block mt-1"><%= agendamentosHoje.length %></span>
+          <span class="text-slate-600 text-xs sm:text-sm font-bold uppercase tracking-wider block">Agendados para Hoje</span>
+          <span class="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 block mt-0.5"><%= agendamentosHoje.length %></span>
         </div>
       </div>
 
       <!-- Card: Manutenções Atrasadas -->
-      <a href="/relatorios/vencidos" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all flex items-center space-x-4">
-        <div class="bg-red-100 p-4 rounded-xl text-red-600">
-          <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+      <a href="/relatorios/vencidos" class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all flex items-center space-x-4 sm:space-x-5">
+        <div class="bg-red-100 p-3.5 sm:p-4 rounded-2xl text-red-600 shrink-0">
+          <i data-lucide="alert-triangle" class="w-6 h-6 sm:w-7 sm:h-7"></i>
         </div>
         <div>
-          <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block">Veículos Atrasados</span>
-          <span class="text-3xl font-extrabold text-red-600 block mt-1"><%= totalVeiculosAtrasados %></span>
+          <span class="text-slate-600 text-xs sm:text-sm font-bold uppercase tracking-wider block">Veículos Atrasados</span>
+          <span class="text-3xl sm:text-4xl md:text-5xl font-black text-red-600 block mt-0.5"><%= totalVeiculosAtrasados %></span>
         </div>
       </a>
 
       <!-- Card: Trocas Realizadas no Mês -->
-      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all flex items-center space-x-4">
-        <div class="bg-emerald-100 p-4 rounded-xl text-emerald-600">
-          <i data-lucide="wrench" class="w-6 h-6"></i>
+      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all flex items-center space-x-4 sm:space-x-5 sm:col-span-2 lg:col-span-1">
+        <div class="bg-emerald-100 p-3.5 sm:p-4 rounded-2xl text-emerald-600 shrink-0">
+          <i data-lucide="wrench" class="w-6 h-6 sm:w-7 sm:h-7"></i>
         </div>
         <div>
-          <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block">Trocas Realizadas (Mês)</span>
-          <span class="text-3xl font-extrabold text-slate-800 block mt-1"><%= totalTrocasMes %></span>
+          <span class="text-slate-600 text-xs sm:text-sm font-bold uppercase tracking-wider block">Trocas no Mês</span>
+          <span class="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 block mt-0.5"><%= totalTrocasMes %></span>
         </div>
       </div>
 
     </div>
 
     <!-- Layout Dividido em Duas Colunas -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
       
       <!-- Coluna Principal (2/3 de largura) -->
-      <div class="lg:col-span-2 space-y-8">
+      <div class="lg:col-span-2 space-y-6 sm:space-y-8">
         
         <!-- Agendamentos de Hoje -->
         <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <i data-lucide="calendar-check" class="w-5 h-5 text-brand-500"></i>
+          <div class="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2.5">
+              <i data-lucide="calendar-check" class="w-5 h-5 sm:w-6 sm:h-6 text-brand-500"></i>
               <span>Agenda de Hoje</span>
             </h2>
-            <a href="/agendamentos" class="text-xs text-brand-500 hover:text-brand-600 font-semibold flex items-center gap-1">
+            <a href="/agendamentos" class="text-sm md:text-base text-brand-600 hover:text-brand-700 font-bold flex items-center gap-1">
               <span>Ver todos</span>
-              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
             </a>
           </div>
 
           <div class="divide-y divide-slate-100">
             <% if (agendamentosHoje.length === 0) { %>
-              <div class="p-8 text-center text-slate-400">
-                <i data-lucide="calendar" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
-                <p class="text-sm">Nenhum agendamento para hoje.</p>
+              <div class="p-8 sm:p-10 text-center text-slate-500">
+                <i data-lucide="calendar" class="w-10 h-10 mx-auto mb-3 text-slate-300"></i>
+                <p class="text-base md:text-lg font-medium">Nenhum agendamento para hoje.</p>
               </div>
             <% } else { %>
               <% agendamentosHoje.forEach(agenda => { %>
-                <div class="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors">
-                  <div class="flex items-start space-x-4">
-                    <div class="bg-slate-100 px-3 py-2 rounded-xl text-center shrink-0 min-w-[70px]">
-                      <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Horário</span>
-                      <span class="text-lg font-extrabold text-slate-800"><%= agenda.horario_agendado %></span>
+                <div class="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors">
+                  <div class="flex items-start space-x-3.5 sm:space-x-4">
+                    <div class="bg-slate-100 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-center shrink-0 min-w-[75px] sm:min-w-[85px] border border-slate-200">
+                      <span class="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider block">Horário</span>
+                      <span class="text-lg sm:text-2xl font-black text-slate-900"><%= agenda.horario_agendado %></span>
                     </div>
-                    <div>
-                      <span class="text-sm font-semibold text-slate-800 block"><%= agenda.cliente.usuario.nome %></span>
-                      <span class="text-xs text-slate-500 block mt-0.5">
-                        <%= agenda.veiculo.placa %> | <%= agenda.veiculo.modelo ? agenda.veiculo.modelo.marca.nome + ' ' + agenda.veiculo.modelo.nome : 'Modelo N/I' %>
+                    <div class="min-w-0 flex-1">
+                      <span class="text-base sm:text-lg font-bold text-slate-900 block leading-snug truncate"><%= agenda.cliente.usuario.nome %></span>
+                      <span class="text-sm sm:text-base text-slate-600 font-medium block mt-1">
+                        <span class="font-mono font-bold text-slate-800"><%= agenda.veiculo.placa %></span> &bull; <%= agenda.veiculo.modelo ? agenda.veiculo.modelo.marca.nome + ' ' + agenda.veiculo.modelo.nome : 'Modelo N/I' %>
                       </span>
-                      <span class="text-xs italic text-slate-400 block mt-1">"<%= agenda.motivo_revisao %>"</span>
+                      <span class="text-xs sm:text-sm italic text-slate-600 font-medium block mt-1 line-clamp-2">"<%= agenda.motivo_revisao %>"</span>
                     </div>
                   </div>
-                  <div class="flex items-center gap-3">
-                    <% if (agenda.status === 'agendado') { %>
-                      <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-800 border border-sky-200 uppercase">Agendado</span>
-                    <% } else if (agenda.status === 'concluido') { %>
-                      <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200 uppercase">Concluído</span>
-                    <% } %>
+                  <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t border-slate-100 sm:border-t-0">
+                    <div>
+                      <% if (agenda.status === 'agendado') { %>
+                        <span class="px-3 py-1 rounded-full text-xs sm:text-sm font-bold bg-sky-100 text-sky-800 border border-sky-300 uppercase tracking-wide">Agendado</span>
+                      <% } else if (agenda.status === 'concluido') { %>
+                        <span class="px-3 py-1 rounded-full text-xs sm:text-sm font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase tracking-wide">Concluído</span>
+                      <% } %>
+                    </div>
                     
-                    <a href="/veiculos/<%= agenda.veiculo_id %>" class="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors" title="Ver detalhes do veículo">
-                      <i data-lucide="eye" class="w-5 h-5"></i>
+                    <a href="/veiculos/<%= agenda.veiculo_id %>" class="inline-flex items-center gap-1.5 py-2 px-3 sm:p-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition-colors font-semibold text-xs sm:text-sm" title="Ver detalhes do veículo">
+                      <span class="sm:hidden">Veículo</span>
+                      <i data-lucide="eye" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                     </a>
                   </div>
                 </div>
@@ -121,42 +124,42 @@
 
         <!-- Veículos Atrasados (Histórico/Manutenção) -->
         <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <i data-lucide="alert-circle" class="w-5 h-5 text-red-500"></i>
+          <div class="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2.5">
+              <i data-lucide="alert-circle" class="w-5 h-5 sm:w-6 sm:h-6 text-red-500"></i>
               <span>Veículos com Manutenção Atrasada</span>
             </h2>
-            <a href="/relatorios/vencidos" class="text-xs text-brand-500 hover:text-brand-600 font-semibold flex items-center gap-1">
+            <a href="/relatorios/vencidos" class="text-sm md:text-base text-brand-600 hover:text-brand-700 font-bold flex items-center gap-1">
               <span>Ver todos</span>
-              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
             </a>
           </div>
 
           <div class="divide-y divide-slate-100">
             <% if (veiculosAtrasados.length === 0) { %>
-              <div class="p-8 text-center text-slate-400">
-                <i data-lucide="shield-check" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
-                <p class="text-sm">Todos os veículos em dia!</p>
+              <div class="p-8 sm:p-10 text-center text-slate-500">
+                <i data-lucide="shield-check" class="w-10 h-10 mx-auto mb-3 text-emerald-500"></i>
+                <p class="text-base md:text-lg font-medium">Todos os veículos estão com a manutenção em dia!</p>
               </div>
             <% } else { %>
               <% veiculosAtrasados.forEach(veiculo => { %>
-                <div class="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors">
+                <div class="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors">
                   <div>
-                    <div class="flex items-center space-x-2">
-                      <span class="px-2.5 py-0.5 rounded-lg bg-slate-900 text-white font-mono font-bold text-xs uppercase border border-slate-700 tracking-wider shadow-sm">
+                    <div class="flex items-center space-x-2.5 sm:space-x-3">
+                      <span class="px-2.5 py-1 rounded-lg bg-slate-900 text-white font-mono font-bold text-xs sm:text-sm uppercase border border-slate-700 tracking-wider shadow-sm">
                         <%= veiculo.placa %>
                       </span>
-                      <span class="text-sm font-semibold text-slate-800">
+                      <span class="text-base sm:text-lg font-bold text-slate-900">
                         <%= veiculo.modelo ? veiculo.modelo.marca.nome + ' ' + veiculo.modelo.nome : 'Modelo Não Informado' %>
                       </span>
                     </div>
-                    <span class="text-xs text-slate-500 block mt-1.5">
-                      Proprietário: <span class="font-medium text-slate-700"><%= veiculo.cliente.usuario.nome %></span> | KM atual: <span class="font-medium text-slate-700"><%= veiculo.km_atual %> km</span>
+                    <span class="text-xs sm:text-base text-slate-600 block mt-2">
+                      Proprietário: <span class="font-bold text-slate-800"><%= veiculo.cliente.usuario.nome %></span> | KM: <span class="font-bold text-slate-800"><%= Number(veiculo.km_atual).toLocaleString('pt-BR') %> km</span>
                     </span>
                   </div>
                   <div>
-                    <a href="/veiculos/<%= veiculo.id %>" class="inline-flex items-center space-x-1.5 text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 py-2 px-3 rounded-lg border border-red-200 transition-colors">
-                      <i data-lucide="wrench" class="w-3.5 h-3.5"></i>
+                    <a href="/veiculos/<%= veiculo.id %>" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 text-sm sm:text-base font-bold text-red-700 hover:text-red-800 bg-red-50 hover:bg-red-100 py-2.5 px-4 rounded-xl border border-red-200 transition-colors">
+                      <i data-lucide="wrench" class="w-4 h-4"></i>
                       <span>Resolver Manutenção</span>
                     </a>
                   </div>
@@ -169,42 +172,42 @@
       </div>
 
       <!-- Coluna Lateral (1/3 de largura) -->
-      <div class="space-y-8">
+      <div class="space-y-6 sm:space-y-8">
         
         <!-- Notificações Recentes / Solicitações de Clientes -->
         <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <div class="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
               <i data-lucide="bell" class="w-5 h-5 text-amber-500"></i>
-              <span>Solicitações / Notificações</span>
+              <span>Notificações</span>
             </h2>
             <% if (notificacoes.length > 0) { %>
               <form action="/notificacoes/ler-todas" method="POST" class="inline">
-                <button type="submit" class="text-[10px] text-slate-400 hover:text-slate-600 font-bold uppercase tracking-wider">Limpar</button>
+                <button type="submit" class="text-xs text-slate-500 hover:text-slate-800 font-bold uppercase tracking-wider transition-colors py-1 px-2 rounded hover:bg-slate-100">Limpar</button>
               </form>
             <% } %>
           </div>
 
           <div class="divide-y divide-slate-100">
             <% if (notificacoes.length === 0) { %>
-              <div class="p-8 text-center text-slate-400">
+              <div class="p-8 text-center text-slate-500">
                 <i data-lucide="bell-off" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
-                <p class="text-sm">Nenhuma notificação pendente.</p>
+                <p class="text-sm md:text-base font-medium">Nenhuma notificação pendente.</p>
               </div>
             <% } else { %>
               <% notificacoes.forEach(notif => { %>
-                <div class="p-4 hover:bg-slate-50/50 transition-colors relative flex flex-col justify-between">
-                  <div class="pr-6">
-                    <span class="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+                <div class="p-4 sm:p-5 hover:bg-slate-50/70 transition-colors relative flex flex-col justify-between">
+                  <div class="pr-8">
+                    <span class="text-xs uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-md <%= notif.tipo === 'solicitacao_cliente' ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-blue-100 text-blue-900 border border-blue-200' %>">
                       <%= notif.tipo === 'solicitacao_cliente' ? 'Solicitação' : 'Alerta' %>
                     </span>
-                    <p class="text-xs text-slate-700 mt-2 leading-relaxed"><%= notif.mensagem %></p>
-                    <span class="text-[10px] text-slate-400 block mt-1"><%= new Date(notif.criado_em).toLocaleString('pt-BR') %></span>
+                    <p class="text-sm sm:text-base text-slate-800 font-medium mt-2 leading-relaxed"><%= notif.mensagem %></p>
+                    <span class="text-xs text-slate-500 font-medium block mt-1.5"><%= new Date(notif.criado_em).toLocaleString('pt-BR') %></span>
                   </div>
                   
                   <!-- Formulário para marcar como lida -->
-                  <form action="/notificacoes/<%= notif.id %>/lida" method="POST" class="absolute top-4 right-4">
-                    <button type="submit" class="p-1 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded" title="Marcar como lida">
+                  <form action="/notificacoes/<%= notif.id %>/lida" method="POST" class="absolute top-3.5 right-3.5">
+                    <button type="submit" class="w-8 h-8 flex items-center justify-center hover:bg-slate-200 text-slate-500 hover:text-slate-800 rounded-lg transition-colors" title="Marcar como lida">
                       <i data-lucide="check" class="w-4 h-4"></i>
                     </button>
                   </form>
@@ -216,31 +219,31 @@
 
         <!-- Próximas Trocas (7 dias) -->
         <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-6 border-b border-slate-100">
-            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <div class="p-5 sm:p-6 border-b border-slate-100">
+            <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
               <i data-lucide="calendar-days" class="w-5 h-5 text-indigo-500"></i>
               <span>Vencendo em Breve</span>
             </h2>
-            <span class="text-xs text-slate-400 mt-0.5 block">Previsões para os próximos 7 dias por tempo.</span>
+            <span class="text-xs sm:text-sm text-slate-500 mt-1 block font-medium">Previsões para os próximos 7 dias por tempo.</span>
           </div>
 
           <div class="divide-y divide-slate-100">
             <% if (proximasTrocas7Dias.length === 0) { %>
-              <div class="p-8 text-center text-slate-400">
+              <div class="p-8 text-center text-slate-500">
                 <i data-lucide="calendar" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
-                <p class="text-sm">Nenhuma troca agendada para os próximos 7 dias.</p>
+                <p class="text-sm md:text-base font-medium">Nenhuma troca prevista para os próximos 7 dias.</p>
               </div>
             <% } else { %>
               <% proximasTrocas7Dias.forEach(item => { %>
-                <div class="p-4 hover:bg-slate-50/50 transition-colors">
-                  <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-slate-800 block"><%= item.peca.nome %></span>
-                    <span class="text-[10px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-lg">
+                <div class="p-4 sm:p-5 hover:bg-slate-50/70 transition-colors">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-sm sm:text-base font-bold text-slate-900 block leading-snug"><%= item.peca.nome %></span>
+                    <span class="text-xs sm:text-sm font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-lg shrink-0">
                       <%= new Date(item.data_prevista).toLocaleDateString('pt-BR') %>
                     </span>
                   </div>
-                  <span class="text-xs text-slate-500 block mt-1">
-                    Veículo: <span class="font-medium text-slate-700"><%= item.veiculo.placa %></span> (<%= item.veiculo.modelo ? item.veiculo.modelo.nome : 'N/I' %>)
+                  <span class="text-xs sm:text-sm text-slate-600 block mt-1.5 font-medium">
+                    Veículo: <span class="font-bold text-slate-800 font-mono"><%= item.veiculo.placa %></span> (<%= item.veiculo.modelo ? item.veiculo.modelo.nome : 'N/I' %>)
                   </span>
                 </div>
               <% }) %>

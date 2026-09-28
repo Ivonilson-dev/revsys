@@ -1,20 +1,20 @@
 <%- include('../parciais/cabecalho') %>
 <%- include('../parciais/menu') %>
 
-<div class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8">
+<div class="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 md:p-8 pb-24 md:pb-8 smooth-scroll">
   <div class="max-w-6xl mx-auto space-y-6">
     
     <!-- Link Voltar -->
-    <a href="/relatorios" class="inline-flex items-center space-x-1 text-slate-500 hover:text-slate-900 transition-colors text-sm font-semibold">
-      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    <a href="/relatorios" class="inline-flex items-center space-x-1.5 text-slate-600 hover:text-slate-900 transition-colors text-base font-semibold">
+      <i data-lucide="arrow-left" class="w-5 h-5"></i>
       <span>Voltar para Relatórios</span>
     </a>
 
     <!-- Cabeçalho -->
     <div>
-      <span class="text-xs font-bold text-red-500 uppercase tracking-widest block font-mono">Relatório Crítico</span>
-      <h1 class="text-3xl font-bold text-slate-900 tracking-tight mt-1">Manutenções Vencidas</h1>
-      <p class="text-slate-500 mt-1">Veículos com peças que ultrapassaram o limite de Kilometragem ou data limite de tempo (Vermelho).</p>
+      <span class="text-xs font-bold text-red-600 uppercase tracking-widest block font-mono">Relatório Crítico</span>
+      <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mt-1">Manutenções Vencidas</h1>
+      <p class="text-slate-600 text-base md:text-lg mt-1 font-normal">Veículos com peças que ultrapassaram o limite de Kilometragem ou data limite de tempo (Vermelho).</p>
     </div>
 
     <!-- Tabela / Cards -->
@@ -23,54 +23,54 @@
       <div class="hidden md:block overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-slate-50/70 border-b border-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider">
+            <tr class="bg-slate-100/80 border-b border-slate-200 text-slate-700 text-sm font-bold uppercase tracking-wider">
               <th class="p-4 pl-6">Veículo</th>
               <th class="p-4">Proprietário</th>
               <th class="p-4">Peça Substituída</th>
               <th class="p-4">KM Atual / Previsto</th>
               <th class="p-4">Data Prevista</th>
               <th class="p-4">Alerta</th>
-              <th class="p-4 pr-6 text-right">Prontuário</th>
+              <th class="p-4 pr-6 text-right">Ação</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 text-slate-700 text-sm">
+          <tbody class="divide-y divide-slate-100 text-slate-800 text-base">
             <% if (itensVencidos.length === 0) { %>
               <tr>
-                <td colspan="7" class="p-8 text-center text-slate-400">
+                <td colspan="7" class="p-10 text-center text-slate-500 text-base font-medium">
                   Nenhum veículo com manutenções vencidas! Excelente.
                 </td>
               </tr>
             <% } else { %>
               <% itensVencidos.forEach(item => { %>
-                <tr class="hover:bg-slate-50/50 transition-colors">
+                <tr class="hover:bg-slate-50/70 transition-colors">
                   <td class="p-4 pl-6">
-                    <div class="flex items-center space-x-2">
-                      <span class="px-2 py-0.5 rounded bg-slate-900 text-white font-mono font-bold text-xs uppercase border border-slate-700 tracking-wider">
+                    <div class="flex items-center space-x-2.5">
+                      <span class="px-2.5 py-1 rounded bg-slate-900 text-white font-mono font-bold text-sm uppercase border border-slate-700 tracking-wider shadow-sm">
                         <%= item.veiculo.placa %>
                       </span>
-                      <span class="text-slate-900 font-semibold block text-xs truncate max-w-[120px]">
+                      <span class="text-slate-900 font-bold block text-sm truncate max-w-[130px]">
                         <%= item.veiculo.modelo ? item.veiculo.modelo.nome : 'N/I' %>
                       </span>
                     </div>
                   </td>
-                  <td class="p-4 text-slate-650"><%= item.veiculo.cliente.usuario.nome %></td>
-                  <td class="p-4 font-medium"><%= item.peca.nome %></td>
-                  <td class="p-4 font-mono">
-                    <span class="font-bold text-slate-900"><%= item.veiculo.km_atual %></span> / 
-                    <span class="text-slate-455"><%= item.troca.km_previsto_proximo || 'Sem Limite' %></span>
+                  <td class="p-4 text-slate-800 font-medium"><%= item.veiculo.cliente.usuario.nome %></td>
+                  <td class="p-4 font-bold text-slate-900"><%= item.peca.nome %></td>
+                  <td class="p-4 font-mono font-bold text-sm">
+                    <span class="text-slate-900"><%= Number(item.veiculo.km_atual).toLocaleString('pt-BR') %></span> / 
+                    <span class="text-red-600"><%= item.troca.km_previsto_proximo ? Number(item.troca.km_previsto_proximo).toLocaleString('pt-BR') : 'Sem Limite' %></span>
                   </td>
-                  <td class="p-4">
+                  <td class="p-4 text-sm font-medium">
                     <%= item.troca.data_prevista_proximo ? new Date(item.troca.data_prevista_proximo).toLocaleDateString('pt-BR') : 'Sem data' %>
                   </td>
                   <td class="p-4">
-                    <span class="px-2 py-0.5 rounded font-bold uppercase text-[9px] <%= item.alerta.cor %>">
+                    <span class="px-3 py-1 rounded-full font-bold uppercase text-xs <%= item.alerta.cor %>">
                       <%= item.alerta.mensagem %>
                     </span>
                   </td>
                   <td class="p-4 pr-6 text-right">
-                    <a href="/veiculos/<%= item.veiculo.id %>" class="text-brand-500 hover:text-brand-650 font-bold text-xs flex items-center justify-end gap-1">
+                    <a href="/veiculos/<%= item.veiculo.id %>" class="text-brand-600 hover:text-brand-700 font-bold text-sm inline-flex items-center gap-1.5 transition-colors">
                       <span>Resolver</span>
-                      <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                      <i data-lucide="arrow-right" class="w-4 h-4"></i>
                     </a>
                   </td>
                 </tr>
@@ -83,41 +83,42 @@
       <!-- Cards Mobile -->
       <div class="block md:hidden divide-y divide-slate-100">
         <% if (itensVencidos.length === 0) { %>
-          <div class="p-8 text-center text-slate-400">
+          <div class="p-10 text-center text-slate-500 text-base font-medium">
             Nenhum veículo com manutenções vencidas.
           </div>
         <% } else { %>
           <% itensVencidos.forEach(item => { %>
-            <div class="p-4 space-y-3 hover:bg-slate-50/50 transition-colors">
+            <div class="p-5 space-y-3.5 hover:bg-slate-50/70 transition-colors">
               <div class="flex items-center justify-between">
-                <span class="px-2 py-0.5 rounded bg-slate-900 text-white font-mono font-bold text-xs uppercase border border-slate-700 tracking-wider">
+                <span class="px-3 py-1 rounded-lg bg-slate-900 text-white font-mono font-bold text-sm uppercase border border-slate-700 tracking-wider shadow-sm">
                   <%= item.veiculo.placa %>
                 </span>
-                <span class="text-xs font-bold text-red-600"><%= item.alerta.mensagem %></span>
+                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-800 border border-red-300"><%= item.alerta.mensagem %></span>
               </div>
               
-              <div class="grid grid-cols-2 gap-2 text-xs text-slate-500">
+              <div class="grid grid-cols-2 gap-3 text-sm text-slate-600">
                 <div>
-                  <span class="block text-slate-400 font-bold uppercase tracking-wider text-[9px]">Peça Vencida</span>
-                  <span class="text-slate-800 font-semibold"><%= item.peca.nome %></span>
+                  <span class="block text-slate-500 font-bold uppercase tracking-wider text-xs">Peça Vencida</span>
+                  <span class="text-slate-900 font-bold block"><%= item.peca.nome %></span>
                 </div>
                 <div>
-                  <span class="block text-slate-400 font-bold uppercase tracking-wider text-[9px]">Cliente</span>
-                  <span class="text-slate-800 truncate block"><%= item.veiculo.cliente.usuario.nome %></span>
+                  <span class="block text-slate-500 font-bold uppercase tracking-wider text-xs">Cliente</span>
+                  <span class="text-slate-800 font-medium truncate block"><%= item.veiculo.cliente.usuario.nome %></span>
                 </div>
                 <div>
-                  <span class="block text-slate-400 font-bold uppercase tracking-wider text-[9px]">KM Veículo / Limite</span>
-                  <span class="text-slate-800"><%= item.veiculo.km_atual %> / <%= item.troca.km_previsto_proximo || 'S/L' %></span>
+                  <span class="block text-slate-500 font-bold uppercase tracking-wider text-xs">KM / Limite</span>
+                  <span class="text-slate-900 font-bold"><%= Number(item.veiculo.km_atual).toLocaleString('pt-BR') %> / <%= item.troca.km_previsto_proximo ? Number(item.troca.km_previsto_proximo).toLocaleString('pt-BR') : 'S/L' %></span>
                 </div>
                 <div>
-                  <span class="block text-slate-400 font-bold uppercase tracking-wider text-[9px]">Data Limite</span>
-                  <span class="text-slate-800"><%= item.troca.data_prevista_proximo ? new Date(item.troca.data_prevista_proximo).toLocaleDateString('pt-BR') : 'Sem data' %></span>
+                  <span class="block text-slate-500 font-bold uppercase tracking-wider text-xs">Data Limite</span>
+                  <span class="text-slate-800 font-medium"><%= item.troca.data_prevista_proximo ? new Date(item.troca.data_prevista_proximo).toLocaleDateString('pt-BR') : 'Sem data' %></span>
                 </div>
               </div>
 
-              <div class="pt-2 border-t border-slate-100 flex justify-end">
-                <a href="/veiculos/<%= item.veiculo.id %>" class="text-brand-500 hover:underline text-xs font-bold">
-                  Ver Ficha / Resolver
+              <div class="pt-3 border-t border-slate-100 flex justify-end">
+                <a href="/veiculos/<%= item.veiculo.id %>" class="text-brand-600 hover:underline text-sm font-bold flex items-center gap-1">
+                  <span>Ver Ficha / Resolver</span>
+                  <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </a>
               </div>
             </div>

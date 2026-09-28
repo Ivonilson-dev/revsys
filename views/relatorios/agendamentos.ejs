@@ -1,22 +1,22 @@
 <%- include('../parciais/cabecalho') %>
 <%- include('../parciais/menu') %>
 
-<div class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8">
+<div class="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 md:p-8 pb-24 md:pb-8 smooth-scroll">
   <div class="max-w-6xl mx-auto space-y-6">
     
     <!-- Link Voltar -->
-    <a href="/relatorios" class="inline-flex items-center space-x-1 text-slate-500 hover:text-slate-900 transition-colors text-sm font-semibold">
-      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    <a href="/relatorios" class="inline-flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors text-base font-semibold">
+      <i data-lucide="arrow-left" class="w-5 h-5"></i>
       <span>Voltar para Relatórios</span>
     </a>
 
     <!-- Cabeçalho -->
     <div>
-      <span class="text-xs font-bold text-indigo-500 uppercase tracking-widest block font-mono">Relatório de Ocupação</span>
-      <h1 class="text-3xl font-bold text-slate-900 tracking-tight mt-1">
+      <span class="text-xs md:text-sm font-bold text-indigo-600 uppercase tracking-widest block font-mono">Relatório de Ocupação</span>
+      <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
         Agendamentos <%= tipo === 'dia' ? 'de Hoje' : 'Deste Mês' %>
       </h1>
-      <p class="text-slate-500 mt-1">Lista organizada dos veículos programados para atendimento na oficina.</p>
+      <p class="text-base text-slate-600 mt-2">Lista organizada dos veículos programados para atendimento na oficina.</p>
     </div>
 
     <!-- Tabela / Cards -->
@@ -25,7 +25,7 @@
       <div class="hidden md:block overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-slate-50/70 border-b border-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider">
+            <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-700 text-xs md:text-sm font-bold uppercase tracking-wider">
               <th class="p-4 pl-6">Data / Horário</th>
               <th class="p-4">Cliente</th>
               <th class="p-4">Veículo (Placa)</th>
@@ -34,38 +34,39 @@
               <th class="p-4 pr-6 text-right">Ação</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 text-slate-700 text-sm">
+          <tbody class="divide-y divide-slate-100 text-slate-800 text-base">
             <% if (agendamentos.length === 0) { %>
               <tr>
-                <td colspan="6" class="p-8 text-center text-slate-400">
+                <td colspan="6" class="p-8 text-center text-slate-500 font-medium">
                   Nenhum agendamento programado para este período.
                 </td>
               </tr>
             <% } else { %>
               <% agendamentos.forEach(a => { %>
                 <tr class="hover:bg-slate-50/50 transition-colors">
-                  <td class="p-4 pl-6 font-semibold">
+                  <td class="p-4 pl-6 font-bold text-slate-900">
                     <%= new Date(a.data_agendada).toLocaleDateString('pt-BR') %> às <%= a.horario_agendado %>
                   </td>
-                  <td class="p-4"><%= a.cliente ? a.cliente.usuario.nome : 'N/I' %></td>
+                  <td class="p-4 font-semibold text-slate-800"><%= a.cliente ? a.cliente.usuario.nome : 'N/I' %></td>
                   <td class="p-4">
-                    <span class="px-2 py-0.5 rounded bg-slate-900 text-white font-mono font-bold text-xs uppercase border border-slate-700 tracking-wider">
+                    <span class="px-2.5 py-1 rounded bg-slate-900 text-white font-mono font-bold text-sm uppercase border border-slate-700 tracking-wider">
                       <%= a.veiculo ? a.veiculo.placa : 'N/I' %>
                     </span>
                   </td>
-                  <td class="p-4 text-slate-500 italic">"<%= a.motivo_revisao %>"</td>
+                  <td class="p-4 text-slate-600 italic">"<%= a.motivo_revisao %>"</td>
                   <td class="p-4">
                     <% if (a.status === 'agendado') { %>
-                      <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200 uppercase">Agendado</span>
+                      <span class="px-3 py-1 rounded-full text-xs md:text-sm font-bold bg-sky-100 text-sky-800 border border-sky-200 uppercase tracking-wide">Agendado</span>
                     <% } else if (a.status === 'concluido') { %>
-                      <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-200 uppercase">Concluído</span>
+                      <span class="px-3 py-1 rounded-full text-xs md:text-sm font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase tracking-wide">Concluído</span>
                     <% } else { %>
-                      <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200 uppercase">Cancelado</span>
+                      <span class="px-3 py-1 rounded-full text-xs md:text-sm font-bold bg-red-100 text-red-800 border border-red-200 uppercase tracking-wide">Cancelado</span>
                     <% } %>
                   </td>
                   <td class="p-4 pr-6 text-right">
-                    <a href="/veiculos/<%= a.veiculo_id %>" class="text-brand-500 hover:text-brand-650 font-bold text-xs">
-                      Ver Veículo
+                    <a href="/veiculos/<%= a.veiculo_id %>" class="text-brand-600 hover:text-brand-700 font-bold text-base inline-flex items-center gap-1 hover:underline">
+                      <span>Ver Veículo</span>
+                      <i data-lucide="arrow-right" class="w-4 h-4"></i>
                     </a>
                   </td>
                 </tr>
@@ -78,43 +79,44 @@
       <!-- Mobile -->
       <div class="block md:hidden divide-y divide-slate-100">
         <% if (agendamentos.length === 0) { %>
-          <div class="p-8 text-center text-slate-400">
+          <div class="p-8 text-center text-slate-500 font-medium">
             Nenhum agendamento programado para este período.
           </div>
         <% } else { %>
           <% agendamentos.forEach(a => { %>
-            <div class="p-4 space-y-3 hover:bg-slate-50/50 transition-colors">
+            <div class="p-5 space-y-3 hover:bg-slate-50/50 transition-colors">
               <div class="flex items-center justify-between">
-                <span class="font-bold text-slate-900">
+                <span class="font-bold text-base text-slate-900">
                   <%= new Date(a.data_agendada).toLocaleDateString('pt-BR') %> às <%= a.horario_agendado %>
                 </span>
                 <% if (a.status === 'agendado') { %>
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-100 text-sky-800">AGENDADO</span>
+                  <span class="text-xs font-bold px-3 py-1 rounded-full bg-sky-100 text-sky-800 uppercase">AGENDADO</span>
                 <% } else if (a.status === 'concluido') { %>
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-green-100 text-green-800">CONCLUÍDO</span>
+                  <span class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 uppercase">CONCLUÍDO</span>
                 <% } else { %>
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-800">CANCELADO</span>
+                  <span class="text-xs font-bold px-3 py-1 rounded-full bg-red-100 text-red-800 uppercase">CANCELADO</span>
                 <% } %>
               </div>
               
-              <div class="grid grid-cols-2 gap-2 text-xs text-slate-500">
+              <div class="grid grid-cols-2 gap-3 text-sm text-slate-600">
                 <div>
-                  <span class="block text-slate-400 font-bold uppercase tracking-wider text-[9px]">Cliente</span>
-                  <span class="text-slate-800"><%= a.cliente ? a.cliente.usuario.nome : 'N/I' %></span>
+                  <span class="block text-slate-700 font-bold uppercase tracking-wider text-xs">Cliente</span>
+                  <span class="text-slate-900 font-semibold text-base"><%= a.cliente ? a.cliente.usuario.nome : 'N/I' %></span>
                 </div>
                 <div>
-                  <span class="block text-slate-400 font-bold uppercase tracking-wider text-[9px]">Veículo (Placa)</span>
-                  <span class="text-slate-800 font-mono uppercase font-bold"><%= a.veiculo ? a.veiculo.placa : 'N/I' %></span>
+                  <span class="block text-slate-700 font-bold uppercase tracking-wider text-xs">Veículo (Placa)</span>
+                  <span class="text-slate-900 font-mono uppercase font-bold text-base"><%= a.veiculo ? a.veiculo.placa : 'N/I' %></span>
                 </div>
                 <div class="col-span-2">
-                  <span class="block text-slate-400 font-bold uppercase tracking-wider text-[9px]">Motivo</span>
-                  <span class="text-slate-800 italic block truncate">"<%= a.motivo_revisao %>"</span>
+                  <span class="block text-slate-700 font-bold uppercase tracking-wider text-xs">Motivo</span>
+                  <span class="text-slate-900 italic block text-base">"<%= a.motivo_revisao %>"</span>
                 </div>
               </div>
 
-              <div class="pt-2 border-t border-slate-100 flex justify-end">
-                <a href="/veiculos/<%= a.veiculo_id %>" class="text-brand-500 hover:underline text-xs font-bold">
-                  Ver Prontuário
+              <div class="pt-3 border-t border-slate-100 flex justify-end">
+                <a href="/veiculos/<%= a.veiculo_id %>" class="text-brand-600 hover:text-brand-700 text-base font-bold inline-flex items-center gap-1">
+                  <span>Ver Prontuário</span>
+                  <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </a>
               </div>
             </div>
