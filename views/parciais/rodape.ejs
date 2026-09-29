@@ -12,6 +12,15 @@
 
   </main> <!-- Fechamento da tag main iniciada no menu -->
 
+  <!-- Botão Flutuante Voltar ao Topo (Scroll to Top) com Chave de Boca (Oficina) -->
+  <button id="btnScrollToTop" 
+          type="button"
+          class="fixed bottom-20 sm:bottom-16 right-5 sm:right-7 z-40 bg-transparent text-slate-700 hover:text-brand-600 transition-all duration-300 transform opacity-0 translate-y-4 pointer-events-none group active:scale-90 flex items-center justify-center cursor-pointer focus:outline-none p-1.5"
+          aria-label="Voltar ao topo da página"
+          title="Voltar ao topo">
+    <i data-lucide="wrench" class="w-8 h-8 -rotate-45 group-hover:-translate-y-1.5 transition-transform duration-200 drop-shadow-md"></i>
+  </button>
+
   <!-- Script para Interatividade do Menu Mobile & Modais -->
   <script>
     // Inicializar Ícones Lucide
@@ -191,11 +200,62 @@
       });
     }
 
+    // 7. Scroll to Top com Ícone de Chave de Boca (Oficina)
+    function configurarScrollToTop() {
+      const btn = document.getElementById('btnScrollToTop');
+      if (!btn) return;
+
+      const containers = Array.from(document.querySelectorAll('main > div.overflow-y-auto, .smooth-scroll, [class*="overflow-y-auto"]'));
+
+      function verificarScroll() {
+        let maxScroll = window.scrollY || document.documentElement.scrollTop || 0;
+
+        containers.forEach(c => {
+          if (c.scrollTop > maxScroll) {
+            maxScroll = c.scrollTop;
+          }
+        });
+
+        if (maxScroll > 180) {
+          btn.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+          btn.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+        } else {
+          btn.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+          btn.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+        }
+      }
+
+      function rolarParaOTopo() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+        document.body.scrollTo({ top: 0, behavior: 'smooth' });
+
+        containers.forEach(c => {
+          c.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      }
+
+      btn.addEventListener('click', rolarParaOTopo);
+
+      window.addEventListener('scroll', verificarScroll, { passive: true });
+      containers.forEach(c => {
+        c.addEventListener('scroll', verificarScroll, { passive: true });
+      });
+
+      // Checagem imediata
+      verificarScroll();
+    }
+
     // Disparar no carregamento do DOM
-    document.addEventListener('DOMContentLoaded', inicializarMascarasGlobais);
+    function inicializarScriptsGlobais() {
+      inicializarMascarasGlobais();
+      configurarScrollToTop();
+    }
+
+    document.addEventListener('DOMContentLoaded', inicializarScriptsGlobais);
     // Também executar imediatamente caso o script seja avaliado após o DOM ready
     if (document.readyState === 'interactive' || document.readyState === 'complete') {
-      inicializarMascarasGlobais();
+      inicializarScriptsGlobais();
     }
   </script>
 </body>

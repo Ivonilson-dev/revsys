@@ -61,7 +61,7 @@
               <th class="p-4">Marca / Modelo</th>
               <th class="p-4">Ano</th>
               <th class="p-4">Cor</th>
-              <th class="p-4">KM Atual</th>
+              <th class="p-4">Último KM Registrado</th>
               <th class="p-4">Proprietário</th>
               <th class="p-4 pr-6 text-right">Ações</th>
             </tr>
@@ -78,8 +78,8 @@
               <% veiculos.forEach(veiculo => { %>
                 <tr class="hover:bg-slate-50/70 transition-colors">
                   <td class="p-4 pl-6">
-                    <span class="px-3 py-1.5 rounded-lg bg-slate-900 text-white font-mono font-bold text-sm uppercase border border-slate-700 tracking-wider shadow-sm">
-                      <%= veiculo.placa %>
+                    <span class="<%= obterClassePlaca(veiculo.placa) %> px-3 py-1 text-sm">
+                      <%= formatarPlaca(veiculo.placa) %>
                     </span>
                   </td>
                   <td class="p-4 font-bold text-slate-900">
@@ -119,8 +119,8 @@
           <% veiculos.forEach(veiculo => { %>
             <div class="p-4 sm:p-5 space-y-3.5 hover:bg-slate-50/70 transition-colors">
               <div class="flex items-center justify-between gap-2">
-                <span class="px-2.5 py-1 rounded-lg bg-slate-900 text-white font-mono font-bold text-xs sm:text-sm uppercase border border-slate-700 tracking-wider shadow-sm">
-                  <%= veiculo.placa %>
+                <span class="<%= obterClassePlaca(veiculo.placa) %> px-2.5 py-1 text-xs sm:text-sm">
+                  <%= formatarPlaca(veiculo.placa) %>
                 </span>
                 <span class="font-bold text-slate-900 text-sm sm:text-base truncate">
                   <%= veiculo.modelo ? veiculo.modelo.marca.nome + ' ' + veiculo.modelo.nome : 'Modelo N/I' %>
@@ -129,7 +129,7 @@
               
               <div class="grid grid-cols-2 gap-3 text-sm text-slate-600">
                 <div>
-                  <span class="block text-slate-500 font-bold uppercase tracking-wider text-xs">KM Atual</span>
+                  <span class="block text-slate-500 font-bold uppercase tracking-wider text-xs">Último KM Registrado</span>
                   <span class="font-bold text-slate-900 text-sm sm:text-base"><%= Number(veiculo.km_atual).toLocaleString('pt-BR') %> km</span>
                 </div>
                 <div>

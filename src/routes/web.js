@@ -62,6 +62,10 @@ router.get('/agendamentos/calendario', estaAutenticado, temPapel('admin', 'geren
 router.get('/agendamentos/horarios-disponiveis', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), AgendamentoController.obterHorariosDisponiveis);
 router.post('/agendamentos', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), AgendamentoController.cadastrar);
 router.put('/agendamentos/:id', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), AgendamentoController.atualizar);
+router.get('/agendamentos/alertas-24h', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), AgendamentoController.obterAlertas24h);
+router.post('/agendamentos/:id/solicitar-confirmacao', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), AgendamentoController.solicitarConfirmacao);
+router.post('/agendamentos/:id/adiar-confirmacao', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), AgendamentoController.adiarConfirmacao);
+router.post('/agendamentos/:id/confirmar-presenca', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), AgendamentoController.confirmarPresenca);
 
 // 8. Cadastros Auxiliares (Marcas, Modelos, Peças, Serviços, Oficinas)
 router.get('/cadastros', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.exibirPainelCadastros);
@@ -78,9 +82,10 @@ router.delete('/servicos/:id', estaAutenticado, temPapel('admin', 'gerente'), Ca
 router.get('/relatorios', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), RelatorioController.exibirMenu);
 router.get('/relatorios/peca', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), RelatorioController.relatorioPeca);
 router.get('/relatorios/cliente', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), RelatorioController.relatorioCliente);
-router.get('/relatorios/vencidos', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), RelatorioController.relatorioVencidos);
-router.get('/relatorios/proximos', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), RelatorioController.relatorioProximos);
-router.get('/relatorios/agendamentos', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), RelatorioController.relatorioAgendamentos);
+router.get('/relatorios/vencidos', estaAutenticado, temPapel('admin', 'gerente', 'atendente', 'mecanico'), RelatorioController.relatorioVencidos);
+router.get('/relatorios/proximos', estaAutenticado, temPapel('admin', 'gerente', 'atendente', 'mecanico'), RelatorioController.relatorioProximos);
+router.get('/relatorios/agendamentos', estaAutenticado, temPapel('admin', 'gerente', 'atendente', 'mecanico'), RelatorioController.relatorioAgendamentos);
+router.get('/relatorios/trocas-mes', estaAutenticado, temPapel('admin', 'gerente', 'atendente', 'mecanico'), RelatorioController.relatorioTrocasMes);
 
 // 10. Área do Cliente (Exclusiva)
 router.get('/cliente/veiculos', estaAutenticado, temPapel('cliente'), ClienteAreaController.listarVeiculosCliente);

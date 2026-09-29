@@ -27,7 +27,7 @@
               <th class="p-4 pl-6">Veículo</th>
               <th class="p-4">Proprietário</th>
               <th class="p-4">Peça Substituída</th>
-              <th class="p-4">KM Atual / Previsto</th>
+              <th class="p-4">Último KM / Previsto</th>
               <th class="p-4">Data Prevista</th>
               <th class="p-4">Alerta</th>
               <th class="p-4 pr-6 text-right">Prontuário</th>
@@ -45,8 +45,8 @@
                 <tr class="hover:bg-slate-50/70 transition-colors">
                   <td class="p-4 pl-6">
                     <div class="flex items-center space-x-2.5">
-                      <span class="px-2.5 py-1 rounded bg-slate-900 text-white font-mono font-bold text-sm uppercase border border-slate-700 tracking-wider shadow-sm">
-                        <%= item.veiculo.placa %>
+                      <span class="<%= obterClassePlaca(item.veiculo.placa) %> px-2.5 py-1 text-sm">
+                        <%= formatarPlaca(item.veiculo.placa) %>
                       </span>
                       <span class="text-slate-900 font-bold block text-sm truncate max-w-[130px]">
                         <%= item.veiculo.modelo ? item.veiculo.modelo.nome : 'N/I' %>
@@ -90,8 +90,8 @@
           <% itensProximos.forEach(item => { %>
             <div class="p-5 space-y-3.5 hover:bg-slate-50/70 transition-colors">
               <div class="flex items-center justify-between">
-                <span class="px-3 py-1 rounded-lg bg-slate-900 text-white font-mono font-bold text-sm uppercase border border-slate-700 tracking-wider shadow-sm">
-                  <%= item.veiculo.placa %>
+                <span class="<%= obterClassePlaca(item.veiculo.placa) %> px-2.5 py-1 text-xs sm:text-sm">
+                  <%= formatarPlaca(item.veiculo.placa) %>
                 </span>
                 <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300"><%= item.alerta.mensagem %></span>
               </div>
@@ -106,7 +106,7 @@
                   <span class="text-slate-800 font-medium truncate block"><%= item.veiculo.cliente.usuario.nome %></span>
                 </div>
                 <div>
-                  <span class="block text-slate-500 font-bold uppercase tracking-wider text-xs">KM / Limite</span>
+                  <span class="block text-slate-500 font-bold uppercase tracking-wider text-xs">Último KM / Limite</span>
                   <span class="text-slate-900 font-bold"><%= Number(item.veiculo.km_atual).toLocaleString('pt-BR') %> / <%= item.troca.km_previsto_proximo ? Number(item.troca.km_previsto_proximo).toLocaleString('pt-BR') : 'S/L' %></span>
                 </div>
                 <div>

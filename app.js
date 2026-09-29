@@ -19,14 +19,21 @@ app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Sessão (RNF-09: Sessão com timeout de 60 min)
+// Sessão Persistente no Banco de Dados (MySQL)
+// Mantém o usuário logado continuamente até que efetue o logout deliberadamente
+const DatabaseSessionStore = require('./src/utils/sessionStore');
+
 app.use(session({
+  store: new DatabaseSessionStore(sequelize),
   secret: process.env.SESSION_SECRET || 'revsys_secret_session_key',
   resave: false,
   saveUninitialized: false,
+  rolling: true,
   cookie: { 
-    maxAge: 60 * 60 * 1000, // 60 minutos
-    secure: false // em produção com HTTPS deve ser true
+    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 ano (duração contínua até o logout)
+    httpOnly: true,
+    secure: false, // em produção com HTTPS deve ser true
+    sameSite: 'lax'
   }
 }));
 
@@ -44,6 +51,13 @@ app.use((req, res, next) => {
   res.locals.formatarTelefone = formatadores.formatarTelefone;
   res.locals.formatarCEP = formatadores.formatarCEP;
   res.locals.formatarPlaca = formatadores.formatarPlaca;
+  res.locals.ehPlacaMercosul = formatadores.ehPlacaMercosul;
+  res.locals.ehPlacaAntiga = formatadores.ehPlacaAntiga;
+  res.locals.obterTipoPlaca = formatadores.obterTipoPlaca;
+  res.locals.obterClassePlaca = formatadores.obterClassePlaca;
+  res.locals.formatarData = formatadores.formatarData;
+  res.locals.formatarKm = formatadores.formatarKm;
+  res.locals.formatarDuracao = formatadores.formatarDuracao;
 
   // Capturar mensagens de sucesso/erro passadas na query string
   res.locals.sucessoMsg = req.query.sucesso || null;

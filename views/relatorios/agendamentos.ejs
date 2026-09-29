@@ -2,72 +2,234 @@
 <%- include('../parciais/menu') %>
 
 <div class="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 md:p-8 pb-24 md:pb-8 smooth-scroll">
-  <div class="max-w-6xl mx-auto space-y-6">
+  <div class="max-w-6xl mx-auto space-y-6 sm:space-y-8">
     
-    <!-- Link Voltar -->
-    <a href="/relatorios" class="inline-flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors text-base font-semibold">
-      <i data-lucide="arrow-left" class="w-5 h-5"></i>
-      <span>Voltar para Relatórios</span>
-    </a>
+    <!-- Barra Superior de Navegação / Voltar -->
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3 text-sm">
+        <a href="/painel" class="inline-flex items-center space-x-1.5 text-slate-500 hover:text-brand-600 transition-colors font-medium">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>Painel</span>
+        </a>
+        <span class="text-slate-300">/</span>
+        <a href="/relatorios" class="inline-flex items-center space-x-1.5 text-slate-500 hover:text-brand-600 transition-colors font-medium">
+          <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+          <span>Relatórios</span>
+        </a>
+        <span class="text-slate-300">/</span>
+        <span class="text-slate-800 font-bold"><%= tipo === 'dia' ? 'Agendamentos de Hoje' : 'Agendamentos Deste Mês' %></span>
+      </div>
 
-    <!-- Cabeçalho -->
-    <div>
-      <span class="text-xs md:text-sm font-bold text-indigo-600 uppercase tracking-widest block font-mono">Relatório de Ocupação</span>
-      <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
-        Agendamentos <%= tipo === 'dia' ? 'de Hoje' : 'Deste Mês' %>
-      </h1>
-      <p class="text-base text-slate-600 mt-2">Lista organizada dos veículos programados para atendimento na oficina.</p>
+      <div class="flex items-center gap-2">
+        <a href="/agendamentos/calendario-tela" class="inline-flex items-center space-x-2 bg-brand-500 hover:bg-brand-600 text-white font-bold py-2 px-3.5 rounded-xl text-sm transition-all shadow-sm">
+          <i data-lucide="calendar" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Abrir Calendário</span>
+        </a>
+        <button onclick="window.print()" class="inline-flex items-center space-x-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-semibold py-2 px-3.5 rounded-xl text-sm transition-all shadow-sm">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Imprimir</span>
+        </button>
+      </div>
     </div>
 
-    <!-- Tabela / Cards -->
+    <!-- Cabeçalho Principal com Alternador Hoje / Mês -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-sky-100 text-sky-800 border border-sky-200">
+            <span class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
+            Relatório de Atendimentos
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-2">
+            Agendamentos <span class="text-brand-600"><%= tipo === 'dia' ? 'de Hoje' : 'Deste Mês' %></span>
+          </h1>
+          <p class="text-slate-600 text-sm sm:text-base mt-1 font-normal">
+            Lista organizada dos veículos programados para revisão e manutenção na oficina.
+          </p>
+        </div>
+
+        <!-- Seletor Rápido: Hoje vs Mês -->
+        <div class="flex items-center p-1.5 bg-slate-100 rounded-2xl border border-slate-200 shrink-0">
+          <a href="/relatorios/agendamentos?tipo=dia" 
+             class="px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 <%= tipo === 'dia' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-600 hover:text-slate-900' %>">
+            <i data-lucide="clock" class="w-4 h-4"></i>
+            <span>Hoje</span>
+          </a>
+          <a href="/relatorios/agendamentos?tipo=mes" 
+             class="px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 <%= tipo === 'mes' ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-600 hover:text-slate-900' %>">
+            <i data-lucide="calendar-range" class="w-4 h-4"></i>
+            <span>Deste Mês</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Resumo Rápido -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-100">
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 flex items-center space-x-3.5">
+          <div class="w-11 h-11 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0">
+            <i data-lucide="calendar-check" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block">Total Agendados</span>
+            <span class="text-2xl font-black text-slate-900 block mt-0.5"><%= agendamentos.length %></span>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 flex items-center space-x-3.5">
+          <div class="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+            <i data-lucide="check-circle" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block">Concluídos</span>
+            <span class="text-2xl font-black text-slate-900 block mt-0.5">
+              <%= agendamentos.filter(a => a.status === 'concluido').length %>
+            </span>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 flex items-center space-x-3.5">
+          <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+            <i data-lucide="clock-4" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block">Pendentes / Em Espera</span>
+            <span class="text-2xl font-black text-slate-900 block mt-0.5">
+              <%= agendamentos.filter(a => a.status === 'agendado').length %>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabela / Cards de Agendamentos -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       
+      <!-- Visualização Desktop (Tabela) -->
       <div class="hidden md:block overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-700 text-xs md:text-sm font-bold uppercase tracking-wider">
+            <tr class="bg-slate-100/80 border-b border-slate-200 text-slate-700 text-xs sm:text-sm font-bold uppercase tracking-wider">
               <th class="p-4 pl-6">Data / Horário</th>
-              <th class="p-4">Cliente</th>
-              <th class="p-4">Veículo (Placa)</th>
-              <th class="p-4">Motivo / Reparo</th>
+              <th class="p-4">Cliente / Contato</th>
+              <th class="p-4">Veículo</th>
+              <th class="p-4">Serviço / Motivo</th>
               <th class="p-4">Status</th>
               <th class="p-4 pr-6 text-right">Ação</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 text-slate-800 text-base">
+          <tbody class="divide-y divide-slate-100 text-slate-800 text-sm sm:text-base">
             <% if (agendamentos.length === 0) { %>
               <tr>
-                <td colspan="6" class="p-8 text-center text-slate-500 font-medium">
-                  Nenhum agendamento programado para este período.
+                <td colspan="6" class="p-12 text-center text-slate-500 font-medium">
+                  <div class="flex flex-col items-center justify-center">
+                    <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                      <i data-lucide="calendar-x" class="w-7 h-7"></i>
+                    </div>
+                    <span class="text-lg font-bold text-slate-800">Nenhum agendamento programado para <%= tipo === 'dia' ? 'hoje' : 'este mês' %></span>
+                    <p class="text-sm text-slate-500 mt-1">Clique no botão "Abrir Calendário" para agendar uma nova manutenção preventiva.</p>
+                  </div>
                 </td>
               </tr>
             <% } else { %>
               <% agendamentos.forEach(a => { %>
-                <tr class="hover:bg-slate-50/50 transition-colors">
-                  <td class="p-4 pl-6 font-bold text-slate-900">
-                    <%= new Date(a.data_agendada).toLocaleDateString('pt-BR') %> às <%= a.horario_agendado %>
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                  <!-- Data / Horário -->
+                  <td class="p-4 pl-6 whitespace-nowrap">
+                    <div class="flex items-center space-x-3">
+                      <div class="bg-slate-100 px-3 py-1.5 rounded-xl text-center border border-slate-200 min-w-[90px]">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Bloco</span>
+                        <span class="text-xs sm:text-sm font-black text-slate-900 block leading-tight"><%= a.horario_agendado %><%= a.horario_fim ? ' às ' + a.horario_fim : '' %></span>
+                        <% if (a.duracao_minutos) { %>
+                          <span class="text-[10px] font-bold text-brand-700 block mt-0.5"><%= formatarDuracao(a.duracao_minutos) %></span>
+                        <% } %>
+                      </div>
+                      <div class="text-xs font-semibold text-slate-500">
+                        <span><%= formatarData(a.data_agendada) %></span>
+                      </div>
+                    </div>
                   </td>
-                  <td class="p-4 font-semibold text-slate-800"><%= a.cliente ? a.cliente.usuario.nome : 'N/I' %></td>
+
+                  <!-- Cliente & WhatsApp -->
                   <td class="p-4">
-                    <span class="px-2.5 py-1 rounded bg-slate-900 text-white font-mono font-bold text-sm uppercase border border-slate-700 tracking-wider">
-                      <%= a.veiculo ? a.veiculo.placa : 'N/I' %>
-                    </span>
-                  </td>
-                  <td class="p-4 text-slate-600 italic">"<%= a.motivo_revisao %>"</td>
-                  <td class="p-4">
-                    <% if (a.status === 'agendado') { %>
-                      <span class="px-3 py-1 rounded-full text-xs md:text-sm font-bold bg-sky-100 text-sky-800 border border-sky-200 uppercase tracking-wide">Agendado</span>
-                    <% } else if (a.status === 'concluido') { %>
-                      <span class="px-3 py-1 rounded-full text-xs md:text-sm font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase tracking-wide">Concluído</span>
+                    <% if (a.cliente && a.cliente.usuario) { %>
+                      <div class="space-y-1">
+                        <span class="font-bold text-slate-900 block text-sm leading-tight truncate max-w-[150px]">
+                          <%= a.cliente.usuario.nome %>
+                        </span>
+                        <% 
+                          const foneWhats = (a.cliente.telefone_whatsapp || a.cliente.usuario.telefone || '').replace(/\D/g, ''); 
+                          const foneExibicao = a.cliente.telefone_whatsapp || a.cliente.usuario.telefone;
+                        %>
+                        <% if (foneWhats) { %>
+                          <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                            <span><%= formatarTelefone(foneExibicao) %></span>
+                            <a href="https://wa.me/<%= foneWhats %>?text=<%= encodeURIComponent('Olá ' + a.cliente.usuario.nome + '! Entramos em contato da oficina AUTEC referente ao seu agendamento para o veículo.') %>" 
+                               target="_blank" 
+                               rel="noopener noreferrer" 
+                               class="inline-flex items-center text-emerald-600 hover:text-emerald-700 p-0.5 rounded transition-transform active:scale-95" 
+                               title="Abrir WhatsApp">
+                              <svg class="w-4 h-4 shrink-0 fill-current" viewBox="0 0 24 24" width="16" height="16">
+                                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824zm-3.423-14.416c-6.627 0-12 5.373-12 12 0 2.159.572 4.187 1.571 5.938l-1.668 6.096 6.275-1.646c1.701.928 3.649 1.45 5.722 1.45 6.627 0 12-5.373 12-12 0-6.627-5.373-12-12-12z"/>
+                              </svg>
+                            </a>
+                          </div>
+                        <% } %>
+                      </div>
                     <% } else { %>
-                      <span class="px-3 py-1 rounded-full text-xs md:text-sm font-bold bg-red-100 text-red-800 border border-red-200 uppercase tracking-wide">Cancelado</span>
+                      <span class="text-slate-400 italic">Cliente N/I</span>
                     <% } %>
                   </td>
-                  <td class="p-4 pr-6 text-right">
-                    <a href="/veiculos/<%= a.veiculo_id %>" class="text-brand-600 hover:text-brand-700 font-bold text-base inline-flex items-center gap-1 hover:underline">
-                      <span>Ver Veículo</span>
-                      <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </a>
+
+                  <!-- Veículo -->
+                  <td class="p-4">
+                    <% if (a.veiculo) { %>
+                      <div class="flex items-center space-x-2.5">
+                        <span class="<%= obterClassePlaca(a.veiculo.placa) %> px-2.5 py-1 text-xs shrink-0">
+                          <%= formatarPlaca(a.veiculo.placa) %>
+                        </span>
+                        <span class="text-slate-900 font-bold block text-sm truncate max-w-[140px]">
+                          <%= a.veiculo.modelo ? (a.veiculo.modelo.marca ? a.veiculo.modelo.marca.nome + ' ' : '') + a.veiculo.modelo.nome : 'Modelo N/I' %>
+                        </span>
+                      </div>
+                    <% } else { %>
+                      <span class="text-slate-400 italic">Veículo N/I</span>
+                    <% } %>
+                  </td>
+
+                  <!-- Serviço / Motivo -->
+                  <td class="p-4">
+                    <div class="space-y-0.5">
+                      <% if (a.servico) { %>
+                        <span class="font-bold text-slate-900 block text-sm"><%= a.servico.nome %></span>
+                      <% } %>
+                      <span class="text-xs text-slate-600 italic block truncate max-w-[180px]">
+                        "<%= a.motivo_revisao %>"
+                      </span>
+                    </div>
+                  </td>
+
+                  <!-- Status -->
+                  <td class="p-4 whitespace-nowrap">
+                    <% if (a.status === 'agendado') { %>
+                      <span class="px-3 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-800 border border-sky-200 uppercase tracking-wide">Agendado</span>
+                    <% } else if (a.status === 'concluido') { %>
+                      <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase tracking-wide">Concluído</span>
+                    <% } else { %>
+                      <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200 uppercase tracking-wide">Cancelado</span>
+                      <% if (a.motivo_cancelamento) { %>
+                        <span class="block text-[11px] text-red-600 font-medium mt-1 italic max-w-xs" title="<%= a.motivo_cancelamento %>">Motivo: <%= a.motivo_cancelamento %></span>
+                      <% } %>
+                    <% } %>
+                  </td>
+
+                  <!-- Ação -->
+                  <td class="p-4 pr-6 text-right whitespace-nowrap">
+                    <% if (a.veiculo_id) { %>
+                      <a href="/veiculos/<%= a.veiculo_id %>" class="text-brand-600 hover:text-brand-700 font-bold text-sm inline-flex items-center gap-1 hover:underline">
+                        <span>Prontuário</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                      </a>
+                    <% } %>
                   </td>
                 </tr>
               <% }) %>
@@ -76,48 +238,93 @@
         </table>
       </div>
 
-      <!-- Mobile -->
+      <!-- Visualização Mobile (Cards) -->
       <div class="block md:hidden divide-y divide-slate-100">
         <% if (agendamentos.length === 0) { %>
           <div class="p-8 text-center text-slate-500 font-medium">
-            Nenhum agendamento programado para este período.
+            <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-3">
+              <i data-lucide="calendar-x" class="w-6 h-6"></i>
+            </div>
+            <span class="text-base font-bold text-slate-800 block">Nenhum agendamento programado</span>
+            <p class="text-xs text-slate-500 mt-1">Alterne para a visão mensal ou abra o calendário.</p>
           </div>
         <% } else { %>
           <% agendamentos.forEach(a => { %>
-            <div class="p-5 space-y-3 hover:bg-slate-50/50 transition-colors">
+            <div class="p-4 sm:p-5 space-y-3 hover:bg-slate-50/50 transition-colors">
               <div class="flex items-center justify-between">
-                <span class="font-bold text-base text-slate-900">
-                  <%= new Date(a.data_agendada).toLocaleDateString('pt-BR') %> às <%= a.horario_agendado %>
-                </span>
+                <div class="flex items-center space-x-2">
+                  <span class="font-black text-xs text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                    <%= a.horario_agendado %><%= a.horario_fim ? ' às ' + a.horario_fim : '' %>
+                    <% if (a.duracao_minutos) { %>
+                      <span class="text-[10px] text-slate-500 font-semibold ml-0.5">(<%= formatarDuracao(a.duracao_minutos) %>)</span>
+                    <% } %>
+                  </span>
+                  <span class="font-bold text-xs text-slate-500">
+                    <%= formatarData(a.data_agendada) %>
+                  </span>
+                </div>
                 <% if (a.status === 'agendado') { %>
-                  <span class="text-xs font-bold px-3 py-1 rounded-full bg-sky-100 text-sky-800 uppercase">AGENDADO</span>
+                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 uppercase">AGENDADO</span>
                 <% } else if (a.status === 'concluido') { %>
-                  <span class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 uppercase">CONCLUÍDO</span>
+                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 uppercase">CONCLUÍDO</span>
                 <% } else { %>
-                  <span class="text-xs font-bold px-3 py-1 rounded-full bg-red-100 text-red-800 uppercase">CANCELADO</span>
+                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-red-100 text-red-800 uppercase">CANCELADO</span>
                 <% } %>
               </div>
+
+              <% if (a.status === 'cancelado' && a.motivo_cancelamento) { %>
+                <div class="bg-red-50 border border-red-200 rounded-xl p-2.5 text-xs text-red-700">
+                  <span class="font-bold uppercase tracking-wider text-[10px] block text-red-500">Motivo do cancelamento:</span>
+                  <span class="italic block mt-0.5"><%= a.motivo_cancelamento %></span>
+                </div>
+              <% } %>
               
-              <div class="grid grid-cols-2 gap-3 text-sm text-slate-600">
-                <div>
-                  <span class="block text-slate-700 font-bold uppercase tracking-wider text-xs">Cliente</span>
-                  <span class="text-slate-900 font-semibold text-base"><%= a.cliente ? a.cliente.usuario.nome : 'N/I' %></span>
-                </div>
-                <div>
-                  <span class="block text-slate-700 font-bold uppercase tracking-wider text-xs">Veículo (Placa)</span>
-                  <span class="text-slate-900 font-mono uppercase font-bold text-base"><%= a.veiculo ? a.veiculo.placa : 'N/I' %></span>
-                </div>
-                <div class="col-span-2">
-                  <span class="block text-slate-700 font-bold uppercase tracking-wider text-xs">Motivo</span>
-                  <span class="text-slate-900 italic block text-base">"<%= a.motivo_revisao %>"</span>
-                </div>
+              <!-- Veículo e Motivo -->
+              <div>
+                <% if (a.veiculo) { %>
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="<%= obterClassePlaca(a.veiculo.placa) %> px-2 py-0.5 text-xs">
+                      <%= formatarPlaca(a.veiculo.placa) %>
+                    </span>
+                    <span class="text-xs text-slate-700 font-semibold truncate">
+                      <%= a.veiculo.modelo ? (a.veiculo.modelo.marca ? a.veiculo.modelo.marca.nome + ' ' : '') + a.veiculo.modelo.nome : 'Modelo N/I' %>
+                    </span>
+                  </div>
+                <% } %>
+                <% if (a.servico) { %>
+                  <span class="text-xs font-bold text-brand-600 block"><%= a.servico.nome %></span>
+                <% } %>
+                <span class="text-sm text-slate-800 italic block mt-0.5">
+                  "<%= a.motivo_revisao %>"
+                </span>
               </div>
 
-              <div class="pt-3 border-t border-slate-100 flex justify-end">
-                <a href="/veiculos/<%= a.veiculo_id %>" class="text-brand-600 hover:text-brand-700 text-base font-bold inline-flex items-center gap-1">
-                  <span>Ver Prontuário</span>
-                  <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                </a>
+              <!-- Cliente & WhatsApp -->
+              <div class="pt-2 flex items-center justify-between border-t border-slate-100">
+                <div>
+                  <% if (a.cliente && a.cliente.usuario) { %>
+                    <span class="font-bold text-xs text-slate-700 block"><%= a.cliente.usuario.nome %></span>
+                    <% const foneWhatsM = (a.cliente.telefone_whatsapp || a.cliente.usuario.telefone || '').replace(/\D/g, ''); %>
+                    <% if (foneWhatsM) { %>
+                      <a href="https://wa.me/<%= foneWhatsM %>?text=<%= encodeURIComponent('Olá ' + a.cliente.usuario.nome + '! Entramos em contato da oficina AUTEC referente ao seu agendamento.') %>" 
+                         target="_blank" 
+                         rel="noopener noreferrer" 
+                         class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 mt-0.5">
+                        <svg class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24" width="14" height="14">
+                          <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824zm-3.423-14.416c-6.627 0-12 5.373-12 12 0 2.159.572 4.187 1.571 5.938l-1.668 6.096 6.275-1.646c1.701.928 3.649 1.45 5.722 1.45 6.627 0 12-5.373 12-12 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                        <span>WhatsApp</span>
+                      </a>
+                    <% } %>
+                  <% } %>
+                </div>
+
+                <% if (a.veiculo_id) { %>
+                  <a href="/veiculos/<%= a.veiculo_id %>" class="text-brand-600 hover:text-brand-700 text-xs font-bold inline-flex items-center gap-1">
+                    <span>Prontuário</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                  </a>
+                <% } %>
               </div>
             </div>
           <% }) %>

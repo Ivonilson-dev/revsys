@@ -23,23 +23,56 @@
       </div>
     </div>
 
+    <!-- Alerta de Agendamentos em Janela de 24h (Confirmação de Presença) -->
+    <div id="container-banner-24h" class="<%= (typeof alertas24h !== 'undefined' && alertas24h && alertas24h.length > 0) ? '' : 'hidden' %>">
+      <div class="bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/5 border-2 border-amber-400 rounded-2xl p-4 sm:p-5 shadow-lg shadow-amber-500/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-start sm:items-center gap-3.5">
+          <div class="p-3 bg-amber-500 text-white rounded-xl shadow-md shrink-0 animate-pulse">
+            <i data-lucide="bell-ring" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-0.5 rounded-full">
+                Alerta de 24 Horas
+              </span>
+              <span id="banner-alerta-contador" class="text-xs font-bold text-amber-800">
+                <%= (typeof alertas24h !== 'undefined' && alertas24h) ? alertas24h.length : 0 %> <%= ((typeof alertas24h !== 'undefined' && alertas24h && alertas24h.length === 1)) ? 'agendamento previsto' : 'agendamentos previstos' %> para as próximas 24h
+              </span>
+            </div>
+            <h3 class="text-base sm:text-lg font-bold text-slate-900 mt-1">
+              Confirmação de presença via WhatsApp necessária
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
+              Solicite a confirmação com um clique, adie o alerta por 60 minutos ou dê baixa da presença confirmada.
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2.5 shrink-0 w-full md:w-auto">
+          <button type="button" onclick="abrirFilaConfirmacao()" class="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white font-bold py-2.5 px-4 rounded-xl shadow-md shadow-amber-500/20 transition-all text-sm">
+            <i data-lucide="list-checks" class="w-4 h-4"></i>
+            <span>Ver Fila de Confirmação</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Cards de Indicadores (Métricas) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6">
       
       <!-- Card: Agendamentos de Hoje -->
-      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all flex items-center space-x-4 sm:space-x-5">
-        <div class="bg-sky-100 p-3.5 sm:p-4 rounded-2xl text-sky-600 shrink-0">
+      <a href="/relatorios/agendamentos?tipo=dia" class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm hover:shadow-md hover:border-sky-300 transition-all flex items-center space-x-4 sm:space-x-5 group active:scale-[0.99]">
+        <div class="bg-sky-100 p-3.5 sm:p-4 rounded-2xl text-sky-600 shrink-0 group-hover:scale-105 transition-transform">
           <i data-lucide="clock" class="w-6 h-6 sm:w-7 sm:h-7"></i>
         </div>
         <div>
           <span class="text-slate-600 text-xs sm:text-sm font-bold uppercase tracking-wider block">Agendados para Hoje</span>
           <span class="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 block mt-0.5"><%= agendamentosHoje.length %></span>
         </div>
-      </div>
+      </a>
 
       <!-- Card: Manutenções Atrasadas -->
-      <a href="/relatorios/vencidos" class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all flex items-center space-x-4 sm:space-x-5">
-        <div class="bg-red-100 p-3.5 sm:p-4 rounded-2xl text-red-600 shrink-0">
+      <a href="/relatorios/vencidos" class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm hover:shadow-md hover:border-red-300 transition-all flex items-center space-x-4 sm:space-x-5 group active:scale-[0.99]">
+        <div class="bg-red-100 p-3.5 sm:p-4 rounded-2xl text-red-600 shrink-0 group-hover:scale-105 transition-transform">
           <i data-lucide="alert-triangle" class="w-6 h-6 sm:w-7 sm:h-7"></i>
         </div>
         <div>
@@ -49,15 +82,15 @@
       </a>
 
       <!-- Card: Trocas Realizadas no Mês -->
-      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all flex items-center space-x-4 sm:space-x-5 sm:col-span-2 lg:col-span-1">
-        <div class="bg-emerald-100 p-3.5 sm:p-4 rounded-2xl text-emerald-600 shrink-0">
+      <a href="/relatorios/trocas-mes" class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all flex items-center space-x-4 sm:space-x-5 sm:col-span-2 lg:col-span-1 group active:scale-[0.99]">
+        <div class="bg-emerald-100 p-3.5 sm:p-4 rounded-2xl text-emerald-600 shrink-0 group-hover:scale-105 transition-transform">
           <i data-lucide="wrench" class="w-6 h-6 sm:w-7 sm:h-7"></i>
         </div>
         <div>
           <span class="text-slate-600 text-xs sm:text-sm font-bold uppercase tracking-wider block">Trocas no Mês</span>
           <span class="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 block mt-0.5"><%= totalTrocasMes %></span>
         </div>
-      </div>
+      </a>
 
     </div>
 
@@ -90,16 +123,56 @@
               <% agendamentosHoje.forEach(agenda => { %>
                 <div class="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors">
                   <div class="flex items-start space-x-3.5 sm:space-x-4">
-                    <div class="bg-slate-100 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-center shrink-0 min-w-[75px] sm:min-w-[85px] border border-slate-200">
+                    <div class="bg-slate-100 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-center shrink-0 min-w-[85px] sm:min-w-[100px] border border-slate-200">
                       <span class="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider block">Horário</span>
-                      <span class="text-lg sm:text-2xl font-black text-slate-900"><%= agenda.horario_agendado %></span>
+                      <span class="text-base sm:text-xl font-black text-slate-900 block leading-tight"><%= agenda.horario_agendado %></span>
+                      <% if (agenda.horario_fim) { %>
+                        <span class="text-[11px] font-bold text-slate-600 block">até <%= agenda.horario_fim %></span>
+                      <% } %>
                     </div>
                     <div class="min-w-0 flex-1">
                       <span class="text-base sm:text-lg font-bold text-slate-900 block leading-snug truncate"><%= agenda.cliente.usuario.nome %></span>
                       <span class="text-sm sm:text-base text-slate-600 font-medium block mt-1">
-                        <span class="font-mono font-bold text-slate-800"><%= agenda.veiculo.placa %></span> &bull; <%= agenda.veiculo.modelo ? agenda.veiculo.modelo.marca.nome + ' ' + agenda.veiculo.modelo.nome : 'Modelo N/I' %>
+                        <span class="<%= obterClassePlaca(agenda.veiculo.placa) %> px-2 py-0.5 text-xs"><%= formatarPlaca(agenda.veiculo.placa) %></span> &bull; <%= agenda.veiculo.modelo ? agenda.veiculo.modelo.marca.nome + ' ' + agenda.veiculo.modelo.nome : 'Modelo N/I' %>
+                        <% if (agenda.duracao_minutos) { %>
+                          <span class="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded ml-1">
+                            <%= formatarDuracao(agenda.duracao_minutos) %>
+                          </span>
+                        <% } %>
                       </span>
                       <span class="text-xs sm:text-sm italic text-slate-600 font-medium block mt-1 line-clamp-2">"<%= agenda.motivo_revisao %>"</span>
+
+                      <!-- Status de Presença -->
+                      <div class="flex items-center gap-2 mt-2 flex-wrap">
+                        <% if (agenda.confirmacao_presenca === 'confirmada') { %>
+                          <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            <i data-lucide="user-check" class="w-3 h-3 text-emerald-600"></i>
+                            Presença Confirmada
+                          </span>
+                        <% } else if (agenda.confirmacao_presenca === 'solicitada') { %>
+                          <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 border border-blue-300">
+                            <i data-lucide="message-square" class="w-3 h-3 text-blue-600"></i>
+                            WhatsApp Enviado (Aguardando)
+                          </span>
+                          <% if (agenda.status === 'agendado') { %>
+                            <button type="button" onclick="darBaixaPresencaDireto(<%= agenda.id %>)" class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white transition-colors flex items-center gap-1 shadow-sm">
+                              <i data-lucide="check" class="w-3 h-3"></i>
+                              Dar Baixa
+                            </button>
+                          <% } %>
+                        <% } else { %>
+                          <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300">
+                            <i data-lucide="help-circle" class="w-3 h-3 text-amber-600"></i>
+                            Presença a Confirmar
+                          </span>
+                          <% if (agenda.status === 'agendado') { %>
+                            <button type="button" onclick="darBaixaPresencaDireto(<%= agenda.id %>)" class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white transition-colors flex items-center gap-1 shadow-sm">
+                              <i data-lucide="check" class="w-3 h-3"></i>
+                              Dar Baixa
+                            </button>
+                          <% } %>
+                        <% } %>
+                      </div>
                     </div>
                   </div>
                   <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t border-slate-100 sm:border-t-0">
@@ -146,15 +219,15 @@
                 <div class="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors">
                   <div>
                     <div class="flex items-center space-x-2.5 sm:space-x-3">
-                      <span class="px-2.5 py-1 rounded-lg bg-slate-900 text-white font-mono font-bold text-xs sm:text-sm uppercase border border-slate-700 tracking-wider shadow-sm">
-                        <%= veiculo.placa %>
+                      <span class="<%= obterClassePlaca(veiculo.placa) %> px-2.5 py-1 text-xs sm:text-sm">
+                        <%= formatarPlaca(veiculo.placa) %>
                       </span>
                       <span class="text-base sm:text-lg font-bold text-slate-900">
                         <%= veiculo.modelo ? veiculo.modelo.marca.nome + ' ' + veiculo.modelo.nome : 'Modelo Não Informado' %>
                       </span>
                     </div>
                     <span class="text-xs sm:text-base text-slate-600 block mt-2">
-                      Proprietário: <span class="font-bold text-slate-800"><%= veiculo.cliente.usuario.nome %></span> | KM: <span class="font-bold text-slate-800"><%= Number(veiculo.km_atual).toLocaleString('pt-BR') %> km</span>
+                      Proprietário: <span class="font-bold text-slate-800"><%= veiculo.cliente.usuario.nome %></span> | Último KM: <span class="font-bold text-slate-800"><%= Number(veiculo.km_atual).toLocaleString('pt-BR') %> km</span>
                     </span>
                   </div>
                   <div>
@@ -243,7 +316,7 @@
                     </span>
                   </div>
                   <span class="text-xs sm:text-sm text-slate-600 block mt-1.5 font-medium">
-                    Veículo: <span class="font-bold text-slate-800 font-mono"><%= item.veiculo.placa %></span> (<%= item.veiculo.modelo ? item.veiculo.modelo.nome : 'N/I' %>)
+                    Veículo: <span class="<%= obterClassePlaca(item.veiculo.placa) %> px-2 py-0.5 text-xs"><%= formatarPlaca(item.veiculo.placa) %></span> (<%= item.veiculo.modelo ? item.veiculo.modelo.nome : 'N/I' %>)
                   </span>
                 </div>
               <% }) %>
@@ -257,5 +330,529 @@
 
   </div>
 </div>
+
+<!-- Modal de Fila de Confirmação de Presença (24 Horas) -->
+<div id="modalFilaConfirmacao" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto hidden">
+  <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all flex flex-col max-h-[92vh]">
+    
+    <!-- Cabeçalho do Modal -->
+    <div class="p-5 sm:p-6 bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 text-white flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 bg-white/20 rounded-2xl backdrop-blur-md">
+          <i data-lucide="bell-ring" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-lg sm:text-xl font-extrabold tracking-tight">Confirmação de Agendamento</h2>
+          </div>
+          <p class="text-xs sm:text-sm text-amber-100 font-medium mt-0.5">Prazo de 24 horas &bull; Fila de Alertas</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="filaContadorBadge" class="px-3 py-1 rounded-full text-xs font-black bg-white/25 text-white border border-white/30 backdrop-blur-md">
+          1 de 1
+        </span>
+        <button type="button" onclick="fecharFilaConfirmacao()" class="w-8 h-8 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors" title="Fechar">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Barra de Progresso da Fila -->
+    <div class="w-full bg-slate-100 h-1.5 overflow-hidden shrink-0">
+      <div id="filaProgressBar" class="bg-amber-500 h-full transition-all duration-300" style="width: 100%"></div>
+    </div>
+
+    <!-- Conteúdo do Modal (Agendamento Atual) -->
+    <div id="filaCorpoCard" class="p-5 sm:p-6 overflow-y-auto space-y-4 text-slate-800 text-sm">
+      
+      <!-- Card de Destaque do Horário -->
+      <div class="p-4 bg-amber-50/70 border border-amber-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-amber-700 block">Horário Previsto</span>
+          <span id="cardHorario" class="text-lg sm:text-xl font-black text-slate-900 block mt-0.5">--:--</span>
+          <span id="cardTempoRestante" class="text-xs font-semibold text-amber-800 block mt-0.5">Faltam menos de 24h</span>
+        </div>
+        <div id="cardStatusPresencaBadge">
+          <!-- Injetado dinamicamente -->
+        </div>
+      </div>
+
+      <!-- Dados do Cliente e Veículo -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
+          <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">Cliente</span>
+          <span id="cardClienteNome" class="text-base font-bold text-slate-900 block mt-0.5 truncate">---</span>
+          <span id="cardClienteTelefone" class="text-xs text-slate-600 block mt-0.5">---</span>
+        </div>
+        <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
+          <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider block mb-1">Veículo / Placa</span>
+          <div class="flex items-center gap-2">
+            <span id="cardVeiculoPlaca" class="placa-mercosul px-2.5 py-0.5 text-xs">---</span>
+            <span id="cardVeiculoModelo" class="text-xs font-bold text-slate-700 truncate">---</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detalhes do Serviço -->
+      <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
+        <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">Serviço / Reclamação</span>
+        <span id="cardServicoMotivo" class="text-sm font-semibold text-slate-800 block mt-0.5 italic">---</span>
+      </div>
+
+      <!-- Prévia da Mensagem de WhatsApp -->
+      <div class="bg-emerald-50/60 border border-emerald-200 rounded-2xl p-3.5">
+        <div class="flex items-center gap-1.5 text-emerald-800 font-bold text-xs uppercase tracking-wider mb-1">
+          <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+          <span>Mensagem Pré-configurada para WhatsApp:</span>
+        </div>
+        <p id="cardMensagemWhats" class="text-xs text-emerald-950 font-medium bg-white/80 p-2.5 rounded-xl border border-emerald-200/60 italic leading-relaxed">
+          ---
+        </p>
+      </div>
+
+      <!-- Ações do Agendamento Atual -->
+      <div class="space-y-2.5 pt-2 border-t border-slate-100">
+        <span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">Ações para este agendamento:</span>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <!-- 1. Enviar WhatsApp (Abre Whats e adia para 60 min se não der baixa) -->
+          <button type="button" onclick="acaoEnviarWhatsApp()" class="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] active:scale-[0.98] text-white font-bold py-3 px-4 rounded-xl shadow-md shadow-[#25D366]/20 transition-all text-sm text-center">
+            <svg class="w-4 h-4 fill-current shrink-0" width="16" height="16" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436.002 9.858-4.419 9.86-9.86 0-2.636-1.027-5.115-2.89-6.981-1.864-1.865-4.347-2.89-6.985-2.891-5.439 0-9.861 4.417-9.865 9.86-.001 1.745.454 3.447 1.32 4.965l-.995 3.637 3.73-.976zm9.953-6.85c-.29-.145-1.713-.846-1.979-.942-.266-.097-.459-.145-.653.146-.193.29-.749.942-.919 1.135-.169.193-.339.217-.629.072-.29-.144-1.226-.452-2.335-1.441-.864-.771-1.447-1.724-1.616-2.014-.169-.29-.018-.447.127-.591.131-.13.29-.339.435-.508.145-.169.193-.29.29-.483.097-.193.048-.363-.024-.508-.072-.145-.653-1.573-.895-2.153-.235-.568-.475-.49-.653-.5-.169-.008-.363-.009-.556-.009-.193 0-.508.072-.773.362-.266.29-1.014.99-1.014 2.415 0 1.425 1.038 2.802 1.183 2.995.145.193 2.043 3.12 4.949 4.373.692.298 1.232.476 1.652.61.697.221 1.33.19 1.83.115.557-.083 1.713-.699 1.954-1.376.241-.676.241-1.256.169-1.376-.073-.12-.266-.193-.556-.339z"/></svg>
+            <span>Enviar WhatsApp</span>
+          </button>
+
+          <!-- 2. Confirmar Presença (Dá baixa definitiva) -->
+          <button type="button" onclick="acaoConfirmarPresenca()" class="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold py-3 px-4 rounded-xl shadow-md shadow-emerald-600/20 transition-all text-sm text-center">
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+            <span>Confirmar Presença (Dar Baixa)</span>
+          </button>
+        </div>
+
+        <!-- 3. Adiar por 60 minutos -->
+        <button type="button" onclick="acaoAdiar60Min()" class="w-full inline-flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 font-bold py-2.5 px-4 rounded-xl border border-slate-300 transition-all text-sm">
+          <i data-lucide="clock" class="w-4 h-4 text-slate-500"></i>
+          <span>Adiar esta ação por 60 minutos</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Tela de Conclusão da Fila (Exibida quando todos os itens forem processados) -->
+    <div id="filaCorpoConcluido" class="p-8 sm:p-10 text-center space-y-4 hidden">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-3xl mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/10">
+        <i data-lucide="check-check" class="w-8 h-8"></i>
+      </div>
+      <div>
+        <h3 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Fila Processada!</h3>
+        <p class="text-sm text-slate-600 mt-1 max-w-md mx-auto">
+          Todos os agendamentos das próximas 24 horas foram verificados. As ações de WhatsApp, confirmação ou adiamento de 60 minutos foram registradas com sucesso.
+        </p>
+      </div>
+      <div class="pt-2">
+        <button type="button" onclick="fecharFilaEAtualizar()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all text-sm">
+          Concluir e Fechar
+        </button>
+      </div>
+    </div>
+
+    <!-- Rodapé de Navegação da Fila -->
+    <div id="filaRodapeNav" class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2 shrink-0">
+      <button type="button" id="btnFilaAnterior" onclick="navegarFila(-1)" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition-colors disabled:opacity-40 disabled:pointer-events-none">
+        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+        <span>Anterior</span>
+      </button>
+
+      <span class="text-xs text-slate-600 font-semibold" id="filaLegendaInferior">
+        Item 1 de 1
+      </span>
+
+      <button type="button" id="btnFilaProximo" onclick="navegarFila(1)" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition-colors disabled:opacity-40 disabled:pointer-events-none">
+        <span>Próximo</span>
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Fila de Agendamentos em Janela de 24h
+  let filaAlertas = <%- JSON.stringify(alertas24h || []) %>;
+  let filaIndexAtual = 0;
+
+  function formatarPlacaJS(placa) {
+    if (!placa) return 'Placa N/I';
+    const limpo = placa.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (limpo.length === 7) {
+      if (/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(limpo)) {
+        return limpo;
+      }
+      return limpo.substring(0, 3) + '-' + limpo.substring(3);
+    }
+    return placa;
+  }
+
+  function obterClassePlacaJS(placa) {
+    if (!placa) return 'placa-mercosul';
+    const limpo = placa.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (limpo.length === 7 && /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/.test(limpo)) {
+      return 'placa-mercosul';
+    }
+    return 'placa-antiga';
+  }
+
+  function abrirFilaConfirmacao(index = 0) {
+    if (!filaAlertas || filaAlertas.length === 0) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Nenhum Alerta Pendente',
+        text: 'Não há agendamentos nas próximas 24 horas pendentes de confirmação.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+      return;
+    }
+    filaIndexAtual = index;
+    document.getElementById('modalFilaConfirmacao').classList.remove('hidden');
+    renderizarItemFila();
+  }
+
+  function fecharFilaConfirmacao() {
+    document.getElementById('modalFilaConfirmacao').classList.add('hidden');
+  }
+
+  function fecharFilaEAtualizar() {
+    fecharFilaConfirmacao();
+    window.location.reload();
+  }
+
+  function navegarFila(delta) {
+    const novoIndex = filaIndexAtual + delta;
+    if (novoIndex >= 0 && novoIndex < filaAlertas.length) {
+      filaIndexAtual = novoIndex;
+      renderizarItemFila();
+    }
+  }
+
+  function renderizarItemFila() {
+    const total = filaAlertas.length;
+    const corpoCard = document.getElementById('filaCorpoCard');
+    const corpoConcluido = document.getElementById('filaCorpoConcluido');
+    const rodapeNav = document.getElementById('filaRodapeNav');
+    const progressBar = document.getElementById('filaProgressBar');
+
+    if (total === 0) {
+      corpoCard.classList.add('hidden');
+      corpoConcluido.classList.remove('hidden');
+      rodapeNav.classList.add('hidden');
+      progressBar.style.width = '100%';
+      document.getElementById('filaContadorBadge').textContent = 'Concluído';
+      atualizarBanner();
+      lucide.createIcons();
+      return;
+    }
+
+    if (filaIndexAtual >= total) {
+      filaIndexAtual = total - 1;
+    }
+    if (filaIndexAtual < 0) {
+      filaIndexAtual = 0;
+    }
+
+    corpoCard.classList.remove('hidden');
+    corpoConcluido.classList.add('hidden');
+    rodapeNav.classList.remove('hidden');
+
+    const item = filaAlertas[filaIndexAtual];
+
+    // Atualizar Contadores e Progresso
+    const porcentagem = Math.round(((filaIndexAtual + 1) / total) * 100);
+    progressBar.style.width = `${porcentagem}%`;
+    document.getElementById('filaContadorBadge').textContent = `${filaIndexAtual + 1} de ${total}`;
+    document.getElementById('filaLegendaInferior').textContent = `Agendamento ${filaIndexAtual + 1} de ${total}`;
+
+    // Atualizar Dados do Card
+    document.getElementById('cardHorario').textContent = `${item.data_formatada} às ${item.horario_agendado}${item.horario_fim ? ' - ' + item.horario_fim : ''}`;
+    
+    let tempoRestanteTexto = 'Atingiu a janela de 24 horas';
+    if (item.horas_restantes > 0 || item.minutos_restantes > 0) {
+      tempoRestanteTexto = `Previsto para daqui a ${item.horas_restantes}h ${item.minutos_restantes}min`;
+    }
+    document.getElementById('cardTempoRestante').textContent = tempoRestanteTexto;
+
+    // Badge de Status de Presença
+    const badgePresenca = document.getElementById('cardStatusPresencaBadge');
+    if (item.confirmacao_presenca === 'solicitada') {
+      badgePresenca.innerHTML = `
+        <span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-900 border border-blue-300">
+          <i data-lucide="message-square" class="w-3.5 h-3.5 text-blue-600"></i>
+          WhatsApp Enviado (Aguardando Resposta)
+        </span>
+      `;
+    } else {
+      badgePresenca.innerHTML = `
+        <span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+          <i data-lucide="user-x" class="w-3.5 h-3.5 text-amber-600"></i>
+          Presença a Confirmar
+        </span>
+      `;
+    }
+
+    // Cliente e Veículo
+    document.getElementById('cardClienteNome').textContent = item.cliente_nome;
+    document.getElementById('cardClienteTelefone').textContent = item.cliente_telefone ? `WhatsApp: ${item.cliente_telefone}` : 'Sem telefone cadastrado';
+    
+    const placaEl = document.getElementById('cardVeiculoPlaca');
+    placaEl.textContent = formatarPlacaJS(item.veiculo_placa);
+    placaEl.className = `${obterClassePlacaJS(item.veiculo_placa)} px-2.5 py-0.5 text-xs`;
+    
+    document.getElementById('cardVeiculoModelo').textContent = item.veiculo_modelo || 'Modelo N/I';
+    document.getElementById('cardServicoMotivo').textContent = `"${item.servico_nome || item.motivo_revisao}"`;
+    document.getElementById('cardMensagemWhats').textContent = `"${item.mensagem_whatsapp}"`;
+
+    // Botões de navegação
+    document.getElementById('btnFilaAnterior').disabled = (filaIndexAtual === 0);
+    document.getElementById('btnFilaProximo').disabled = (filaIndexAtual === total - 1);
+
+    lucide.createIcons();
+  }
+
+  // 1. Enviar mensagem de WhatsApp
+  async function acaoEnviarWhatsApp() {
+    if (filaAlertas.length === 0) return;
+    const item = filaAlertas[filaIndexAtual];
+
+    if (!item.whatsapp_url) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Telefone Não Encontrado',
+        text: 'Este cliente não possui telefone de WhatsApp cadastrado. Deseja adiar o alerta por 60 min ou dar baixa manual?',
+        showCancelButton: true,
+        confirmButtonText: 'Dar Baixa Manual',
+        cancelButtonText: 'Adiar por 60 min'
+      }).then((res) => {
+        if (res.isConfirmed) {
+          acaoConfirmarPresenca();
+        } else {
+          acaoAdiar60Min();
+        }
+      });
+      return;
+    }
+
+    // Abre o WhatsApp com a mensagem pronta em nova janela/aba
+    window.open(item.whatsapp_url, '_blank');
+
+    try {
+      const res = await fetch(`/agendamentos/${item.id}/solicitar-confirmacao`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (res.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Confirmação Solicitada!',
+          text: 'Mensagem disparada. O lembrete voltará em 60 minutos caso a presença não seja confirmada pelo cliente.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+
+        // Remove da fila atual da sessão para prosseguir ao próximo
+        filaAlertas.splice(filaIndexAtual, 1);
+        atualizarBanner();
+        renderizarItemFila();
+      } else {
+        const erro = await res.json();
+        Swal.fire('Erro', erro.erro || 'Falha ao registrar solicitação.', 'error');
+      }
+    } catch (e) {
+      console.error(e);
+      Swal.fire('Erro de Conexão', 'Não foi possível registrar a ação no servidor.', 'error');
+    }
+  }
+
+  // 2. Adiar ação por 60 minutos
+  async function acaoAdiar60Min() {
+    if (filaAlertas.length === 0) return;
+    const item = filaAlertas[filaIndexAtual];
+
+    try {
+      const res = await fetch(`/agendamentos/${item.id}/adiar-confirmacao`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (res.ok) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Alerta Adiado',
+          text: 'Este lembrete voltará a se repetir em 60 minutos.',
+          timer: 1500,
+          showConfirmButton: false
+        });
+
+        filaAlertas.splice(filaIndexAtual, 1);
+        atualizarBanner();
+        renderizarItemFila();
+      } else {
+        const erro = await res.json();
+        Swal.fire('Erro', erro.erro || 'Falha ao adiar alerta.', 'error');
+      }
+    } catch (e) {
+      console.error(e);
+      Swal.fire('Erro de Conexão', 'Não foi possível se comunicar com o servidor.', 'error');
+    }
+  }
+
+  // 3. Confirmar presença (Dar baixa no sistema)
+  async function acaoConfirmarPresenca() {
+    if (filaAlertas.length === 0) return;
+    const item = filaAlertas[filaIndexAtual];
+
+    const result = await Swal.fire({
+      title: 'Dar Baixa na Presença?',
+      text: `Confirma que o cliente ${item.cliente_nome} comparecerá ao agendamento de ${item.data_formatada} às ${item.horario_agendado}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Sim, confirmar presença!',
+      cancelButtonText: 'Voltar',
+      customClass: {
+        popup: 'rounded-2xl font-sans',
+        confirmButton: 'rounded-xl font-bold px-4 py-2 text-sm',
+        cancelButton: 'rounded-xl font-bold px-4 py-2 text-sm'
+      }
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const res = await fetch(`/agendamentos/${item.id}/confirmar-presenca`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (res.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Presença Confirmada!',
+          text: 'Baixa registrada no sistema com sucesso. O horário está confirmado.',
+          timer: 1500,
+          showConfirmButton: false
+        });
+
+        filaAlertas.splice(filaIndexAtual, 1);
+        atualizarBanner();
+        renderizarItemFila();
+      } else {
+        const erro = await res.json();
+        Swal.fire('Erro', erro.erro || 'Falha ao confirmar presença.', 'error');
+      }
+    } catch (e) {
+      console.error(e);
+      Swal.fire('Erro de Conexão', 'Não foi possível se comunicar com o servidor.', 'error');
+    }
+  }
+
+  // Dar baixa direta a partir do card "Agenda de Hoje"
+  async function darBaixaPresencaDireto(id) {
+    const result = await Swal.fire({
+      title: 'Confirmar Presença do Cliente?',
+      text: 'Deseja dar baixa no sistema registrando a confirmação de presença para este agendamento?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Sim, confirmar presença!',
+      cancelButtonText: 'Voltar',
+      customClass: {
+        popup: 'rounded-2xl font-sans',
+        confirmButton: 'rounded-xl font-bold px-4 py-2.5 text-sm',
+        cancelButton: 'rounded-xl font-bold px-4 py-2.5 text-sm'
+      }
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const res = await fetch(`/agendamentos/${id}/confirmar-presenca`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (res.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Presença Confirmada!',
+          text: 'Baixa registrada com sucesso.',
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => {
+          window.location.reload();
+        });
+      } else {
+        const erro = await res.json();
+        Swal.fire('Erro', erro.erro || 'Não foi possível confirmar presença.', 'error');
+      }
+    } catch (e) {
+      console.error(e);
+      Swal.fire('Erro de Conexão', 'Falha de comunicação com o servidor.', 'error');
+    }
+  }
+
+  function atualizarBanner() {
+    const banner = document.getElementById('container-banner-24h');
+    const contador = document.getElementById('banner-alerta-contador');
+    if (!banner || !contador) return;
+
+    if (filaAlertas.length === 0) {
+      banner.classList.add('hidden');
+    } else {
+      banner.classList.remove('hidden');
+      contador.textContent = `${filaAlertas.length} ${filaAlertas.length === 1 ? 'agendamento previsto' : 'agendamentos previstos'} para as próximas 24h`;
+    }
+  }
+
+  // Verificação periódica a cada 60 segundos no painel
+  async function verificarNovosAlertas24h() {
+    try {
+      const res = await fetch('/agendamentos/alertas-24h');
+      if (res.ok) {
+        const novosAlertas = await res.json();
+        if (novosAlertas && novosAlertas.length > 0) {
+          const antesTinha = filaAlertas.length;
+          filaAlertas = novosAlertas;
+          atualizarBanner();
+          // Se o modal estiver fechado e surgiram alertas ou expirou a repetição de 60 min, abre
+          const modal = document.getElementById('modalFilaConfirmacao');
+          if (modal.classList.contains('hidden') && novosAlertas.length > 0 && antesTinha === 0) {
+            abrirFilaConfirmacao();
+          }
+        } else {
+          filaAlertas = [];
+          atualizarBanner();
+        }
+      }
+    } catch (e) {
+      console.warn('Erro ao checar alertas periódicos:', e);
+    }
+  }
+
+  // Executa checagem inicial e timer periódico
+  document.addEventListener('DOMContentLoaded', () => {
+    lucide.createIcons();
+
+    // Se houver agendamentos na janela de 24h, abre automaticamente o modal de alerta
+    if (filaAlertas && filaAlertas.length > 0) {
+      abrirFilaConfirmacao();
+    }
+
+    // Polling a cada 60 segundos
+    setInterval(verificarNovosAlertas24h, 60000);
+  });
+</script>
 
 <%- include('../parciais/rodape') %>

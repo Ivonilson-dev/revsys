@@ -151,9 +151,9 @@
               <% cliente.veiculos.forEach(veiculo => { %>
                 <div class="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors">
                   <div class="flex flex-col xs:flex-row xs:items-center gap-3.5 sm:space-x-4">
-                    <!-- Placa Estilizada -->
-                    <div class="bg-slate-950 text-white font-mono font-bold text-sm sm:text-base border-2 border-slate-800 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 shadow-sm uppercase tracking-wider select-none self-start xs:self-auto">
-                      <%= veiculo.placa %>
+                    <!-- Placa Estilizada (Mercosul ou Padrão Anterior) -->
+                    <div class="<%= obterClassePlaca(veiculo.placa) %> px-3 py-1.5 sm:px-3.5 sm:py-2 text-sm sm:text-base self-start xs:self-auto">
+                      <%= formatarPlaca(veiculo.placa) %>
                     </div>
                     <div>
                       <span class="text-base sm:text-lg font-bold text-slate-900 block">
@@ -164,7 +164,7 @@
                         <span>•</span>
                         <span>Cor: <span class="font-bold text-slate-800 capitalize"><%= veiculo.cor %></span></span>
                         <span>•</span>
-                        <span>KM: <span class="font-bold text-slate-800"><%= Number(veiculo.km_atual).toLocaleString('pt-BR') %> km</span></span>
+                        <span>Último KM: <span class="font-bold text-slate-800"><%= Number(veiculo.km_atual).toLocaleString('pt-BR') %> km</span></span>
                       </div>
                     </div>
                   </div>

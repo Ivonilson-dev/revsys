@@ -109,6 +109,13 @@ c:\Projetos\RevSys\
   - `Vencido` (KM excedido ou data ultrapassada)
   - `Próximo` (faltando <= 1000 km ou <= 30 dias)
   - `Em dia`
-- **RF-20 / RF-34 (Agendamento Comercial)**: Horários permitidos entre 08:00 e 17:00. O sistema impede agendamentos simultâneos no mesmo slot de horário.
-- **RF-33 (Atualização Dinâmica de KM)**: Ao registrar qualquer troca de peça ou serviço com opção de atualização marcada, o `km_atual` do veículo é atualizado atomicamente na mesma transação.
+- **RF-20 / RF-34 (Agendamento Comercial e Duração Flexível)**: Horários permitidos entre 08:00 e 17:30 (expediente até 18:00). Duração configurável em blocos de 30 min, 1h, 1h30, 2h, etc. O sistema impede sobreposição de horários e bloqueia marcar como concluído agendamentos futuros (exige motivo obrigatório para cancelamento).
+- **RF-33 (Atualização Dinâmica de KM)**: Ao registrar qualquer troca de peça ou serviço com opção de atualização marcada, o último KM registrado do veículo é atualizado atomicamente na mesma transação.
+- **RF-35 (Alerta de 24 Horas, Confirmação de Presença via WhatsApp e Fila Sequencial com Recorrência de 60 Min)**:
+  - Quando um agendamento atinge 24 horas anteriores ao prazo inicial (`<= 24h` restantes e `diffMs > 0`), um modal de alerta é disparado no Dashboard organizando uma fila sequencial (`1 de N`, `2 de N`...).
+  - O operador pode:
+    1. **Solicitar Confirmação via WhatsApp**: abre mensagem pré-configurada no WhatsApp do cliente e marca `confirmacao_presenca = 'solicitada'`. O lembrete se repete a cada 60 minutos caso a presença não seja confirmada.
+    2. **Adiar por 60 Minutos**: adia a notificação no sistema por 60 minutos (`confirmacao_adiada_ate = +60 min`).
+    3. **Dar Baixa (Presença Confirmada)**: registra que o cliente confirmou presença (`confirmacao_presenca = 'confirmada'`), retirando o compromisso da fila de alertas.
+  - A confirmação de presença pode ser registrada no modal da fila, na Agenda de Hoje do Dashboard, na listagem geral de agendamentos e nos detalhes do calendário.
 - **LGPD Compliance**: CPF armazenado criptografado via AES-256-CBC + HMAC-SHA256 Blind Index. Registros de consentimento em `LogLgpd`.

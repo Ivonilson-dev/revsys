@@ -41,16 +41,42 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     horario_agendado: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(5),
       allowNull: false,
       validate: {
         notEmpty: true
       }
     },
+    duracao_minutos: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 60
+    },
+    horario_fim: {
+      type: DataTypes.STRING(5),
+      allowNull: true
+    },
     status: {
       type: DataTypes.ENUM('agendado', 'concluido', 'cancelado'),
       allowNull: false,
       defaultValue: 'agendado'
+    },
+    confirmacao_presenca: {
+      type: DataTypes.ENUM('pendente', 'solicitada', 'confirmada'),
+      allowNull: false,
+      defaultValue: 'pendente'
+    },
+    confirmacao_solicitada_em: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    confirmacao_adiada_ate: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    confirmado_em: {
+      type: DataTypes.DATE,
+      allowNull: true
     },
     motivo_revisao: {
       type: DataTypes.TEXT,
@@ -60,6 +86,10 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     observacoes: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    motivo_cancelamento: {
       type: DataTypes.TEXT,
       allowNull: true
     },

@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Veiculo, RegistroTroca, Peca, MarcaPeca, Cliente, Usuario, ModeloVeiculo, MarcaVeiculo, Agendamento } = require('../../models');
+const { Veiculo, RegistroTroca, Peca, MarcaPeca, Cliente, Usuario, ModeloVeiculo, MarcaVeiculo, Agendamento, Oficina, Servico } = require('../../models');
 const { calcularStatusAlerta } = require('../utils/alertas');
 
 class RelatorioController {
@@ -265,7 +265,12 @@ class RelatorioController {
         where: whereClause,
         include: [
           { model: Cliente, as: 'cliente', include: [{ model: Usuario, as: 'usuario' }] },
-          { model: Veiculo, as: 'veiculo' }
+          { 
+            model: Veiculo, 
+            as: 'veiculo',
+            include: [{ model: ModeloVeiculo, as: 'modelo', include: [{ model: MarcaVeiculo, as: 'marca' }] }]
+          },
+          { model: Servico, as: 'servico' }
         ],
         order: [['data_agendada', 'ASC'], ['horario_agendado', 'ASC']]
       });
@@ -277,7 +282,92 @@ class RelatorioController {
       });
     } catch (error) {
       console.error('Erro ao gerar relatório de agendamentos:', error);
-      return res.status(500).send('Erro.');
+      return res.status(500).send('Erro interno ao buscar agendamentos.');
+    }
+  }
+
+  // GET /relatorios/trocas-mes
+  static async relatorioTrocasMes(req, res) {
+    const hoje = new Date();
+    const anoAtual = hoje.getFullYear();
+    const mesAtual = hoje.getMonth() + 1;
+
+    const ano = req.query.ano ? parseInt(req.query.ano) : anoAtual;
+    const mes = req.query.mes ? parseInt(req.query.mes) : mesAtual;
+
+    const fimMesObj = new Date(ano, mes, 0); // Último dia do mês
+
+    const inicioMesStr = `${ano}-${String(mes).padStart(2, '0')}-01`;
+    const fimMesStr = `${ano}-${String(mes).padStart(2, '0')}-${String(fimMesObj.getDate()).padStart(2, '0')}`;
+
+    const mesesNomes = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+
+    try {
+      const trocas = await RegistroTroca.findAll({
+        where: {
+          data_troca: {
+            [Op.between]: [inicioMesStr, fimMesStr]
+          }
+        },
+        include: [
+          { 
+            model: Veiculo, 
+            as: 'veiculo', 
+            include: [
+              { model: Cliente, as: 'cliente', include: [{ model: Usuario, as: 'usuario' }] },
+              { model: ModeloVeiculo, as: 'modelo', include: [{ model: MarcaVeiculo, as: 'marca' }] }
+            ] 
+          },
+          { model: Peca, as: 'peca', include: [{ model: MarcaPeca, as: 'marca' }] },
+          { model: Oficina, as: 'oficina' }
+        ],
+        order: [['data_troca', 'DESC'], ['id', 'DESC']]
+      });
+
+      // Indicadores do mês
+      const totalTrocas = trocas.length;
+      const veiculosSet = new Set();
+      trocas.forEach(t => {
+        if (t.veiculo_id) veiculosSet.add(t.veiculo_id);
+      });
+      const totalVeiculosAtendidos = veiculosSet.size;
+
+      // Peça com maior volume
+      const contagemPecas = {};
+      trocas.forEach(t => {
+        const nomePeca = t.peca ? t.peca.nome : 'Outras Peças';
+        contagemPecas[nomePeca] = (contagemPecas[nomePeca] || 0) + 1;
+      });
+
+      let pecaDestaque = '-';
+      let maxQtd = 0;
+      for (const [nome, qtd] of Object.entries(contagemPecas)) {
+        if (qtd > maxQtd) {
+          maxQtd = qtd;
+          pecaDestaque = `${nome} (${qtd}x)`;
+        }
+      }
+
+      return res.render('relatorios/trocas-mes', {
+        titulo: `Trocas de Peças - ${mesesNomes[mes - 1]} de ${ano}`,
+        trocas,
+        mes,
+        ano,
+        nomeMes: mesesNomes[mes - 1],
+        totalTrocas,
+        totalVeiculosAtendidos,
+        pecaDestaque,
+        inicioMesStr,
+        fimMesStr,
+        mesAtual,
+        anoAtual
+      });
+    } catch (error) {
+      console.error('Erro ao gerar relatório de trocas do mês:', error);
+      return res.status(500).send('Erro interno do servidor ao gerar relatório de trocas.');
     }
   }
 }

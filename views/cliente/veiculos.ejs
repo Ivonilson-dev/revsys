@@ -91,13 +91,13 @@
                   <!-- Bloco Cabeçalho Veículo -->
                   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div class="flex flex-col xs:flex-row xs:items-center gap-3.5 sm:space-x-4">
-                      <span class="px-3 py-1.5 rounded-lg bg-slate-900 text-white font-mono font-bold text-sm sm:text-base uppercase tracking-wider border border-slate-700 shadow-sm self-start xs:self-auto">
-                        <%= item.veiculo.placa %>
+                      <span class="<%= obterClassePlaca(item.veiculo.placa) %> px-3 py-1.5 text-sm sm:text-base self-start xs:self-auto">
+                        <%= formatarPlaca(item.veiculo.placa) %>
                       </span>
                       <div>
                         <h3 class="text-base sm:text-lg font-bold text-slate-900"><%= item.veiculo.modelo ? item.veiculo.modelo.marca.nome + ' ' + item.veiculo.modelo.nome : 'Modelo N/I' %></h3>
                         <span class="text-xs sm:text-sm text-slate-600 mt-0.5 block font-medium">
-                          KM Atual: <span class="font-bold text-slate-800"><%= item.veiculo.km_atual %> km</span> | Ano: <span class="font-bold text-slate-800"><%= item.veiculo.ano %></span>
+                          Último KM Registrado: <span class="font-bold text-slate-800"><%= item.veiculo.km_atual %> km</span> | Ano: <span class="font-bold text-slate-800"><%= item.veiculo.ano %></span>
                         </span>
                       </div>
                     </div>
@@ -236,10 +236,13 @@
               <% agendamentos.forEach(a => { %>
                 <div class="py-3.5 flex justify-between items-center text-sm gap-3">
                   <div>
-                    <span class="font-bold text-slate-900 block uppercase font-mono text-base"><%= a.veiculo ? a.veiculo.placa : 'Placa N/I' %></span>
+                    <span class="<%= a.veiculo ? obterClassePlaca(a.veiculo.placa) : 'placa-mercosul' %> px-2 py-0.5 text-xs inline-block mb-1"><%= a.veiculo ? formatarPlaca(a.veiculo.placa) : 'Placa N/I' %></span>
                     <span class="text-slate-700 font-medium block mt-0.5">"<%= a.motivo_revisao %>"</span>
                     <span class="text-slate-500 text-xs block mt-0.5">
-                      <%= new Date(a.data_agendada).toLocaleDateString('pt-BR') %> às <%= a.horario_agendado %>
+                      <%= new Date(a.data_agendada).toLocaleDateString('pt-BR') %> às <%= a.horario_agendado %><%= a.horario_fim ? ' às ' + a.horario_fim : '' %>
+                      <% if (a.duracao_minutos) { %>
+                        <span class="text-slate-400 font-normal">(<%= formatarDuracao(a.duracao_minutos) %>)</span>
+                      <% } %>
                     </span>
                   </div>
                   <div class="shrink-0">

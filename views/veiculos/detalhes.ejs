@@ -53,10 +53,28 @@
     <!-- Cabeçalho / Identidade do Veículo -->
     <div class="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 md:p-8 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
       <div class="flex flex-col xs:flex-row xs:items-center gap-4 sm:space-x-6">
-        <!-- Placa Em Destaque -->
-        <div class="bg-white text-slate-900 font-mono font-black text-2xl md:text-3xl border-4 border-slate-750 rounded-2xl px-4 py-2 sm:px-5 sm:py-3 shadow-md uppercase tracking-widest select-none self-start xs:self-auto shrink-0">
-          <%= veiculo.placa %>
-        </div>
+        <!-- Placa Em Destaque (Mercosul ou Padrão Anterior Cinza) -->
+        <% if (ehPlacaMercosul(veiculo.placa)) { %>
+          <div class="inline-flex flex-col rounded-xl border-2 border-slate-300 bg-white shadow-lg overflow-hidden select-none self-start xs:self-auto shrink-0" title="Padrão Oficial Mercosul">
+            <div class="bg-[#003399] text-white px-3 py-0.5 flex items-center justify-between text-[9px] font-black tracking-widest uppercase">
+              <span class="text-[8px] font-bold text-sky-200">MERCOSUL</span>
+              <span class="font-black text-[9px] tracking-wider text-white">BRASIL</span>
+            </div>
+            <div class="px-4 py-1.5 sm:px-5 sm:py-2 text-center font-mono font-black text-2xl md:text-3xl text-slate-950 tracking-widest bg-white">
+              <%= formatarPlaca(veiculo.placa) %>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="inline-flex flex-col rounded-xl border-2 border-slate-600 shadow-lg overflow-hidden select-none self-start xs:self-auto shrink-0" style="background: linear-gradient(180deg, #f1f5f9 0%, #cbd5e1 55%, #94a3b8 100%);" title="Padrão Anterior (Placa Cinza)">
+            <div class="bg-slate-400/90 border-b border-slate-500 text-slate-800 px-3 py-0.5 flex items-center justify-between text-[9px] font-black tracking-widest uppercase shadow-inner">
+              <span class="text-[8px] font-black text-slate-700 tracking-wider">BRASIL</span>
+              <span class="font-bold text-[8px] tracking-widest text-slate-600">● CINZA ●</span>
+            </div>
+            <div class="px-4 py-1.5 sm:px-5 sm:py-2 text-center font-mono font-black text-2xl md:text-3xl text-slate-950 tracking-widest">
+              <%= formatarPlaca(veiculo.placa) %>
+            </div>
+          </div>
+        <% } %>
         <div>
           <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">
             <%= veiculo.modelo ? veiculo.modelo.marca.nome + ' ' + veiculo.modelo.nome : 'Modelo N/I' %>
@@ -76,7 +94,7 @@
       <!-- Detalhes Rápidos -->
       <div class="grid grid-cols-3 gap-2 sm:gap-6 border-t border-slate-800 pt-4 md:pt-0 md:border-t-0 md:pl-8 md:border-l md:border-slate-800 text-center">
         <div>
-          <span class="text-[10px] sm:text-xs uppercase font-bold text-slate-400 block tracking-wider">KM Atual</span>
+          <span class="text-[10px] sm:text-xs uppercase font-bold text-slate-400 block tracking-wider">Último KM Registrado</span>
           <span class="text-base sm:text-xl md:text-2xl font-black text-white mt-0.5 sm:mt-1 block"><%= Number(veiculo.km_atual).toLocaleString('pt-BR') %> km</span>
         </div>
         <div>
@@ -353,7 +371,7 @@
 
             <!-- KM no Serviço -->
             <div>
-              <label for="km_no_servico" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">KM Atual *</label>
+              <label for="km_no_servico" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">KM no Momento do Serviço *</label>
               <input type="number" id="km_no_servico" name="km_no_servico" required min="0" value="<%= veiculo.km_atual %>"
                      class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base focus:outline-none focus:border-emerald-500 focus:bg-white transition-all font-bold">
             </div>
@@ -422,7 +440,7 @@
                 <input type="checkbox" id="atualizar_km_veiculo" name="atualizar_km_veiculo" value="true" checked
                        class="w-5 h-5 text-brand-600 bg-white border-slate-300 rounded focus:ring-brand-500 cursor-pointer">
                 <label for="atualizar_km_veiculo" class="text-sm font-semibold text-slate-700 cursor-pointer select-none">
-                  Atualizar KM atual do veículo para este valor (RF-33)
+                  Atualizar último KM registrado do veículo para este valor (RF-33)
                 </label>
               </div>
             </div>
@@ -513,7 +531,10 @@
                   <div>
                     <span class="font-bold text-slate-900 block text-base"><%= a.motivo_revisao %></span>
                     <span class="text-slate-500 block mt-1 font-medium">
-                      <%= new Date(a.data_agendada).toLocaleDateString('pt-BR') %> às <span class="font-bold text-slate-800"><%= a.horario_agendado %></span>
+                      <%= new Date(a.data_agendada).toLocaleDateString('pt-BR') %> às <span class="font-bold text-slate-800"><%= a.horario_agendado %><%= a.horario_fim ? ' às ' + a.horario_fim : '' %></span>
+                      <% if (a.duracao_minutos) { %>
+                        <span class="text-xs text-brand-600 font-semibold ml-1">(<%= formatarDuracao(a.duracao_minutos) %>)</span>
+                      <% } %>
                     </span>
                   </div>
                   <div class="shrink-0">

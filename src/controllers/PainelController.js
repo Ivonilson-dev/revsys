@@ -11,6 +11,7 @@ const {
   Notificacao
 } = require('../../models');
 const { calcularStatusAlerta } = require('../utils/alertas');
+const AgendamentoController = require('./AgendamentoController');
 
 class PainelController {
   // GET /painel
@@ -146,6 +147,14 @@ class PainelController {
         limit: 5
       });
 
+      // 5. Alertas de Agendamentos em Janela de 24 Horas (Fila de confirmação de presença)
+      let alertas24h = [];
+      try {
+        alertas24h = await AgendamentoController.carregarAlertas24h();
+      } catch (errAlertas) {
+        console.error('Erro ao carregar alertas 24h para o painel:', errAlertas);
+      }
+
       // Renderizar o painel com os dados coletados
       return res.render('painel/index', {
         titulo: 'Painel da Oficina',
@@ -154,7 +163,8 @@ class PainelController {
         totalVeiculosAtrasados: veiculosAtrasados.length,
         veiculosAtrasados: veiculosAtrasados.slice(0, 5), // limitar a 5 no dashboard
         proximasTrocas7Dias: proximasTrocas7Dias.slice(0, 5), // limitar a 5 no dashboard
-        notificacoes
+        notificacoes,
+        alertas24h
       });
 
     } catch (error) {

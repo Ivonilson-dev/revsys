@@ -45,8 +45,8 @@
                 <tr class="hover:bg-slate-50/50 transition-colors">
                   <td class="p-4 pl-6 font-semibold text-slate-900"><%= new Date(t.data_troca).toLocaleDateString('pt-BR') %></td>
                   <td class="p-4">
-                    <span class="px-2.5 py-1 rounded bg-slate-900 text-white font-mono font-bold text-sm uppercase border border-slate-700 tracking-wider">
-                      <%= t.veiculo ? t.veiculo.placa : 'N/I' %>
+                    <span class="<%= t.veiculo ? obterClassePlaca(t.veiculo.placa) : 'placa-mercosul' %> px-2.5 py-1 text-sm">
+                      <%= t.veiculo ? formatarPlaca(t.veiculo.placa) : 'N/I' %>
                     </span>
                   </td>
                   <td class="p-4 font-medium text-slate-800">
@@ -78,8 +78,8 @@
             <div class="p-5 space-y-3 hover:bg-slate-50/50 transition-colors">
               <div class="flex items-center justify-between">
                 <span class="font-bold text-base text-slate-900"><%= new Date(t.data_troca).toLocaleDateString('pt-BR') %></span>
-                <span class="px-2.5 py-1 rounded bg-slate-900 text-white font-mono font-bold text-sm uppercase border border-slate-700 tracking-wider">
-                  <%= t.veiculo ? t.veiculo.placa : 'N/I' %>
+                <span class="<%= t.veiculo ? obterClassePlaca(t.veiculo.placa) : 'placa-mercosul' %> px-2.5 py-1 text-xs sm:text-sm">
+                  <%= t.veiculo ? formatarPlaca(t.veiculo.placa) : 'N/I' %>
                 </span>
               </div>
               

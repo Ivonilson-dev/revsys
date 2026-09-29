@@ -77,11 +77,69 @@ function formatarPlaca(valor) {
   return valor;
 }
 
+function ehPlacaMercosul(valor) {
+  if (!valor) return false;
+  const limpo = String(valor).toUpperCase().replace(/[^A-Z0-9]/g, '');
+  return /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/.test(limpo);
+}
+
+function ehPlacaAntiga(valor) {
+  if (!valor) return false;
+  const limpo = String(valor).toUpperCase().replace(/[^A-Z0-9]/g, '');
+  return /^[A-Z]{3}[0-9]{4}$/.test(limpo);
+}
+
+function obterTipoPlaca(valor) {
+  if (ehPlacaMercosul(valor)) return 'mercosul';
+  if (ehPlacaAntiga(valor)) return 'antiga';
+  return 'outro';
+}
+
+function obterClassePlaca(valor) {
+  return ehPlacaMercosul(valor) ? 'placa-mercosul' : 'placa-antiga';
+}
+
+function formatarData(valor) {
+  if (!valor) return '-';
+  if (typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}/.test(valor)) {
+    const partes = valor.split('T')[0].split('-');
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+  }
+  const d = new Date(valor);
+  if (isNaN(d.getTime())) return valor;
+  return d.toLocaleDateString('pt-BR');
+}
+
+function formatarKm(valor) {
+  if (valor === null || valor === undefined || valor === '') return '-';
+  const num = Number(valor);
+  if (isNaN(num)) return valor;
+  return num.toLocaleString('pt-BR') + ' km';
+}
+
+function formatarDuracao(minutos) {
+  if (!minutos) return '';
+  const num = Number(minutos);
+  if (isNaN(num) || num <= 0) return '';
+  const h = Math.floor(num / 60);
+  const m = num % 60;
+  if (h === 0) return `${m} min`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}min`;
+}
+
 module.exports = {
   formatarCPF,
   formatarCNPJ,
   formatarCPFCNPJ,
   formatarTelefone,
   formatarCEP,
-  formatarPlaca
+  formatarPlaca,
+  ehPlacaMercosul,
+  ehPlacaAntiga,
+  obterTipoPlaca,
+  obterClassePlaca,
+  formatarData,
+  formatarKm,
+  formatarDuracao
 };

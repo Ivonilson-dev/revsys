@@ -21,6 +21,28 @@ class TrocaController {
       return res.status(400).send('Campos obrigatórios ausentes.');
     }
 
+    const kmTrocaInt = parseInt(km_na_troca, 10);
+    if (isNaN(kmTrocaInt) || kmTrocaInt < 0) {
+      return res.status(400).send('Inconsistência lógica: A quilometragem na troca não pode ser negativa.');
+    }
+
+    const hojeStr = new Date().toLocaleDateString('en-CA');
+    const dataTrocaInformada = data_troca || hojeStr;
+    if (dataTrocaInformada > hojeStr) {
+      return res.status(400).send('Inconsistência lógica: A data da troca não pode ser futura, pois refere-se a um serviço já executado.');
+    }
+
+    if (km_previsto_proximo) {
+      const kmProxInt = parseInt(km_previsto_proximo, 10);
+      if (kmProxInt <= kmTrocaInt) {
+        return res.status(400).send('Inconsistência lógica: A quilometragem prevista para a próxima troca deve ser maior que a quilometragem atual.');
+      }
+    }
+
+    if (data_prevista_proximo && data_prevista_proximo <= dataTrocaInformada) {
+      return res.status(400).send('Inconsistência lógica: A data prevista para a próxima troca deve ser posterior à data da troca.');
+    }
+
     const t = await sequelize.transaction();
 
     try {

@@ -235,10 +235,17 @@ CREATE TABLE IF NOT EXISTS `agendamentos` (
   `veiculo_id` INT NOT NULL,
   `servico_id` INT NULL,
   `data_agendada` DATE NOT NULL,
-  `horario_agendado` VARCHAR(5) NOT NULL, -- Formato 'HH:MM'
+  `horario_agendado` VARCHAR(5) NOT NULL, -- Formato 'HH:MM' (início)
+  `duracao_minutos` INT NOT NULL DEFAULT 60, -- Duração flexível do agendamento (30, 60, 90, 120, etc.)
+  `horario_fim` VARCHAR(5) NULL, -- Formato 'HH:MM' (término calculado)
   `status` ENUM('agendado', 'concluido', 'cancelado') NOT NULL DEFAULT 'agendado',
+  `confirmacao_presenca` ENUM('pendente', 'solicitada', 'confirmada') NOT NULL DEFAULT 'pendente', -- Status de presença
+  `confirmacao_solicitada_em` DATETIME NULL, -- Momento do envio da mensagem de WhatsApp
+  `confirmacao_adiada_ate` DATETIME NULL, -- Quando o lembrete foi adiado em 60 min
+  `confirmado_em` DATETIME NULL, -- Momento em que a presença foi confirmada/dado baixa
   `motivo_revisao` TEXT NOT NULL,
   `observacoes` TEXT NULL,
+  `motivo_cancelamento` TEXT NULL, -- Motivo obrigatório caso o agendamento seja cancelado
   `criado_por` INT NOT NULL,
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

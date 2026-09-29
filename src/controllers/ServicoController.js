@@ -21,6 +21,28 @@ class ServicoController {
       return res.status(400).send('Campos obrigatórios ausentes.');
     }
 
+    const kmServicoInt = parseInt(km_no_servico, 10);
+    if (isNaN(kmServicoInt) || kmServicoInt < 0) {
+      return res.status(400).send('Inconsistência lógica: A quilometragem no serviço não pode ser negativa.');
+    }
+
+    const hojeStr = new Date().toLocaleDateString('en-CA');
+    const dataServicoInformada = data_servico || hojeStr;
+    if (dataServicoInformada > hojeStr) {
+      return res.status(400).send('Inconsistência lógica: A data do serviço não pode ser futura, pois refere-se a um serviço já executado.');
+    }
+
+    if (km_previsto_proximo) {
+      const kmProxInt = parseInt(km_previsto_proximo, 10);
+      if (kmProxInt <= kmServicoInt) {
+        return res.status(400).send('Inconsistência lógica: A quilometragem prevista para a próxima revisão deve ser maior que a quilometragem atual.');
+      }
+    }
+
+    if (data_prevista_proximo && data_prevista_proximo <= dataServicoInformada) {
+      return res.status(400).send('Inconsistência lógica: A data prevista para a próxima revisão deve ser posterior à data do serviço.');
+    }
+
     const t = await sequelize.transaction();
 
     try {

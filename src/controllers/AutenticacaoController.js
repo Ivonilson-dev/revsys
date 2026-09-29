@@ -76,6 +76,7 @@ class AutenticacaoController {
       if (err) {
         console.error('Erro ao destruir sessão:', err);
       }
+      res.clearCookie('connect.sid');
       return res.redirect('/login');
     });
   }

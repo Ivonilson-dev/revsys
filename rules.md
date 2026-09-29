@@ -62,3 +62,10 @@ Este documento estabelece as **regras obrigatórias e invioláveis** que qualque
   - Utilize as classes do **TailwindCSS** pré-configuradas no projeto (cards `bg-white rounded-2xl border border-slate-200 shadow-sm`, badges coloridos com legibilidade).
   - Inclua ícones descritivos da biblioteca **Lucide Icons**.
   - Mantenha responsividade total para telas móbiles e desktops.
+
+---
+
+## 🛑 Regra 9: Proibição de Acesso ao Navegador (Browser) por Agentes
+- **APENAS o usuário humano acessa o navegador/browser para navegar, verificar e testar as alterações no sistema**.
+- **Os agentes de IA JAMAIS devem acionar ferramentas de automação de navegador (browser subagents, scripts headless ou similares)** para abrir páginas, fazer login ou interagir com o sistema no navegador.
+- Toda validação visual, conferência de layout e testes funcionais em tela pertencem estritamente ao usuário humano.

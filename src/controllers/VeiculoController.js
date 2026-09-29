@@ -103,6 +103,33 @@ class VeiculoController {
       });
     }
 
+    const anoInt = parseInt(ano, 10);
+    const anoMax = new Date().getFullYear() + 1;
+    if (isNaN(anoInt) || anoInt < 1900 || anoInt > anoMax) {
+      return res.render('veiculos/novo', {
+        titulo: 'Cadastrar Veículo',
+        erro: `Inconsistência lógica: O ano de fabricação deve estar entre 1900 e ${anoMax}.`,
+        dados: dadosForm,
+        clientes: await Cliente.findAll({ include: [{ model: Usuario, as: 'usuario' }] }),
+        marcas: await MarcaVeiculo.findAll({ order: [['nome', 'ASC']] }),
+        modelos: await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }], order: [['nome', 'ASC']] }),
+        clienteId: cliente_id
+      });
+    }
+
+    const kmInt = parseInt(km_atual, 10);
+    if (isNaN(kmInt) || kmInt < 0) {
+      return res.render('veiculos/novo', {
+        titulo: 'Cadastrar Veículo',
+        erro: 'Inconsistência lógica: A quilometragem atual não pode ser negativa.',
+        dados: dadosForm,
+        clientes: await Cliente.findAll({ include: [{ model: Usuario, as: 'usuario' }] }),
+        marcas: await MarcaVeiculo.findAll({ order: [['nome', 'ASC']] }),
+        modelos: await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }], order: [['nome', 'ASC']] }),
+        clienteId: cliente_id
+      });
+    }
+
     try {
       // Verificar se placa já existe
       const veiculoExistente = await Veiculo.findOne({ where: { placa: placaLimpa } });
@@ -289,6 +316,33 @@ class VeiculoController {
       const veiculo = await Veiculo.findByPk(id);
       if (!veiculo) {
         return res.status(404).send('Veículo não encontrado');
+      }
+
+      const anoInt = parseInt(ano, 10);
+      const anoMax = new Date().getFullYear() + 1;
+      if (isNaN(anoInt) || anoInt < 1900 || anoInt > anoMax) {
+        const marcas = await MarcaVeiculo.findAll({ order: [['nome', 'ASC']] });
+        const modelos = await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }], order: [['nome', 'ASC']] });
+        return res.render('veiculos/editar', {
+          titulo: `Editar Veículo: ${veiculo.placa}`,
+          veiculo,
+          marcas,
+          modelos,
+          erro: `Inconsistência lógica: O ano de fabricação deve estar entre 1900 e ${anoMax}.`
+        });
+      }
+
+      const kmInt = parseInt(km_atual, 10);
+      if (isNaN(kmInt) || kmInt < 0) {
+        const marcas = await MarcaVeiculo.findAll({ order: [['nome', 'ASC']] });
+        const modelos = await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }], order: [['nome', 'ASC']] });
+        return res.render('veiculos/editar', {
+          titulo: `Editar Veículo: ${veiculo.placa}`,
+          veiculo,
+          marcas,
+          modelos,
+          erro: 'Inconsistência lógica: A quilometragem atual não pode ser negativa.'
+        });
       }
 
       // Validar placa única se mudou

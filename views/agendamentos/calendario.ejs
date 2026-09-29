@@ -1,49 +1,165 @@
 <%- include('../parciais/cabecalho') %>
 <%- include('../parciais/menu') %>
 
-<!-- FullCalendar v6 CDN -->
+<!-- FullCalendar v6 CDN & Idioma Português do Brasil -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales/pt-br.global.min.js"></script>
 
 <style>
-  /* Responsividade & Estilização do FullCalendar para Mobile e Desktop */
+  /* Barra de Ferramentas e Controles do FullCalendar (Design Moderno & Espaçado) */
   .fc .fc-toolbar.fc-header-toolbar {
-    margin-bottom: 1rem;
-    gap: 0.5rem;
+    margin-bottom: 1.25rem !important;
+    padding: 0.625rem 0.875rem !important;
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 0.875rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    gap: 0.75rem !important;
   }
   
+  .fc .fc-toolbar-chunk {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Desfazer botões colados por padrão no FullCalendar e adicionar espaçamento limpo */
+  .fc .fc-button-group {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.375rem !important;
+  }
+
+  .fc .fc-button-group > .fc-button,
+  .fc-direction-ltr .fc-button-group > .fc-button:not(:first-child),
+  .fc-direction-ltr .fc-button-group > .fc-button:not(:last-child) {
+    margin: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border-radius: 0.625rem !important;
+  }
+
   .fc .fc-toolbar-title {
     font-family: 'Outfit', sans-serif !important;
     font-size: 1.25rem !important;
     font-weight: 800 !important;
     color: #0f172a !important;
     letter-spacing: -0.025em;
+    text-transform: capitalize !important;
   }
 
+  /* Botão Base do Calendário */
   .fc .fc-button {
     font-family: 'Outfit', sans-serif !important;
     font-weight: 600 !important;
     border-radius: 0.625rem !important;
     text-transform: capitalize !important;
     transition: all 0.15s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
   }
 
-  .fc .fc-button-primary {
+  .fc .fc-button:focus,
+  .fc .fc-button-primary:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.35) !important;
+  }
+
+  /* Botões de Navegação (Apenas os ícones < e >) */
+  .fc .fc-prev-button,
+  .fc .fc-next-button {
+    width: 2.25rem !important;
+    height: 2.25rem !important;
+    padding: 0 !important;
+    font-size: 0 !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #334155 !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .fc .fc-prev-button .fc-icon,
+  .fc .fc-next-button .fc-icon {
+    font-size: 1.25rem !important;
+    line-height: 1 !important;
+  }
+
+  .fc .fc-prev-button:hover,
+  .fc .fc-next-button:hover {
+    background-color: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+  }
+
+  .fc .fc-prev-button:active,
+  .fc .fc-next-button:active {
+    transform: scale(0.96) !important;
+  }
+
+  /* Botão 'Hoje' */
+  .fc .fc-today-button {
+    height: 2.25rem !important;
+    padding: 0 0.875rem !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    font-size: 0.8125rem !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .fc .fc-today-button:hover:not(:disabled) {
     background-color: #0f172a !important;
-    border-color: #1e293b !important;
+    border-color: #0f172a !important;
     color: #ffffff !important;
   }
 
-  .fc .fc-button-primary:hover {
-    background-color: #1e293b !important;
-    border-color: #334155 !important;
+  .fc .fc-today-button:disabled {
+    opacity: 0.5 !important;
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
   }
 
+  /* Botões de Modos de Visualização (Mês / Semana / Dia) */
+  .fc .fc-dayGridMonth-button,
+  .fc .fc-timeGridWeek-button,
+  .fc .fc-timeGridDay-button {
+    height: 2.25rem !important;
+    padding: 0 0.875rem !important;
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #475569 !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .fc .fc-dayGridMonth-button:hover:not(.fc-button-active),
+  .fc .fc-timeGridWeek-button:hover:not(.fc-button-active),
+  .fc .fc-timeGridDay-button:hover:not(.fc-button-active) {
+    background-color: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+  }
+
+  .fc .fc-dayGridMonth-button.fc-button-active,
+  .fc .fc-timeGridWeek-button.fc-button-active,
+  .fc .fc-timeGridDay-button.fc-button-active,
   .fc .fc-button-primary:not(:disabled).fc-button-active,
   .fc .fc-button-primary:not(:disabled):active {
     background-color: #0284c7 !important;
     border-color: #0284c7 !important;
     color: #ffffff !important;
-    box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.25) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 4px 0 rgba(2, 132, 199, 0.25) !important;
   }
 
   .fc-theme-standard th {
@@ -85,17 +201,23 @@
 
   /* Ajustes específicos para telas mobile (< 768px) */
   @media (max-width: 768px) {
-    .fc .fc-toolbar {
+    .fc .fc-toolbar.fc-header-toolbar {
       flex-direction: column !important;
       align-items: stretch !important;
       gap: 0.625rem !important;
+      padding: 0.5rem 0.625rem !important;
     }
     
     .fc .fc-toolbar-chunk {
       display: flex !important;
       justify-content: center !important;
       align-items: center !important;
+      gap: 0.375rem !important;
       width: 100% !important;
+    }
+
+    .fc .fc-button-group {
+      gap: 0.35rem !important;
     }
 
     .fc .fc-toolbar-title {
@@ -105,7 +227,37 @@
     }
 
     .fc .fc-button {
-      padding: 0.35rem 0.6rem !important;
+      font-size: 0.75rem !important;
+      border-radius: 0.5rem !important;
+    }
+
+    .fc .fc-prev-button,
+    .fc .fc-next-button {
+      width: 2rem !important;
+      height: 2rem !important;
+      padding: 0 !important;
+      font-size: 0 !important;
+      border-radius: 0.5rem !important;
+    }
+
+    .fc .fc-prev-button .fc-icon,
+    .fc .fc-next-button .fc-icon {
+      font-size: 1.1rem !important;
+      line-height: 1 !important;
+    }
+
+    .fc .fc-today-button {
+      height: 2rem !important;
+      padding: 0 0.65rem !important;
+      font-size: 0.75rem !important;
+      border-radius: 0.5rem !important;
+    }
+
+    .fc .fc-dayGridMonth-button,
+    .fc .fc-timeGridWeek-button,
+    .fc .fc-timeGridDay-button {
+      height: 2rem !important;
+      padding: 0 0.65rem !important;
       font-size: 0.75rem !important;
       border-radius: 0.5rem !important;
     }
@@ -218,6 +370,44 @@
                 </select>
               </div>
 
+              <!-- Serviço Pretendido (Opcional) -->
+              <div>
+                <label for="servico_id" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Serviço Pretendido</label>
+                <select id="servico_id" name="servico_id" onchange="aoMudarServico(this)"
+                        class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-sm sm:text-base focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
+                  <option value="" selected>Revisão Personalizada / Outro</option>
+                  <% servicos.forEach(s => { %>
+                    <option value="<%= s.id %>" data-nome="<%= s.nome %>"><%= s.nome %></option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <!-- Duração da Revisão / Bloco de Tempo Requerido -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label for="duracao_minutos" class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Duração da Revisão *</label>
+                  <span id="badgeDuracao" class="text-[11px] font-black text-brand-700 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-lg">1 hora (padrão)</span>
+                </div>
+                <select id="duracao_minutos" name="duracao_minutos" required onchange="aoMudarDuracao(this.value)"
+                        class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-sm sm:text-base focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
+                  <% if (typeof opcoesDuracao !== 'undefined' && opcoesDuracao.length > 0) { %>
+                    <% opcoesDuracao.forEach(op => { %>
+                      <option value="<%= op.minutos %>" <%= op.minutos === 60 ? 'selected' : '' %>><%= op.rotulo %></option>
+                    <% }) %>
+                  <% } else { %>
+                    <option value="30">30 min (Check-up / Inspeção Rápida)</option>
+                    <option value="60" selected>1 hora (Troca de Óleo / Filtros)</option>
+                    <option value="90">1h 30 min (Freios / Suspensão)</option>
+                    <option value="120">2 horas (Revisão Periódica Completa)</option>
+                    <option value="150">2h 30 min (Revisão Intermediária)</option>
+                    <option value="180">3 horas (Correia Dentada / Embreagem)</option>
+                    <option value="240">4 horas (Meio Período / Motor)</option>
+                    <option value="480">8 horas (Dia Inteiro / Geral)</option>
+                  <% } %>
+                </select>
+                <span class="text-[11px] text-slate-500 mt-1 block leading-tight font-normal">Ajuste o tempo necessário conforme a complexidade do serviço.</span>
+              </div>
+
               <!-- Data do Agendamento -->
               <div>
                 <label for="data_agendada" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Data Agendada *</label>
@@ -226,14 +416,29 @@
                        class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-sm sm:text-base focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
               </div>
 
-              <!-- Horário Agendado -->
+              <!-- Horário Agendado (Início) -->
               <div>
-                <label for="horario_agendado" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Horário Comercial *</label>
-                <select id="horario_agendado" name="horario_agendado" required disabled
+                <label for="horario_agendado" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Horário de Início (30 em 30 min) *</label>
+                <select id="horario_agendado" name="horario_agendado" required disabled onchange="aoMudarHorarioInicio(this.value)"
                         class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-sm sm:text-base focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium disabled:opacity-60">
-                  <option value="" disabled selected>Selecione o horário...</option>
+                  <option value="" disabled selected>Selecione a data para ver horários...</option>
                 </select>
-                <span class="text-[11px] text-slate-500 mt-1 block leading-tight font-normal">Horários ocupados estarão desabilitados.</span>
+                <span class="text-[11px] text-slate-500 mt-1 block leading-tight font-normal">Horários ocupados ou sem tempo hábil estarão desabilitados.</span>
+              </div>
+
+              <!-- Resumo do Bloco Selecionado -->
+              <input type="hidden" id="horario_fim" name="horario_fim" value="">
+              <div id="cardBlocoResumo" class="hidden p-3.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-950 text-xs sm:text-sm transition-all shadow-sm">
+                <div class="flex items-center justify-between font-bold">
+                  <span class="flex items-center gap-1.5 text-sky-800">
+                    <i data-lucide="clock" class="w-4 h-4 text-sky-600"></i>
+                    <span>Bloco Reservado:</span>
+                  </span>
+                  <span id="textoBlocoResumo" class="font-extrabold text-sky-950 text-sm">--:-- às --:--</span>
+                </div>
+                <p class="text-[11px] text-sky-700 mt-1 font-medium leading-relaxed">
+                  Os boxes da oficina ficarão reservados continuamente para este veículo durante todo esse período.
+                </p>
               </div>
 
               <!-- Motivo da Revisão -->
@@ -263,7 +468,10 @@
         <!-- Detalhes do Evento Clicado (Card Dinâmico em JS) -->
         <div id="cardDetalheEvento" class="hidden bg-slate-900 text-white rounded-2xl border border-slate-800 p-5 sm:p-6 space-y-4 shadow-xl transition-all">
           <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 class="font-bold text-sm text-brand-300">Detalhes do Compromisso</h3>
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-sm text-brand-300">Detalhes do Compromisso</h3>
+              <span id="eventoStatusBadge" class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">Agendado</span>
+            </div>
             <button onclick="fecharDetalheEvento()" class="w-8 h-8 flex items-center justify-center hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors">
               <i data-lucide="x" class="w-4 h-4"></i>
             </button>
@@ -275,20 +483,53 @@
               <span id="eventoCliente" class="font-bold text-white block mt-0.5 text-sm sm:text-base"></span>
             </div>
             <div>
-              <span class="block text-slate-400 font-bold text-[10px] uppercase tracking-wider">Veículo (Placa)</span>
-              <span id="eventoVeiculo" class="font-mono font-bold text-white block mt-0.5 text-sm sm:text-base"></span>
+              <span class="block text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-1">Veículo (Placa)</span>
+              <span id="eventoVeiculo" class="placa-mercosul px-2.5 py-0.5 text-sm inline-block"></span>
             </div>
             <div>
-              <span class="block text-slate-400 font-bold text-[10px] uppercase tracking-wider">Horário / Data</span>
-              <span id="eventoHorario" class="font-bold text-white block mt-0.5 text-sm sm:text-base"></span>
+              <span class="block text-slate-400 font-bold text-[10px] uppercase tracking-wider">Horário do Bloco</span>
+              <span id="eventoHorario" class="font-bold text-emerald-400 block mt-0.5 text-sm sm:text-base"></span>
+            </div>
+            <div id="divEventoServico" class="hidden">
+              <span class="block text-slate-400 font-bold text-[10px] uppercase tracking-wider">Serviço</span>
+              <span id="eventoServico" class="text-sky-300 font-bold block mt-0.5 text-xs sm:text-sm"></span>
             </div>
             <div>
-              <span class="block text-slate-400 font-bold text-[10px] uppercase tracking-wider">Motivo</span>
+              <span class="block text-slate-400 font-bold text-[10px] uppercase tracking-wider">Motivo / Reclamação</span>
               <span id="eventoMotivo" class="text-white block mt-0.5 italic text-sm"></span>
             </div>
             <div id="divEventoObs" class="hidden">
-              <span class="block text-slate-400 font-bold text-[10px] uppercase tracking-wider">Observações</span>
+              <span class="block text-slate-400 font-bold text-[10px] uppercase tracking-wider">Observações Internas</span>
               <p id="eventoObs" class="text-slate-300 block mt-0.5 p-2.5 bg-slate-800/80 rounded-xl border border-slate-700/60 text-xs sm:text-sm"></p>
+            </div>
+
+            <div id="divEventoCancelado" class="hidden">
+              <span class="block text-red-400 font-bold text-[10px] uppercase tracking-wider">Motivo do Cancelamento</span>
+              <p id="eventoMotivoCancelamento" class="text-red-200 block mt-0.5 p-2.5 bg-red-950/60 rounded-xl border border-red-800/60 text-xs sm:text-sm italic"></p>
+            </div>
+
+            <!-- Confirmação de Presença -->
+            <div id="divEventoPresenca" class="pt-2 border-t border-slate-800/80">
+              <span class="block text-slate-400 font-bold text-[10px] uppercase tracking-wider">Confirmação de Presença</span>
+              <div id="eventoPresencaBadgeContainer" class="mt-1 flex items-center gap-2">
+                <!-- Injetado dinamicamente -->
+              </div>
+            </div>
+            
+            <!-- Ações Rápidas de Status -->
+            <div id="divAcoesEvento" class="pt-3 border-t border-slate-800 flex items-center gap-2 flex-wrap">
+              <button id="btnConfirmarPresencaEvento" onclick="darBaixaPresencaCalendario()" class="py-2 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+                <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+                <span>Confirmar Presença</span>
+              </button>
+              <button id="btnConcluirEvento" onclick="alterarStatusEvento('concluido')" class="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                <span>Marcar Concluído</span>
+              </button>
+              <button id="btnCancelarEvento" onclick="alterarStatusEvento('cancelado')" class="py-2 px-3 rounded-xl bg-red-600/80 hover:bg-red-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+                <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
+                <span>Cancelar</span>
+              </button>
             </div>
           </div>
         </div>
@@ -332,28 +573,116 @@
     }
   }
 
-  // Carrega horários disponíveis de acordo com a ocupação do dia (RF-20/RF-34)
+  let eventoSelecionadoId = null;
+  let calendarInstance = null;
+
+  function aoMudarServico(selectElem) {
+    const opt = selectElem.options[selectElem.selectedIndex];
+    const nomeServico = opt ? opt.getAttribute('data-nome') : '';
+    const inputMotivo = document.getElementById('motivo_revisao');
+    const selectDuracao = document.getElementById('duracao_minutos');
+
+    if (nomeServico) {
+      if (!inputMotivo.value || inputMotivo.value.trim() === '') {
+        inputMotivo.value = nomeServico;
+      }
+      
+      // Sugestão de duração baseada no tipo de serviço
+      const nomeLower = nomeServico.toLowerCase();
+      let minutosSugeridos = 60;
+      if (nomeLower.includes('alinhamento') || nomeLower.includes('balanceamento') || nomeLower.includes('higienização') || nomeLower.includes('check')) {
+        minutosSugeridos = 30;
+      } else if (nomeLower.includes('freio') || nomeLower.includes('pastilha') || nomeLower.includes('suspensão')) {
+        minutosSugeridos = 90;
+      } else if (nomeLower.includes('revisão periódica') || nomeLower.includes('injeção')) {
+        minutosSugeridos = 120;
+      } else if (nomeLower.includes('correia') || nomeLower.includes('embreagem')) {
+        minutosSugeridos = 180;
+      } else if (nomeLower.includes('motor') || nomeLower.includes('câmbio')) {
+        minutosSugeridos = 240;
+      }
+
+      if (selectDuracao) {
+        selectDuracao.value = String(minutosSugeridos);
+        aoMudarDuracao(minutosSugeridos);
+      }
+    }
+  }
+
+  function aoMudarDuracao(novaDuracao) {
+    const dataInput = document.getElementById('data_agendada');
+    const badge = document.getElementById('badgeDuracao');
+    const select = document.getElementById('duracao_minutos');
+    const textoSel = select.options[select.selectedIndex]?.text.split('(')[0].trim() || `${novaDuracao} min`;
+    if (badge) badge.textContent = textoSel;
+
+    if (dataInput && dataInput.value) {
+      carregarHorariosDisponiveis(dataInput.value);
+    }
+  }
+
+  function aoMudarHorarioInicio(horarioInicio) {
+    const duracao = parseInt(document.getElementById('duracao_minutos').value, 10) || 60;
+    const cardBloco = document.getElementById('cardBlocoResumo');
+    const textoBloco = document.getElementById('textoBlocoResumo');
+    const inputFim = document.getElementById('horario_fim');
+
+    if (!horarioInicio) {
+      cardBloco.classList.add('hidden');
+      return;
+    }
+
+    const [h, m] = horarioInicio.split(':').map(Number);
+    const totalMinFim = h * 60 + m + duracao;
+    const fimH = String(Math.floor(totalMinFim / 60)).padStart(2, '0');
+    const fimM = String(totalMinFim % 60).padStart(2, '0');
+    const horarioFim = `${fimH}:${fimM}`;
+
+    inputFim.value = horarioFim;
+    
+    const hDur = Math.floor(duracao / 60);
+    const mDur = duracao % 60;
+    let durStr = '';
+    if (hDur > 0) durStr += `${hDur}h`;
+    if (mDur > 0) durStr += (durStr ? ' ' : '') + `${mDur}min`;
+
+    textoBloco.textContent = `${horarioInicio} às ${horarioFim} (${durStr})`;
+    cardBloco.classList.remove('hidden');
+    lucide.createIcons();
+  }
+
+  // Carrega horários disponíveis de acordo com a duração e ocupação do dia
   async function carregarHorariosDisponiveis(data) {
     const selectHorario = document.getElementById('horario_agendado');
-    selectHorario.innerHTML = '<option value="" disabled selected>Carregando horários...</option>';
+    const duracao = document.getElementById('duracao_minutos') ? document.getElementById('duracao_minutos').value : 60;
+    selectHorario.innerHTML = '<option value="" disabled selected>Calculando blocos disponíveis...</option>';
     selectHorario.disabled = true;
 
     if (!data) return;
 
     try {
-      const res = await fetch(`/agendamentos/horarios-disponiveis?data=${data}`);
+      const res = await fetch(`/agendamentos/horarios-disponiveis?data=${data}&duracao=${duracao}`);
       if (res.ok) {
         const lista = await res.json();
-        selectHorario.innerHTML = '<option value="" disabled selected>Selecione o horário...</option>';
+        selectHorario.innerHTML = '<option value="" disabled selected>Selecione o horário de início...</option>';
         
+        let primeiroDisponivel = null;
+
         lista.forEach(item => {
           if (item.ocupado) {
-            selectHorario.innerHTML += `<option value="${item.horario}" disabled class="text-red-400 bg-red-50 font-bold">${item.horario} (Ocupado)</option>`;
+            selectHorario.innerHTML += `<option value="${item.horario}" disabled class="text-red-400 bg-red-50 font-bold">${item.horario} às ${item.horario_fim} (${item.motivo_bloqueio || 'Ocupado'})</option>`;
           } else {
-            selectHorario.innerHTML += `<option value="${item.horario}" class="text-slate-800 font-medium">${item.horario} (Disponível)</option>`;
+            if (!primeiroDisponivel) primeiroDisponivel = item.horario;
+            selectHorario.innerHTML += `<option value="${item.horario}" class="text-slate-900 font-medium">${item.horario} às ${item.horario_fim} (Disponível)</option>`;
           }
         });
         selectHorario.disabled = false;
+        
+        if (selectHorario.value) {
+          aoMudarHorarioInicio(selectHorario.value);
+        } else {
+          document.getElementById('cardBlocoResumo').classList.add('hidden');
+        }
       } else {
         selectHorario.innerHTML = '<option value="" disabled>Erro ao buscar agenda.</option>';
       }
@@ -365,6 +694,159 @@
 
   function fecharDetalheEvento() {
     document.getElementById('cardDetalheEvento').classList.add('hidden');
+    eventoSelecionadoId = null;
+  }
+
+  async function alterarStatusEvento(novoStatus) {
+    if (!eventoSelecionadoId) return;
+
+    if (novoStatus === 'cancelado') {
+      const { value: motivo, isConfirmed } = await Swal.fire({
+        title: 'Cancelar Agendamento',
+        text: 'O horário será liberado na agenda. Por favor, informe o motivo do cancelamento (obrigatório):',
+        input: 'textarea',
+        inputPlaceholder: 'Ex: Cliente não compareceu, cancelou com antecedência...',
+        inputAttributes: {
+          'aria-label': 'Motivo do cancelamento'
+        },
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Confirmar Cancelamento',
+        cancelButtonText: 'Manter Agendamento',
+        inputValidator: (value) => {
+          if (!value || !value.trim()) {
+            return 'O motivo do cancelamento é obrigatório!';
+          }
+          if (value.trim().length < 4) {
+            return 'O motivo deve conter ao menos 4 caracteres.';
+          }
+        }
+      });
+
+      if (!isConfirmed || !motivo) return;
+
+      try {
+        const res = await fetch(`/agendamentos/${eventoSelecionadoId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status: 'cancelado',
+            motivo_cancelamento: motivo.trim()
+          })
+        });
+
+        if (res.ok) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Cancelado com Sucesso',
+            text: 'O horário foi desocupado no calendário.',
+            timer: 1500,
+            showConfirmButton: false
+          });
+          fecharDetalheEvento();
+          if (calendarInstance) {
+            calendarInstance.refetchEvents();
+          }
+        } else {
+          const txt = await res.text();
+          Swal.fire('Aviso', txt || 'Não foi possível cancelar o agendamento.', 'warning');
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire('Erro', 'Falha na conexão.', 'error');
+      }
+      return;
+    }
+
+    const confirmacao = await Swal.fire({
+      title: 'Concluir Agendamento?',
+      text: 'Deseja marcar este agendamento como realizado e concluído?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Sim, concluir',
+      cancelButtonText: 'Voltar'
+    });
+
+    if (confirmacao.isConfirmed) {
+      try {
+        const res = await fetch(`/agendamentos/${eventoSelecionadoId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: novoStatus })
+        });
+        if (res.ok) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Concluído!',
+            text: 'Agendamento concluído com sucesso.',
+            timer: 1500,
+            showConfirmButton: false
+          });
+          fecharDetalheEvento();
+          if (calendarInstance) {
+            calendarInstance.refetchEvents();
+          }
+        } else {
+          const txt = await res.text();
+          Swal.fire('Aviso', txt || 'Não foi possível alterar o status.', 'warning');
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire('Erro', 'Falha na conexão.', 'error');
+      }
+    }
+  }
+
+  async function darBaixaPresencaCalendario() {
+    if (!eventoSelecionadoId) return;
+
+    const result = await Swal.fire({
+      title: 'Dar Baixa na Presença?',
+      text: 'Confirma que o cliente comparecerá a este agendamento?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Sim, confirmar presença!',
+      cancelButtonText: 'Voltar',
+      customClass: {
+        popup: 'rounded-2xl font-sans',
+        confirmButton: 'rounded-xl font-bold px-4 py-2 text-sm',
+        cancelButton: 'rounded-xl font-bold px-4 py-2 text-sm'
+      }
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const res = await fetch(`/agendamentos/${eventoSelecionadoId}/confirmar-presenca`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (res.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Presença Confirmada!',
+          text: 'Baixa registrada no sistema com sucesso.',
+          timer: 1500,
+          showConfirmButton: false
+        });
+        fecharDetalheEvento();
+        if (calendarInstance) {
+          calendarInstance.refetchEvents();
+        }
+      } else {
+        const erro = await res.json();
+        Swal.fire('Atenção', erro.erro || 'Falha ao confirmar presença.', 'error');
+      }
+    } catch (e) {
+      console.error(e);
+      Swal.fire('Erro', 'Não foi possível se comunicar com o servidor.', 'error');
+    }
   }
 
   // Inicialização do Calendário FullCalendar v6 com responsividade mobile inteligente (RF-17)
@@ -372,7 +854,7 @@
     const calendarEl = document.getElementById('calendar');
     const isMobile = window.innerWidth < 768;
     
-    const calendar = new FullCalendar.Calendar(calendarEl, {
+    calendarInstance = new FullCalendar.Calendar(calendarEl, {
       initialView: 'dayGridMonth',
       headerToolbar: isMobile ? {
         left: 'prev,next today',
@@ -383,27 +865,183 @@
         center: 'title',
         right: 'dayGridMonth,timeGridWeek,timeGridDay'
       },
-      dayHeaderFormat: isMobile ? { weekday: 'narrow' } : { weekday: 'short' },
       locale: 'pt-br',
+      allDaySlot: false,
+      allDayText: 'Dia Inteiro',
+      slotMinTime: '08:00:00',
+      slotMaxTime: '18:30:00',
+      slotDuration: '00:30:00',
+      slotLabelInterval: '01:00',
+      slotLabelFormat: {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      },
+      eventTimeFormat: {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      },
+      dayHeaderFormat: isMobile ? { weekday: 'narrow' } : { weekday: 'short' },
+      buttonIcons: {
+        prev: 'chevron-left',
+        next: 'chevron-right'
+      },
       buttonText: {
         today: 'Hoje',
         month: 'Mês',
         week: 'Semana',
-        day: 'Dia'
+        day: 'Dia',
+        list: 'Lista'
       },
+      buttonHints: {
+        prev: 'Período anterior',
+        next: 'Próximo período',
+        today: (t) => t === 'Dia' ? 'Hoje' : ('Este ' + (t ? t.toLowerCase() : 'período')),
+        month: 'Visualizar mês',
+        week: 'Visualizar semana',
+        day: 'Visualizar dia'
+      },
+      viewHint: (v) => `Visualizar ${v ? v.toLowerCase() : ''}`,
+      navLinkHint: 'Ir para $0',
+      closeHint: 'Fechar',
+      timeHint: 'Hora',
+      eventHint: 'Agendamento',
+      moreLinkText: (n) => `+${n} mais`,
+      moreLinkHint: (n) => `Mostrar mais ${n} agendamentos`,
+      noEventsText: 'Nenhum agendamento para exibir',
       events: '/agendamentos/calendario',
+      dateClick: function(info) {
+        const dataInput = document.getElementById('data_agendada');
+        if (dataInput) {
+          const dataStr = info.dateStr.split('T')[0];
+          dataInput.value = dataStr;
+          carregarHorariosDisponiveis(dataStr);
+
+          if (info.dateStr.includes('T')) {
+            const horaStr = info.dateStr.split('T')[1].substring(0, 5);
+            setTimeout(() => {
+              const selectHorario = document.getElementById('horario_agendado');
+              if (selectHorario) {
+                selectHorario.value = horaStr;
+                aoMudarHorarioInicio(horaStr);
+              }
+            }, 350);
+          }
+          dataInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      },
       eventClick: function(info) {
         const props = info.event.extendedProps;
+        eventoSelecionadoId = info.event.id;
+
         document.getElementById('eventoCliente').innerText = props.cliente;
-        document.getElementById('eventoVeiculo').innerText = props.placa;
-        document.getElementById('eventoHorario').innerText = `${info.event.start.toLocaleDateString('pt-BR')} às ${props.title ? props.title.substring(0, 5) : ''}`;
+        
+        const placaEl = document.getElementById('eventoVeiculo');
+        const placaStr = props.placa || '';
+        const placaLimpa = placaStr.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const isMercosul = /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/.test(placaLimpa);
+        const formatada = (placaLimpa.length === 7 && /^[A-Z]{3}[0-9]{4}$/.test(placaLimpa))
+          ? placaLimpa.replace(/([A-Z]{3})([0-9]{4})/, '$1-$2')
+          : placaStr;
+        placaEl.innerText = formatada;
+        placaEl.className = (isMercosul ? 'placa-mercosul' : 'placa-antiga') + ' px-2.5 py-0.5 text-sm inline-block';
+
+        const dataFormatada = info.event.start.toLocaleDateString('pt-BR');
+        const hInicio = props.horarioInicio || (info.event.startStr ? info.event.startStr.split('T')[1]?.substring(0, 5) : '');
+        const hFim = props.horarioFim || (info.event.endStr ? info.event.endStr.split('T')[1]?.substring(0, 5) : '');
+        
+        let durTexto = '';
+        if (props.duracaoMinutos) {
+          const hDur = Math.floor(props.duracaoMinutos / 60);
+          const mDur = props.duracaoMinutos % 60;
+          let str = '';
+          if (hDur > 0) str += `${hDur}h`;
+          if (mDur > 0) str += (str ? ' ' : '') + `${mDur}min`;
+          durTexto = ` (${str})`;
+        }
+
+        document.getElementById('eventoHorario').innerText = `${dataFormatada} • ${hInicio} às ${hFim}${durTexto}`;
         document.getElementById('eventoMotivo').innerText = `"${props.motivo}"`;
+
+        const badgeStatus = document.getElementById('eventoStatusBadge');
+        if (props.status === 'concluido') {
+          badgeStatus.className = 'text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+          badgeStatus.textContent = 'Concluído';
+        } else if (props.status === 'cancelado') {
+          badgeStatus.className = 'text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/30';
+          badgeStatus.textContent = 'Cancelado';
+        } else {
+          badgeStatus.className = 'text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30';
+          badgeStatus.textContent = 'Agendado';
+        }
+
+        const divServico = document.getElementById('divEventoServico');
+        if (props.servico) {
+          document.getElementById('eventoServico').innerText = props.servico;
+          divServico.classList.remove('hidden');
+        } else {
+          divServico.classList.add('hidden');
+        }
 
         if (props.observacoes) {
           document.getElementById('eventoObs').innerText = props.observacoes;
           document.getElementById('divEventoObs').classList.remove('hidden');
         } else {
           document.getElementById('divEventoObs').classList.add('hidden');
+        }
+
+        // Exibir motivo do cancelamento se cancelado
+        const divCancelado = document.getElementById('divEventoCancelado');
+        if (props.status === 'cancelado' && props.motivoCancelamento) {
+          document.getElementById('eventoMotivoCancelamento').innerText = props.motivoCancelamento;
+          divCancelado.classList.remove('hidden');
+        } else {
+          divCancelado.classList.add('hidden');
+        }
+
+        // Exibição do Status de Presença e Botão Confirmar Presença
+        const presencaContainer = document.getElementById('eventoPresencaBadgeContainer');
+        const btnConfirmarPresenca = document.getElementById('btnConfirmarPresencaEvento');
+
+        if (props.confirmacaoPresenca === 'confirmada') {
+          presencaContainer.innerHTML = '<span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"><i data-lucide="user-check" class="w-3.5 h-3.5 text-emerald-400"></i> Presença Confirmada</span>';
+          if (btnConfirmarPresenca) btnConfirmarPresenca.classList.add('hidden');
+        } else if (props.confirmacaoPresenca === 'solicitada') {
+          presencaContainer.innerHTML = '<span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30"><i data-lucide="message-square" class="w-3.5 h-3.5 text-blue-400"></i> WhatsApp Enviado (Aguardando)</span>';
+          if (btnConfirmarPresenca) {
+            if (props.status === 'agendado') btnConfirmarPresenca.classList.remove('hidden');
+            else btnConfirmarPresenca.classList.add('hidden');
+          }
+        } else {
+          presencaContainer.innerHTML = '<span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30"><i data-lucide="help-circle" class="w-3.5 h-3.5 text-amber-400"></i> Presença a Confirmar</span>';
+          if (btnConfirmarPresenca) {
+            if (props.status === 'agendado') btnConfirmarPresenca.classList.remove('hidden');
+            else btnConfirmarPresenca.classList.add('hidden');
+          }
+        }
+
+        // Regra de Negócio: Bloquear conclusão de agendamentos futuros
+        const agoraEv = new Date();
+        const hojeStrEv = agoraEv.toLocaleDateString('en-CA');
+        const horaAtualStrEv = agoraEv.toTimeString().substring(0, 5);
+        const dataAgEv = props.dataAgendada || (info.event.startStr ? info.event.startStr.split('T')[0] : '');
+        const ehFuturoEv = dataAgEv > hojeStrEv || (dataAgEv === hojeStrEv && hInicio > horaAtualStrEv);
+
+        const divAcoes = document.getElementById('divAcoesEvento');
+        const btnConcluir = document.getElementById('btnConcluirEvento');
+        const btnCancelar = document.getElementById('btnCancelarEvento');
+
+        if (props.status === 'concluido' || props.status === 'cancelado') {
+          divAcoes.classList.add('hidden');
+        } else {
+          divAcoes.classList.remove('hidden');
+          if (ehFuturoEv) {
+            btnConcluir.classList.add('hidden'); // Mecânico não tem máquina do tempo!
+          } else {
+            btnConcluir.classList.remove('hidden');
+          }
+          btnCancelar.classList.remove('hidden');
         }
 
         const card = document.getElementById('cardDetalheEvento');
@@ -413,7 +1051,7 @@
       },
       windowResize: function(view) {
         const mobileAgora = window.innerWidth < 768;
-        calendar.setOption('headerToolbar', mobileAgora ? {
+        calendarInstance.setOption('headerToolbar', mobileAgora ? {
           left: 'prev,next today',
           center: 'title',
           right: 'dayGridMonth,timeGridDay'
@@ -422,11 +1060,11 @@
           center: 'title',
           right: 'dayGridMonth,timeGridWeek,timeGridDay'
         });
-        calendar.setOption('dayHeaderFormat', mobileAgora ? { weekday: 'narrow' } : { weekday: 'short' });
+        calendarInstance.setOption('dayHeaderFormat', mobileAgora ? { weekday: 'narrow' } : { weekday: 'short' });
       }
     });
 
-    calendar.render();
+    calendarInstance.render();
   });
 </script>
 

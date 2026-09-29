@@ -1,0 +1,359 @@
+<%- include('../parciais/cabecalho') %>
+<%- include('../parciais/menu') %>
+
+<div class="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 md:p-8 pb-24 md:pb-8 smooth-scroll">
+  <div class="max-w-6xl mx-auto space-y-6 sm:space-y-8">
+    
+    <!-- Barra Superior de Navegação / Voltar -->
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3 text-sm">
+        <a href="/painel" class="inline-flex items-center space-x-1.5 text-slate-500 hover:text-brand-600 transition-colors font-medium">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>Painel</span>
+        </a>
+        <span class="text-slate-300">/</span>
+        <a href="/relatorios" class="inline-flex items-center space-x-1.5 text-slate-500 hover:text-brand-600 transition-colors font-medium">
+          <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+          <span>Relatórios</span>
+        </a>
+        <span class="text-slate-300">/</span>
+        <span class="text-slate-800 font-bold">Trocas no Mês</span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="window.print()" class="inline-flex items-center space-x-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-semibold py-2 px-3.5 rounded-xl text-sm transition-all shadow-sm">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Imprimir Relatório</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Cabeçalho Principal com Filtro de Mês/Ano -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Relatório de Trocas no Mês
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-2">
+            Trocas de Peças: <span class="text-brand-600"><%= nomeMes %> de <%= ano %></span>
+          </h1>
+          <p class="text-slate-600 text-sm sm:text-base mt-1 font-normal">
+            Histórico consolidado de todas as substituições de componentes automotivos executadas na oficina.
+          </p>
+        </div>
+
+        <!-- Seletor de Período (Mês e Ano) -->
+        <form action="/relatorios/trocas-mes" method="GET" class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 bg-slate-50 p-2.5 rounded-2xl border border-slate-200 shrink-0">
+          <div>
+            <label for="mes" class="sr-only">Mês</label>
+            <select id="mes" name="mes" class="bg-white border border-slate-300 text-slate-900 text-sm font-semibold rounded-xl py-2 px-3 focus:outline-none focus:border-brand-500 transition-all">
+              <% const mesesLista = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']; %>
+              <% mesesLista.forEach((mNome, idx) => { %>
+                <option value="<%= idx + 1 %>" <%= mes === (idx + 1) ? 'selected' : '' %>><%= mNome %></option>
+              <% }); %>
+            </select>
+          </div>
+
+          <div>
+            <label for="ano" class="sr-only">Ano</label>
+            <select id="ano" name="ano" class="bg-white border border-slate-300 text-slate-900 text-sm font-semibold rounded-xl py-2 px-3 focus:outline-none focus:border-brand-500 transition-all">
+              <% for (let a = anoAtual - 2; a <= anoAtual + 1; a++) { %>
+                <option value="<%= a %>" <%= ano === a ? 'selected' : '' %>><%= a %></option>
+              <% } %>
+            </select>
+          </div>
+
+          <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-4 rounded-xl text-sm transition-all shadow-sm inline-flex items-center gap-1.5">
+            <i data-lucide="filter" class="w-4 h-4"></i>
+            <span>Ver</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Resumo de Indicadores Rápidos -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-100">
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 flex items-center space-x-3.5">
+          <div class="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+            <i data-lucide="wrench" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block">Total de Trocas</span>
+            <span class="text-2xl font-black text-slate-900 block mt-0.5"><%= totalTrocas %></span>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 flex items-center space-x-3.5">
+          <div class="w-11 h-11 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0">
+            <i data-lucide="car" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block">Veículos Atendidos</span>
+            <span class="text-2xl font-black text-slate-900 block mt-0.5"><%= totalVeiculosAtendidos %></span>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 flex items-center space-x-3.5">
+          <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+            <i data-lucide="package-check" class="w-6 h-6"></i>
+          </div>
+          <div class="overflow-hidden">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block">Peça Mais Substituída</span>
+            <span class="text-base font-bold text-slate-900 block truncate mt-0.5" title="<%= pecaDestaque %>"><%= pecaDestaque %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabela / Cards de Trocas Realizadas -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      
+      <!-- Visualização Desktop (Tabela) -->
+      <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-100/80 border-b border-slate-200 text-slate-700 text-xs sm:text-sm font-bold uppercase tracking-wider">
+              <th class="p-4 pl-6">Data da Troca</th>
+              <th class="p-4">Veículo</th>
+              <th class="p-4">Cliente / Contato</th>
+              <th class="p-4">Peça Substituída</th>
+              <th class="p-4">KM na Troca</th>
+              <th class="p-4">Próxima Prevista</th>
+              <th class="p-4">Responsável</th>
+              <th class="p-4 pr-6 text-right">Ação</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-slate-800 text-sm sm:text-base">
+            <% if (trocas.length === 0) { %>
+              <tr>
+                <td colspan="8" class="p-12 text-center text-slate-500 font-medium">
+                  <div class="flex flex-col items-center justify-center">
+                    <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                      <i data-lucide="wrench" class="w-7 h-7"></i>
+                    </div>
+                    <span class="text-lg font-bold text-slate-800">Nenhuma troca registrada em <%= nomeMes %> de <%= ano %></span>
+                    <p class="text-sm text-slate-500 mt-1">Utilize o seletor acima para navegar entre outros meses ou registre novas manutenções nos prontuários dos veículos.</p>
+                  </div>
+                </td>
+              </tr>
+            <% } else { %>
+              <% trocas.forEach(t => { %>
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                  <!-- Data -->
+                  <td class="p-4 pl-6 font-bold text-slate-900 whitespace-nowrap">
+                    <div class="flex items-center gap-2">
+                      <i data-lucide="calendar" class="w-4 h-4 text-slate-400"></i>
+                      <span><%= formatarData(t.data_troca) %></span>
+                    </div>
+                  </td>
+
+                  <!-- Veículo -->
+                  <td class="p-4">
+                    <% if (t.veiculo) { %>
+                      <div class="flex items-center space-x-2.5">
+                        <span class="<%= obterClassePlaca(t.veiculo.placa) %> px-2.5 py-1 text-xs shrink-0">
+                          <%= formatarPlaca(t.veiculo.placa) %>
+                        </span>
+                        <span class="text-slate-900 font-bold block text-sm truncate max-w-[140px]">
+                          <%= t.veiculo.modelo ? (t.veiculo.modelo.marca ? t.veiculo.modelo.marca.nome + ' ' : '') + t.veiculo.modelo.nome : 'Modelo N/I' %>
+                        </span>
+                      </div>
+                    <% } else { %>
+                      <span class="text-slate-400 italic">Veículo Excluído</span>
+                    <% } %>
+                  </td>
+
+                  <!-- Cliente & WhatsApp -->
+                  <td class="p-4">
+                    <% if (t.veiculo && t.veiculo.cliente && t.veiculo.cliente.usuario) { %>
+                      <div class="space-y-1">
+                        <span class="text-slate-900 font-bold block text-sm leading-tight truncate max-w-[150px]">
+                          <%= t.veiculo.cliente.usuario.nome %>
+                        </span>
+                        <% 
+                          const foneWhats = (t.veiculo.cliente.telefone_whatsapp || t.veiculo.cliente.usuario.telefone || '').replace(/\D/g, ''); 
+                          const foneExibicao = t.veiculo.cliente.telefone_whatsapp || t.veiculo.cliente.usuario.telefone;
+                        %>
+                        <% if (foneWhats) { %>
+                          <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                            <span><%= formatarTelefone(foneExibicao) %></span>
+                            <a href="https://wa.me/<%= foneWhats %>?text=<%= encodeURIComponent('Olá ' + t.veiculo.cliente.usuario.nome + '! Entramos em contato da oficina AUTEC referente ao seu veículo.') %>" 
+                               target="_blank" 
+                               rel="noopener noreferrer" 
+                               class="inline-flex items-center text-emerald-600 hover:text-emerald-700 p-0.5 rounded transition-transform active:scale-95" 
+                               title="Abrir WhatsApp">
+                              <svg class="w-4 h-4 shrink-0 fill-current" viewBox="0 0 24 24" width="16" height="16">
+                                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824zm-3.423-14.416c-6.627 0-12 5.373-12 12 0 2.159.572 4.187 1.571 5.938l-1.668 6.096 6.275-1.646c1.701.928 3.649 1.45 5.722 1.45 6.627 0 12-5.373 12-12 0-6.627-5.373-12-12-12z"/>
+                              </svg>
+                            </a>
+                          </div>
+                        <% } %>
+                      </div>
+                    <% } else { %>
+                      <span class="text-slate-400 italic">Cliente N/I</span>
+                    <% } %>
+                  </td>
+
+                  <!-- Peça Substituída -->
+                  <td class="p-4">
+                    <% if (t.peca) { %>
+                      <div class="space-y-0.5">
+                        <span class="font-bold text-slate-900 block text-sm"><%= t.peca.nome %></span>
+                        <% if (t.peca.marca) { %>
+                          <span class="text-xs text-slate-500 font-medium block"><%= t.peca.marca.nome %></span>
+                        <% } %>
+                      </div>
+                    <% } else { %>
+                      <span class="text-slate-400 italic">Peça Desconhecida</span>
+                    <% } %>
+                  </td>
+
+                  <!-- KM na Troca -->
+                  <td class="p-4 font-mono font-bold text-sm text-slate-900 whitespace-nowrap">
+                    <%= formatarKm(t.km_na_troca) %>
+                  </td>
+
+                  <!-- Próxima Troca Prevista -->
+                  <td class="p-4 text-xs font-semibold whitespace-nowrap">
+                    <div class="space-y-0.5">
+                      <% if (t.km_previsto_proximo) { %>
+                        <div class="font-mono text-slate-700 font-bold">
+                          <%= formatarKm(t.km_previsto_proximo) %>
+                        </div>
+                      <% } %>
+                      <% if (t.data_prevista_proximo) { %>
+                        <div class="text-slate-500 flex items-center gap-1">
+                          <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                          <span><%= formatarData(t.data_prevista_proximo) %></span>
+                        </div>
+                      <% } %>
+                      <% if (!t.km_previsto_proximo && !t.data_prevista_proximo) { %>
+                        <span class="text-slate-400 italic">Não definida</span>
+                      <% } %>
+                    </div>
+                  </td>
+
+                  <!-- Responsável -->
+                  <td class="p-4 text-sm font-medium text-slate-700 whitespace-nowrap">
+                    <div class="flex items-center gap-1.5">
+                      <i data-lucide="user-check" class="w-4 h-4 text-slate-400 shrink-0"></i>
+                      <span><%= t.executado_por || 'Oficina' %></span>
+                    </div>
+                  </td>
+
+                  <!-- Ação -->
+                  <td class="p-4 pr-6 text-right whitespace-nowrap">
+                    <% if (t.veiculo_id) { %>
+                      <a href="/veiculos/<%= t.veiculo_id %>" class="text-brand-600 hover:text-brand-700 font-bold text-sm inline-flex items-center gap-1 hover:underline">
+                        <span>Prontuário</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                      </a>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Visualização Mobile (Cards) -->
+      <div class="block md:hidden divide-y divide-slate-100">
+        <% if (trocas.length === 0) { %>
+          <div class="p-8 text-center text-slate-500 font-medium">
+            <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-3">
+              <i data-lucide="wrench" class="w-6 h-6"></i>
+            </div>
+            <span class="text-base font-bold text-slate-800 block">Nenhuma troca registrada neste mês</span>
+            <p class="text-xs text-slate-500 mt-1">Navegue entre outros meses no filtro acima.</p>
+          </div>
+        <% } else { %>
+          <% trocas.forEach(t => { %>
+            <div class="p-4 sm:p-5 space-y-3.5 hover:bg-slate-50/50 transition-colors">
+              <div class="flex items-center justify-between">
+                <span class="inline-flex items-center gap-1.5 font-bold text-xs text-slate-500">
+                  <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                  <span><%= formatarData(t.data_troca) %></span>
+                </span>
+                <% if (t.veiculo) { %>
+                  <span class="<%= obterClassePlaca(t.veiculo.placa) %> px-2.5 py-0.5 text-xs">
+                    <%= formatarPlaca(t.veiculo.placa) %>
+                  </span>
+                <% } %>
+              </div>
+
+              <!-- Peça e Veículo -->
+              <div>
+                <span class="text-base font-black text-slate-900 block leading-tight">
+                  <%= t.peca ? t.peca.nome : 'Peça Desconhecida' %>
+                  <% if (t.peca && t.peca.marca) { %>
+                    <span class="text-xs text-slate-500 font-normal">(<%= t.peca.marca.nome %>)</span>
+                  <% } %>
+                </span>
+                <span class="text-xs text-slate-600 font-medium block mt-1">
+                  <%= t.veiculo && t.veiculo.modelo ? (t.veiculo.modelo.marca ? t.veiculo.modelo.marca.nome + ' ' : '') + t.veiculo.modelo.nome : 'Modelo N/I' %>
+                </span>
+              </div>
+
+              <!-- Informações em Grid -->
+              <div class="grid grid-cols-2 gap-2.5 text-xs bg-slate-50 p-3 rounded-xl border border-slate-150">
+                <div>
+                  <span class="text-slate-500 block uppercase font-bold text-[10px]">KM na Troca</span>
+                  <span class="font-mono font-bold text-slate-900 text-sm"><%= formatarKm(t.km_na_troca) %></span>
+                </div>
+                <div>
+                  <span class="text-slate-500 block uppercase font-bold text-[10px]">Próxima Troca</span>
+                  <span class="font-mono font-semibold text-slate-800 text-xs">
+                    <%= t.km_previsto_proximo ? formatarKm(t.km_previsto_proximo) : '-' %>
+                  </span>
+                </div>
+                <div>
+                  <span class="text-slate-500 block uppercase font-bold text-[10px]">Cliente</span>
+                  <span class="font-semibold text-slate-800 block truncate">
+                    <%= t.veiculo && t.veiculo.cliente && t.veiculo.cliente.usuario ? t.veiculo.cliente.usuario.nome : 'N/I' %>
+                  </span>
+                </div>
+                <div>
+                  <span class="text-slate-500 block uppercase font-bold text-[10px]">Mecânico</span>
+                  <span class="font-semibold text-slate-800 block truncate"><%= t.executado_por || 'Oficina' %></span>
+                </div>
+              </div>
+
+              <!-- Ação e WhatsApp -->
+              <div class="pt-2 flex items-center justify-between border-t border-slate-100">
+                <div>
+                  <% if (t.veiculo && t.veiculo.cliente && t.veiculo.cliente.usuario) { %>
+                    <% const foneWhatsM = (t.veiculo.cliente.telefone_whatsapp || t.veiculo.cliente.usuario.telefone || '').replace(/\D/g, ''); %>
+                    <% if (foneWhatsM) { %>
+                      <a href="https://wa.me/<%= foneWhatsM %>?text=<%= encodeURIComponent('Olá ' + t.veiculo.cliente.usuario.nome + '! Entramos em contato da oficina AUTEC referente ao seu veículo.') %>" 
+                         target="_blank" 
+                         rel="noopener noreferrer" 
+                         class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                        <svg class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24" width="14" height="14">
+                          <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824zm-3.423-14.416c-6.627 0-12 5.373-12 12 0 2.159.572 4.187 1.571 5.938l-1.668 6.096 6.275-1.646c1.701.928 3.649 1.45 5.722 1.45 6.627 0 12-5.373 12-12 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                        <span>WhatsApp</span>
+                      </a>
+                    <% } %>
+                  <% } %>
+                </div>
+
+                <% if (t.veiculo_id) { %>
+                  <a href="/veiculos/<%= t.veiculo_id %>" class="text-brand-600 font-bold text-xs inline-flex items-center gap-1">
+                    <span>Ver Prontuário</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                  </a>
+                <% } %>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<%- include('../parciais/rodape') %>

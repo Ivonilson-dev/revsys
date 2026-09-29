@@ -162,10 +162,17 @@ CREATE TABLE IF NOT EXISTS `agendamentos` (
   `veiculo_id` INT NOT NULL,
   `servico_id` INT NULL,
   `data_agendada` DATE NOT NULL,
-  `horario_agendado` VARCHAR(5) NOT NULL, -- Formato 'HH:MM'
+  `horario_agendado` VARCHAR(5) NOT NULL, -- Formato 'HH:MM' (início)
+  `duracao_minutos` INT NOT NULL DEFAULT 60, -- Duração flexível do bloco em minutos (ex: 30, 60, 90, 120, etc.)
+  `horario_fim` VARCHAR(5) NULL, -- Formato 'HH:MM' (término)
   `status` ENUM('agendado', 'concluido', 'cancelado') NOT NULL DEFAULT 'agendado',
+  `confirmacao_presenca` ENUM('pendente', 'solicitada', 'confirmada') NOT NULL DEFAULT 'pendente',
+  `confirmacao_solicitada_em` DATETIME NULL,
+  `confirmacao_adiada_ate` DATETIME NULL,
+  `confirmado_em` DATETIME NULL,
   `motivo_revisao` TEXT NOT NULL,
   `observacoes` TEXT NULL,
+  `motivo_cancelamento` TEXT NULL,
   `criado_por` INT NOT NULL,
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -197,6 +204,15 @@ CREATE TABLE IF NOT EXISTS `notificacoes` (
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT `fk_notificacoes_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- 15. Tabela sessoes (Persistência de Sessões de Usuários)
+CREATE TABLE IF NOT EXISTS `sessoes` (
+  `sid` VARCHAR(128) NOT NULL PRIMARY KEY,
+  `dados` MEDIUMTEXT NOT NULL,
+  `expira_em` DATETIME NOT NULL,
+  `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 
@@ -595,12 +611,13 @@ INSERT INTO `clientes` (`id`, `usuario_id`, `cpf`, `cpf_hash`, `logradouro`, `nu
 (3, 7, '176583c926c2fe473fec354720546418:f582dc2d53337af9c908f41759229a37', '45278a1717b5d6a4729961c7d0544d2a54ae73c6246f2149d9a7de906fb7f88c', '1a81772b87a374bb202ece64d965b5fe:27071688b5364a044e3ae44f48db69491bc1115a509caa90b491e89100ac29f8', '3efed73ec0c12ccbbba768325f6e20a8:7c6d67c4c8be9d2ace007da935174421', 'ad89ce8769b15f5fceb05663019c3b15:f334405d1145fc215574c7ed0375f495', '385d24aa1abd6d141b107b3407d9a3bc:0158e0a37004912bdf8efc1dcea7c01e', 'd2994181a36057223c9b6192f6c4741e:f8b02d1b4cab7e075d2b43d79fc2f806', 'ca11f4982f2869dd1d124b3e646a7975:5df560f8225abfe7bc81b1b9ac9e6931', 'c9d6ba57e34071028835f86d3ef6bdf0:676422fea2d9dbe3e8b4195467cd6c65', 1, '2026-03-12 09:15:00')
 ON DUPLICATE KEY UPDATE `usuario_id` = VALUES(`usuario_id`);
 
--- Veículos de Teste (Modelos: 155=Toyota Corolla, 42=Chevrolet Onix, 165=VW Gol, 86=Honda Civic)
+-- Veículos de Teste (Modelos: 155=Toyota Corolla, 42=Chevrolet Onix, 165=VW Gol, 86=Honda Civic, 71=Fiat Uno)
 INSERT INTO `veiculos` (`id`, `placa`, `modelo_id`, `cliente_id`, `ano`, `cor`, `km_atual`, `condicao`) VALUES
 (1, 'BRA2E19', 155, 1, 2022, 'Prata', 52000, 'usado'),
 (2, 'ABC1D23', 42, 1, 2021, 'Preto', 38500, 'usado'),
 (3, 'XYZ9K88', 165, 2, 2019, 'Branco', 85000, 'usado'),
-(4, 'RVS2026', 86, 3, 2023, 'Cinza', 18200, 'usado')
+(4, 'RVS2026', 86, 3, 2023, 'Cinza', 18200, 'usado'),
+(5, 'BWS4512', 71, 1, 2011, 'Prata', 142500, 'usado')
 ON DUPLICATE KEY UPDATE `placa` = VALUES(`placa`);
 
 -- Registros de Troca de Peças (Cobrem cenários de Alerta: Vencido, Próximo e Em Dia)
@@ -625,11 +642,11 @@ INSERT INTO `registros_servico` (`id`, `veiculo_id`, `servico_id`, `oficina_id`,
 ON DUPLICATE KEY UPDATE `veiculo_id` = VALUES(`veiculo_id`);
 
 -- Agendamentos de Teste
-INSERT INTO `agendamentos` (`id`, `cliente_id`, `veiculo_id`, `servico_id`, `data_agendada`, `horario_agendado`, `status`, `motivo_revisao`, `observacoes`, `criado_por`) VALUES
-(1, 1, 1, 1, '2026-10-05', '09:00', 'agendado', 'Revisão periódica e alinhamento 3D', 'Cliente relatou leve vibração no volante.', 3),
-(2, 1, 2, 7, '2026-10-06', '14:00', 'agendado', 'Higienização de ar-condicionado', 'Agendamento solicitado via balcão de atendimento.', 3),
-(3, 2, 3, 13, '2026-09-15', '10:00', 'concluido', 'Sangria de freio e troca de fluido DOT4', 'Serviço executado e testado com sucesso.', 3),
-(4, 3, 4, 8, '2026-09-20', '11:00', 'cancelado', 'Checklist de segurança preventiva', 'Cliente solicitou cancelamento por incompatibilidade de agenda.', 3)
+INSERT INTO `agendamentos` (`id`, `cliente_id`, `veiculo_id`, `servico_id`, `data_agendada`, `horario_agendado`, `duracao_minutos`, `horario_fim`, `status`, `motivo_revisao`, `observacoes`, `criado_por`) VALUES
+(1, 1, 1, 1, '2026-10-05', '09:00', 60, '10:00', 'agendado', 'Revisão periódica e alinhamento 3D', 'Cliente relatou leve vibração no volante.', 3),
+(2, 1, 2, 7, '2026-10-06', '14:00', 60, '15:00', 'agendado', 'Higienização de ar-condicionado', 'Agendamento solicitado via balcão de atendimento.', 3),
+(3, 2, 3, 13, '2026-09-15', '10:00', 60, '11:00', 'concluido', 'Sangria de freio e troca de fluido DOT4', 'Serviço executado e testado com sucesso.', 3),
+(4, 3, 4, 8, '2026-09-20', '11:00', 60, '12:00', 'cancelado', 'Checklist de segurança preventiva', 'Cliente solicitou cancelamento por incompatibilidade de agenda.', 3)
 ON DUPLICATE KEY UPDATE `cliente_id` = VALUES(`cliente_id`);
 
 -- Logs LGPD de Consentimento
