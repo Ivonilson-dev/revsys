@@ -1,4 +1,4 @@
-const { MarcaVeiculo, ModeloVeiculo, MarcaPeca, Peca, Oficina, Servico } = require('../../models');
+const { MarcaVeiculo, ModeloVeiculo, MarcaPeca, Peca, Oficina, Servico, RegistroTroca, RegistroServico, Veiculo, Agendamento } = require('../../models');
 const cache = require('../utils/cache');
 
 class CadastroBaseController {
@@ -86,6 +86,27 @@ class CadastroBaseController {
     }
   }
 
+  // DELETE /marcas-veiculo/:id
+  static async deletarMarcaVeiculo(req, res) {
+    const { id } = req.params;
+    try {
+      const m = await MarcaVeiculo.findByPk(id);
+      if (!m) return res.redirect('/cadastros?erro=Marca de veículo não encontrada.');
+
+      const totalModelos = await ModeloVeiculo.count({ where: { marca_veiculo_id: id } });
+      if (totalModelos > 0) {
+        return res.redirect(`/cadastros?erro=Não é possível excluir a marca "${m.nome}" pois existem ${totalModelos} modelo(s) de veículos vinculados a ela.`);
+      }
+
+      await m.destroy();
+      cache.del(cache.keys.MARCAS_VEICULO);
+      return res.redirect('/cadastros?sucesso=Marca de veículo excluída com sucesso!');
+    } catch (error) {
+      console.error('Erro ao deletar marca de veículo:', error);
+      return res.redirect('/cadastros?erro=Não foi possível excluir a marca: existem registros vinculados.');
+    }
+  }
+
   // POST /modelos-veiculo
   static async criarModeloVeiculo(req, res) {
     const { nome, marca_veiculo_id } = req.body;
@@ -96,6 +117,27 @@ class CadastroBaseController {
       return res.redirect('/cadastros?sucesso=Modelo de veículo cadastrado!');
     } catch (error) {
       return res.redirect('/cadastros?erro=Erro ao cadastrar modelo.');
+    }
+  }
+
+  // DELETE /modelos-veiculo/:id
+  static async deletarModeloVeiculo(req, res) {
+    const { id } = req.params;
+    try {
+      const mod = await ModeloVeiculo.findByPk(id);
+      if (!mod) return res.redirect('/cadastros?erro=Modelo de veículo não encontrado.');
+
+      const totalVeiculos = await Veiculo.count({ where: { modelo_id: id } });
+      if (totalVeiculos > 0) {
+        return res.redirect(`/cadastros?erro=Não é possível excluir o modelo "${mod.nome}" pois existem ${totalVeiculos} veículo(s) cadastrados com este modelo.`);
+      }
+
+      await mod.destroy();
+      cache.del(cache.keys.MODELOS_VEICULO);
+      return res.redirect('/cadastros?sucesso=Modelo de veículo excluído com sucesso!');
+    } catch (error) {
+      console.error('Erro ao deletar modelo de veículo:', error);
+      return res.redirect('/cadastros?erro=Não foi possível excluir o modelo: existem veículos vinculados.');
     }
   }
 
@@ -112,6 +154,27 @@ class CadastroBaseController {
     }
   }
 
+  // DELETE /marcas-peca/:id
+  static async deletarMarcaPeca(req, res) {
+    const { id } = req.params;
+    try {
+      const mp = await MarcaPeca.findByPk(id);
+      if (!mp) return res.redirect('/cadastros?erro=Marca/fabricante de peça não encontrada.');
+
+      const totalPecas = await Peca.count({ where: { marca_peca_id: id } });
+      if (totalPecas > 0) {
+        return res.redirect(`/cadastros?erro=Não é possível excluir a fabricante "${mp.nome}" pois existem ${totalPecas} peça(s) cadastradas sob esta marca.`);
+      }
+
+      await mp.destroy();
+      cache.del(cache.keys.MARCAS_PECA);
+      return res.redirect('/cadastros?sucesso=Marca de peça excluída com sucesso!');
+    } catch (error) {
+      console.error('Erro ao deletar marca de peça:', error);
+      return res.redirect('/cadastros?erro=Não foi possível excluir a fabricante: existem peças vinculadas.');
+    }
+  }
+
   // POST /pecas
   static async criarPeca(req, res) {
     const { nome, marca_peca_id } = req.body;
@@ -125,6 +188,27 @@ class CadastroBaseController {
     }
   }
 
+  // DELETE /pecas/:id (Consistência: Produto não pode ser excluído se vinculado a manutenções)
+  static async deletarPeca(req, res) {
+    const { id } = req.params;
+    try {
+      const p = await Peca.findByPk(id);
+      if (!p) return res.redirect('/cadastros?erro=Peça não encontrada.');
+
+      const totalTrocas = await RegistroTroca.count({ where: { peca_id: id } });
+      if (totalTrocas > 0) {
+        return res.redirect(`/cadastros?erro=Não é possível excluir a peça "${p.nome}" pois ela já está vinculada a ${totalTrocas} registro(s) de troca em veículos.`);
+      }
+
+      await p.destroy();
+      cache.del(cache.keys.PECAS);
+      return res.redirect('/cadastros?sucesso=Peça excluída com sucesso!');
+    } catch (error) {
+      console.error('Erro ao deletar peça:', error);
+      return res.redirect('/cadastros?erro=Não foi possível excluir a peça: restrição de integridade no banco de dados.');
+    }
+  }
+
   // POST /oficinas
   static async criarOficina(req, res) {
     const { nome, cnpj, telefone, endereco, email, whatsapp_numero } = req.body;
@@ -135,6 +219,31 @@ class CadastroBaseController {
       return res.redirect('/cadastros?sucesso=Oficina cadastrada!');
     } catch (error) {
       return res.redirect('/cadastros?erro=Erro ao cadastrar oficina (CNPJ duplicado).');
+    }
+  }
+
+  // DELETE /oficinas/:id
+  static async deletarOficina(req, res) {
+    const { id } = req.params;
+    try {
+      const o = await Oficina.findByPk(id);
+      if (!o) return res.redirect('/cadastros?erro=Oficina não encontrada.');
+
+      const [totalTrocas, totalServicos] = await Promise.all([
+        RegistroTroca.count({ where: { oficina_id: id } }),
+        RegistroServico.count({ where: { oficina_id: id } })
+      ]);
+
+      if (totalTrocas > 0 || totalServicos > 0) {
+        return res.redirect(`/cadastros?erro=Não é possível excluir a oficina "${o.nome}" pois existem serviços ou trocas de peças vinculados a ela.`);
+      }
+
+      await o.destroy();
+      cache.del(cache.keys.OFICINAS);
+      return res.redirect('/cadastros?sucesso=Oficina excluída com sucesso!');
+    } catch (error) {
+      console.error('Erro ao deletar oficina:', error);
+      return res.redirect('/cadastros?erro=Não foi possível excluir a oficina: existem registros vinculados.');
     }
   }
 
@@ -180,12 +289,24 @@ class CadastroBaseController {
     }
   }
 
-  // DELETE /servicos/:id (CRUD - Excluir Serviço)
+  // DELETE /servicos/:id (CRUD - Excluir Serviço com verificação de integridade)
   static async deletarServico(req, res) {
     const { id } = req.params;
     try {
       const s = await Servico.findByPk(id);
       if (!s) return res.redirect('/cadastros?erro=Serviço não encontrado.');
+
+      const [totalRegServicos, totalAgendamentos] = await Promise.all([
+        RegistroServico.count({ where: { servico_id: id } }),
+        Agendamento.count({ where: { servico_id: id } })
+      ]);
+
+      if (totalRegServicos > 0 || totalAgendamentos > 0) {
+        const motivos = [];
+        if (totalRegServicos > 0) motivos.push(`${totalRegServicos} registro(s) de serviço`);
+        if (totalAgendamentos > 0) motivos.push(`${totalAgendamentos} agendamento(s)`);
+        return res.redirect(`/cadastros?erro=Não é possível excluir o serviço "${s.nome}" pois existem ${motivos.join(' e ')} vinculados a ele.`);
+      }
 
       await s.destroy();
       cache.del(cache.keys.SERVICOS);

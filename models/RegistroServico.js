@@ -6,15 +6,18 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       RegistroServico.belongsTo(models.Veiculo, {
         foreignKey: 'veiculo_id',
-        as: 'veiculo'
+        as: 'veiculo',
+        onDelete: 'RESTRICT'
       });
       RegistroServico.belongsTo(models.Servico, {
         foreignKey: 'servico_id',
-        as: 'servico'
+        as: 'servico',
+        onDelete: 'RESTRICT'
       });
       RegistroServico.belongsTo(models.Oficina, {
         foreignKey: 'oficina_id',
-        as: 'oficina'
+        as: 'oficina',
+        onDelete: 'RESTRICT'
       });
     }
   }

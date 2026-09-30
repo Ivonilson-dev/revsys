@@ -85,10 +85,26 @@ app.use((req, res) => {
   });
 });
 
+// Controlador de agendamentos para verificação de tempo alocado
+const AgendamentoController = require('./src/controllers/AgendamentoController');
+
 // Conectar ao Banco de Dados e Iniciar o Servidor
 sequelize.authenticate()
   .then(() => {
     console.log('Conexão com o banco de dados MySQL estabelecida com sucesso.');
+    
+    // Execução inicial de auto-conclusão ao iniciar o servidor
+    AgendamentoController.autoConcluirAgendamentosVencidos().catch(err => {
+      console.error('Erro na auto-conclusão inicial de agendamentos:', err);
+    });
+
+    // Verificação periódica a cada 60 segundos para auto-conclusão de agendamentos confirmados cujo tempo alocado expirou
+    setInterval(() => {
+      AgendamentoController.autoConcluirAgendamentosVencidos().catch(err => {
+        console.error('Erro no heartbeat de auto-conclusão de agendamentos:', err);
+      });
+    }, 60000);
+
     app.listen(PORT, () => {
       console.log(`Servidor RevSys rodando em http://localhost:${PORT}`);
     });

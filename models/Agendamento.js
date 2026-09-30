@@ -6,19 +6,23 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Agendamento.belongsTo(models.Cliente, {
         foreignKey: 'cliente_id',
-        as: 'cliente'
+        as: 'cliente',
+        onDelete: 'RESTRICT'
       });
       Agendamento.belongsTo(models.Veiculo, {
         foreignKey: 'veiculo_id',
-        as: 'veiculo'
+        as: 'veiculo',
+        onDelete: 'RESTRICT'
       });
       Agendamento.belongsTo(models.Usuario, {
         foreignKey: 'criado_por',
-        as: 'criador'
+        as: 'criador',
+        onDelete: 'RESTRICT'
       });
       Agendamento.belongsTo(models.Servico, {
         foreignKey: 'servico_id',
-        as: 'servico'
+        as: 'servico',
+        onDelete: 'RESTRICT'
       });
     }
   }

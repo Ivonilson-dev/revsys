@@ -216,24 +216,71 @@
               </div>
             <% } else { %>
               <% veiculosAtrasados.forEach(veiculo => { %>
-                <div class="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors">
-                  <div>
+                <div class="p-4 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors">
+                  <div class="space-y-2">
                     <div class="flex items-center space-x-2.5 sm:space-x-3">
                       <span class="<%= obterClassePlaca(veiculo.placa) %> px-2.5 py-1 text-xs sm:text-sm">
                         <%= formatarPlaca(veiculo.placa) %>
                       </span>
                       <span class="text-base sm:text-lg font-bold text-slate-900">
-                        <%= veiculo.modelo ? veiculo.modelo.marca.nome + ' ' + veiculo.modelo.nome : 'Modelo Não Informado' %>
+                        <%= veiculo.modelo ? (veiculo.modelo.marca ? veiculo.modelo.marca.nome + ' ' : '') + veiculo.modelo.nome : 'Modelo Não Informado' %>
                       </span>
                     </div>
-                    <span class="text-xs sm:text-base text-slate-600 block mt-2">
-                      Proprietário: <span class="font-bold text-slate-800"><%= veiculo.cliente.usuario.nome %></span> | Último KM: <span class="font-bold text-slate-800"><%= Number(veiculo.km_atual).toLocaleString('pt-BR') %> km</span>
-                    </span>
+
+                    <div class="text-xs sm:text-sm text-slate-600 flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span>Proprietário: <span class="font-bold text-slate-800"><%= veiculo.cliente && veiculo.cliente.usuario ? veiculo.cliente.usuario.nome : 'Cliente' %></span></span>
+                      <span class="text-slate-300">•</span>
+                      <span>KM Registrado: <span class="font-bold text-slate-800"><%= Number(veiculo.km_atual).toLocaleString('pt-BR') %> km</span></span>
+                    </div>
+
+                    <!-- Detalhamento dos serviços/peças atrasadas -->
+                    <% if (veiculo.itensAtrasados && veiculo.itensAtrasados.length > 0) { %>
+                      <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                        <span class="text-[11px] font-bold text-red-600 uppercase tracking-wider flex items-center gap-1">
+                          <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+                          Atraso Detectado:
+                        </span>
+                        <% veiculo.itensAtrasados.forEach(item => { %>
+                          <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-lg bg-red-100 text-red-800 border border-red-200">
+                            <%= item.peca ? item.peca.nome : 'Peça' %>
+                            <% if (item.kmExcedido && item.kmExcedido > 0) { %>
+                              <span class="text-[10px] text-red-600 font-semibold">(+<%= Number(item.kmExcedido).toLocaleString('pt-BR') %> km)</span>
+                            <% } %>
+                          </span>
+                        <% }) %>
+                      </div>
+                    <% } %>
                   </div>
-                  <div>
-                    <a href="/veiculos/<%= veiculo.id %>" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 text-sm sm:text-base font-bold text-red-700 hover:text-red-800 bg-red-50 hover:bg-red-100 py-2.5 px-4 rounded-xl border border-red-200 transition-colors">
+
+                  <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+                    <!-- Botão WhatsApp com mensagem pré-formatada relatando o serviço e convidando para agendamento -->
+                    <% if (veiculo.whatsapp_url) { %>
+                      <a href="<%= veiculo.whatsapp_url %>" target="_blank" rel="noopener noreferrer" 
+                         class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold py-2.5 px-3.5 rounded-xl shadow-sm hover:shadow transition-all text-xs sm:text-sm active:scale-[0.98]"
+                         title="Enviar mensagem no WhatsApp do cliente relatando a manutenção e convidando para agendar">
+                        <svg class="w-4 h-4 fill-current shrink-0" width="16" height="16" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436.002 9.858-4.419 9.86-9.86 0-2.636-1.027-5.115-2.89-6.981-1.864-1.865-4.347-2.89-6.985-2.891-5.439 0-9.861 4.417-9.865 9.86-.001 1.745.454 3.447 1.32 4.965l-.995 3.637 3.73-.976zm9.953-6.85c-.29-.145-1.713-.846-1.979-.942-.266-.097-.459-.145-.653.146-.193.29-.749.942-.919 1.135-.169.193-.339.217-.629.072-.29-.144-1.226-.452-2.335-1.441-.864-.771-1.447-1.724-1.616-2.014-.169-.29-.018-.447.127-.591.131-.13.29-.339.435-.508.145-.169.193-.29.29-.483.097-.193.048-.363-.024-.508-.072-.145-.653-1.573-.895-2.153-.235-.568-.475-.49-.653-.5-.169-.008-.363-.009-.556-.009-.193 0-.508.072-.773.362-.266.29-1.014.99-1.014 2.415 0 1.425 1.038 2.802 1.183 2.995.145.193 2.043 3.12 4.949 4.373.692.298 1.232.476 1.652.61.697.221 1.33.19 1.83.115.557-.083 1.713-.699 1.954-1.376.241-.676.241-1.256.169-1.376-.073-.12-.266-.193-.556-.339z"/></svg>
+                        <span>Contatar WhatsApp</span>
+                      </a>
+                    <% } else { %>
+                      <span class="inline-flex items-center gap-1 text-xs text-slate-400 bg-slate-100 border border-slate-200 py-2.5 px-3 rounded-xl italic">
+                        <i data-lucide="phone-off" class="w-3.5 h-3.5"></i>
+                        <span>Sem WhatsApp</span>
+                      </span>
+                    <% } %>
+
+                    <!-- Botão Agendar Horário -->
+                    <a href="/agendamentos/calendario-tela?cliente_id=<%= veiculo.cliente_id %>&veiculo_id=<%= veiculo.id %>" 
+                       class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 hover:text-brand-800 border border-brand-200 font-bold py-2.5 px-3.5 rounded-xl transition-all text-xs sm:text-sm shadow-sm active:scale-[0.98]"
+                       title="Agendar horário na agenda da oficina pré-selecionando este veículo">
+                      <i data-lucide="calendar-plus" class="w-4 h-4 text-brand-600"></i>
+                      <span>Agendar</span>
+                    </a>
+
+                    <!-- Resolver Manutenção (Ficha) -->
+                    <a href="/veiculos/<%= veiculo.id %>" 
+                       class="inline-flex items-center justify-center p-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200 shadow-sm"
+                       title="Ver ficha do veículo e resolver manutenção">
                       <i data-lucide="wrench" class="w-4 h-4"></i>
-                      <span>Resolver Manutenção</span>
                     </a>
                   </div>
                 </div>

@@ -6,11 +6,13 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Peca.belongsTo(models.MarcaPeca, {
         foreignKey: 'marca_peca_id',
-        as: 'marca'
+        as: 'marca',
+        onDelete: 'RESTRICT'
       });
       Peca.hasMany(models.RegistroTroca, {
         foreignKey: 'peca_id',
-        as: 'registros_troca'
+        as: 'registros_troca',
+        onDelete: 'RESTRICT'
       });
     }
   }

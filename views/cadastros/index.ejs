@@ -49,7 +49,16 @@
 
         <div class="border border-slate-200 rounded-xl max-h-[200px] overflow-y-auto divide-y divide-slate-100 pr-1">
           <% marcasVeiculo.forEach(m => { %>
-            <div class="p-3 text-sm md:text-base text-slate-800 font-semibold hover:bg-slate-50/70 transition-colors"><%= m.nome %></div>
+            <div class="p-3 text-sm md:text-base text-slate-800 font-semibold flex justify-between items-center hover:bg-slate-50/70 transition-colors">
+              <span><%= m.nome %></span>
+              <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
+                <form action="/marcas-veiculo/<%= m.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir esta marca de veículo? A exclusão só será permitida se não houver modelos associados.', 'Excluir Marca?'); return false;" class="inline">
+                  <button type="submit" class="text-slate-400 hover:text-red-600 p-1 transition-colors" title="Excluir marca">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </form>
+              <% } %>
+            </div>
           <% }) %>
         </div>
       </section>
@@ -83,8 +92,17 @@
         <div class="border border-slate-200 rounded-xl max-h-[200px] overflow-y-auto divide-y divide-slate-100 pr-1">
           <% modelosVeiculo.forEach(mod => { %>
             <div class="p-3 text-sm md:text-base text-slate-800 font-semibold flex justify-between items-center hover:bg-slate-50/70 transition-colors">
-              <span><%= mod.nome %></span>
-              <span class="text-xs text-slate-500 uppercase tracking-wider font-bold bg-slate-100 px-2 py-0.5 rounded"><%= mod.marca ? mod.marca.nome : '' %></span>
+              <div class="flex items-center gap-2">
+                <span><%= mod.nome %></span>
+                <span class="text-xs text-slate-500 uppercase tracking-wider font-bold bg-slate-100 px-2 py-0.5 rounded"><%= mod.marca ? mod.marca.nome : '' %></span>
+              </div>
+              <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
+                <form action="/modelos-veiculo/<%= mod.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir este modelo de veículo? A exclusão só será permitida se não houver veículos cadastrados.', 'Excluir Modelo?'); return false;" class="inline">
+                  <button type="submit" class="text-slate-400 hover:text-red-600 p-1 transition-colors" title="Excluir modelo">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </form>
+              <% } %>
             </div>
           <% }) %>
         </div>
@@ -111,7 +129,16 @@
 
         <div class="border border-slate-200 rounded-xl max-h-[200px] overflow-y-auto divide-y divide-slate-100 pr-1">
           <% marcasPeca.forEach(mp => { %>
-            <div class="p-3 text-sm md:text-base text-slate-800 font-semibold hover:bg-slate-50/70 transition-colors"><%= mp.nome %></div>
+            <div class="p-3 text-sm md:text-base text-slate-800 font-semibold flex justify-between items-center hover:bg-slate-50/70 transition-colors">
+              <span><%= mp.nome %></span>
+              <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
+                <form action="/marcas-peca/<%= mp.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir esta fabricante de peças? A exclusão só será permitida se não houver peças associadas.', 'Excluir Fabricante?'); return false;" class="inline">
+                  <button type="submit" class="text-slate-400 hover:text-red-600 p-1 transition-colors" title="Excluir fabricante">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </form>
+              <% } %>
+            </div>
           <% }) %>
         </div>
       </section>
@@ -145,8 +172,17 @@
         <div class="border border-slate-200 rounded-xl max-h-[200px] overflow-y-auto divide-y divide-slate-100 pr-1">
           <% pecas.forEach(p => { %>
             <div class="p-3 text-sm md:text-base text-slate-800 font-semibold flex justify-between items-center hover:bg-slate-50/70 transition-colors">
-              <span><%= p.nome %></span>
-              <span class="text-xs text-slate-500 uppercase tracking-wider font-bold bg-slate-100 px-2 py-0.5 rounded"><%= p.marca ? p.marca.nome : '' %></span>
+              <div class="flex items-center gap-2">
+                <span><%= p.nome %></span>
+                <span class="text-xs text-slate-500 uppercase tracking-wider font-bold bg-slate-100 px-2 py-0.5 rounded"><%= p.marca ? p.marca.nome : '' %></span>
+              </div>
+              <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
+                <form action="/pecas/<%= p.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir esta peça? A exclusão só será permitida se ela não estiver vinculada a nenhuma manutenção de veículo.', 'Excluir Peça?'); return false;" class="inline">
+                  <button type="submit" class="text-slate-400 hover:text-red-600 p-1 transition-colors" title="Excluir peça">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </form>
+              <% } %>
             </div>
           <% }) %>
         </div>
@@ -209,7 +245,7 @@
                   <% } %>
                 </div>
                 <div class="flex items-center justify-between xs:justify-end space-x-4 shrink-0 pt-2 xs:pt-0 border-t xs:border-t-0 border-slate-100">
-                  <form action="/servicos/<%= s.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir este serviço do catálogo da oficina?', 'Excluir Serviço?'); return false;" class="inline">
+                  <form action="/servicos/<%= s.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir este serviço do catálogo da oficina? A exclusão só será permitida se ele não estiver vinculado a nenhum histórico ou agendamento.', 'Excluir Serviço?'); return false;" class="inline">
                     <button type="submit" class="text-red-500 hover:text-red-700 p-1.5 transition-colors" title="Excluir serviço">
                       <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
                     </button>
@@ -274,6 +310,7 @@
                 <th class="p-3.5">CNPJ</th>
                 <th class="p-3.5">WhatsApp</th>
                 <th class="p-3.5">E-mail</th>
+                <th class="p-3.5 pr-4 sm:pr-5 text-right">Ações</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -283,6 +320,15 @@
                   <td class="p-3.5 font-mono text-xs sm:text-sm font-semibold text-slate-700"><%= formatarCNPJ(o.cnpj) %></td>
                   <td class="p-3.5 font-medium"><%= o.whatsapp_numero ? formatarTelefone(o.whatsapp_numero) : 'N/I' %></td>
                   <td class="p-3.5 text-slate-600"><%= o.email || 'N/I' %></td>
+                  <td class="p-3.5 pr-4 sm:pr-5 text-right">
+                    <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
+                      <form action="/oficinas/<%= o.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir esta oficina? A exclusão só será permitida se não houver manutenções vinculadas a ela.', 'Excluir Oficina?'); return false;" class="inline">
+                        <button type="submit" class="text-slate-400 hover:text-red-600 p-1 transition-colors" title="Excluir oficina">
+                          <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                      </form>
+                    <% } %>
+                  </td>
                 </tr>
               <% }) %>
             </tbody>

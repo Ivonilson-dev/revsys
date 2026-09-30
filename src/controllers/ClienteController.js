@@ -1,4 +1,4 @@
-const { sequelize, Cliente, Usuario, Veiculo, LogLgpd, ModeloVeiculo, MarcaVeiculo } = require('../../models');
+const { sequelize, Cliente, Usuario, Veiculo, LogLgpd, ModeloVeiculo, MarcaVeiculo, Agendamento } = require('../../models');
 const { cpf } = require('cpf-cnpj-validator');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
@@ -14,7 +14,9 @@ class ClienteController {
 
       return res.render('clientes/index', {
         titulo: 'Gerenciamento de Clientes',
-        clientes
+        clientes,
+        erro: req.query.erro || null,
+        sucessoMsg: req.query.sucesso || null
       });
     } catch (error) {
       console.error('Erro ao listar clientes:', error);
@@ -177,7 +179,8 @@ class ClienteController {
       return res.render('clientes/detalhes', {
         titulo: `Cliente: ${cliente.usuario.nome}`,
         cliente,
-        sucesso
+        erro: req.query.erro || null,
+        sucesso: req.query.sucesso || null
       });
     } catch (error) {
       console.error('Erro ao buscar detalhes do cliente:', error);
@@ -276,19 +279,43 @@ class ClienteController {
     const { id } = req.params;
 
     try {
-      const cliente = await Cliente.findByPk(id);
+      const cliente = await Cliente.findByPk(id, {
+        include: [{ model: Usuario, as: 'usuario' }]
+      });
       if (!cliente) {
-        return res.status(404).send('Cliente não encontrado');
+        return res.redirect('/clientes?erro=Cliente não encontrado.');
       }
 
-      // Ao deletar o usuário associado, a tabela 'clientes' será deletada automaticamente
-      // devido a constraint ON DELETE CASCADE na chave estrangeira usuario_id!
-      await Usuario.destroy({ where: { id: cliente.usuario_id } });
+      // Regra de segurança: Não permitir auto-exclusão da conta conectada
+      if (req.session.usuario && req.session.usuario.id === cliente.usuario_id) {
+        return res.redirect(`/clientes/${id}?erro=Você não pode excluir sua própria conta enquanto estiver conectado.`);
+      }
 
-      return res.redirect('/clientes?sucesso=Cliente deletado com sucesso!');
+      // Consistência de Dados (RF / Regra de Negócio):
+      // Um cliente não pode ser excluído se já estiver vinculado a algum veículo, serviço ou troca de peça/agendamento
+      const [totalVeiculos, totalAgendamentos] = await Promise.all([
+        Veiculo.count({ where: { cliente_id: id } }),
+        Agendamento.count({ where: { cliente_id: id } })
+      ]);
+
+      if (totalVeiculos > 0 || totalAgendamentos > 0) {
+        const motivos = [];
+        if (totalVeiculos > 0) motivos.push(`${totalVeiculos} veículo(s)`);
+        if (totalAgendamentos > 0) motivos.push(`${totalAgendamentos} agendamento(s)`);
+        return res.redirect(`/clientes/${id}?erro=Não é possível excluir este cliente pois existem ${motivos.join(' e ')} vinculados ao seu histórico.`);
+      }
+
+      // Se não há vínculos impeditivos, remove o cliente e o usuário associado
+      const usuarioId = cliente.usuario_id;
+      await cliente.destroy();
+      if (usuarioId) {
+        await Usuario.destroy({ where: { id: usuarioId } });
+      }
+
+      return res.redirect('/clientes?sucesso=Cliente excluído com sucesso!');
     } catch (error) {
       console.error('Erro ao deletar cliente:', error);
-      return res.status(500).send('Erro interno do servidor');
+      return res.redirect(`/clientes/${id}?erro=Não foi possível excluir o cliente: restrição de integridade no banco de dados.`);
     }
   }
 }

@@ -6,11 +6,13 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Servico.hasMany(models.RegistroServico, {
         foreignKey: 'servico_id',
-        as: 'registros_servico'
+        as: 'registros_servico',
+        onDelete: 'RESTRICT'
       });
       Servico.hasMany(models.Agendamento, {
         foreignKey: 'servico_id',
-        as: 'agendamentos'
+        as: 'agendamentos',
+        onDelete: 'RESTRICT'
       });
     }
   }

@@ -52,6 +52,11 @@ class ServicoController {
         return res.status(404).send('Veículo não encontrado');
       }
 
+      if (dataServicoInformada === hojeStr && kmServicoInt < veiculo.km_atual) {
+        await t.rollback();
+        return res.status(400).send(`Inconsistência lógica: A quilometragem no serviço (${kmServicoInt} km) não pode ser inferior à quilometragem atual do veículo (${veiculo.km_atual} km).`);
+      }
+
       let idOficina = oficina_id ? parseInt(oficina_id) : null;
       let nomeOficinaManual = nome_oficina_manual || null;
 
@@ -72,8 +77,8 @@ class ServicoController {
         observacoes: observacoes || null
       }, { transaction: t });
 
-      const kmServicoInt = parseInt(km_no_servico);
-      if (atualizar_km_veiculo === 'true' || atualizar_km_veiculo === true || kmServicoInt > veiculo.km_atual) {
+      // Regra de Negócio RF-33: Atualizar KM do veículo (apenas se for maior, impedindo regressão)
+      if (kmServicoInt > veiculo.km_atual) {
         await veiculo.update({
           km_atual: kmServicoInt
         }, { transaction: t });

@@ -11,6 +11,10 @@ const HORARIOS_COMERCIAIS = [
 ];
 
 const HORARIO_FECHAMENTO = '18:00';
+const HORARIO_ALMOCO_INICIO = '12:00';
+const HORARIO_ALMOCO_FIM = '14:00';
+const SABADO_HORARIO_LIMITE_INICIO = '10:00';
+const SABADO_HORARIO_FECHAMENTO = '12:00';
 
 // Blocos de duração pré-configurados para diferentes tipos de revisão e serviços
 const OPCOES_DURACAO = [
@@ -52,10 +56,70 @@ function verificarSobreposicao(inicio1, fim1, inicio2, fim2) {
   return i1 < f2 && f1 > i2;
 }
 
+// Retorna o dia da semana seguro (0 = Domingo, 1 = Segunda, ..., 6 = Sábado)
+function obterDiaDaSemana(dataStr) {
+  if (!dataStr) return -1;
+  const [ano, mes, dia] = dataStr.split('-').map(Number);
+  const dt = new Date(ano, mes - 1, dia, 12, 0, 0);
+  return dt.getDay();
+}
+
+// Verifica se há colisão com o intervalo de almoço (12:00 às 14:00)
+function colideComAlmoco(horarioInicio, horarioFim) {
+  return verificarSobreposicao(horarioInicio, horarioFim, HORARIO_ALMOCO_INICIO, HORARIO_ALMOCO_FIM);
+}
+
 class AgendamentoController {
+  // Auto-conclusão de agendamentos com presença confirmada cujo tempo alocado expirou
+  static async autoConcluirAgendamentosVencidos() {
+    const agora = new Date();
+    const hojeStr = agora.toLocaleDateString('en-CA');
+    const horaAtualStr = agora.toTimeString().substring(0, 5);
+
+    try {
+      const agendamentosParaConcluir = await Agendamento.findAll({
+        where: {
+          status: 'agendado',
+          confirmacao_presenca: 'confirmada',
+          [Op.or]: [
+            { data_agendada: { [Op.lt]: hojeStr } },
+            { data_agendada: hojeStr }
+          ]
+        }
+      });
+
+      const idsParaConcluir = [];
+
+      for (const a of agendamentosParaConcluir) {
+        if (a.data_agendada < hojeStr) {
+          idsParaConcluir.push(a.id);
+        } else {
+          const fim = a.horario_fim || calcularHorarioFim(a.horario_agendado, a.duracao_minutos || 60);
+          if (fim <= horaAtualStr) {
+            idsParaConcluir.push(a.id);
+          }
+        }
+      }
+
+      if (idsParaConcluir.length > 0) {
+        await Agendamento.update(
+          { status: 'concluido' },
+          { where: { id: { [Op.in]: idsParaConcluir } } }
+        );
+        console.log(`[Auto-Conclusão] ${idsParaConcluir.length} agendamento(s) confirmado(s) com tempo alocado expirado foram concluídos automaticamente: IDs [${idsParaConcluir.join(', ')}]`);
+      }
+
+      return idsParaConcluir.length;
+    } catch (error) {
+      console.error('Erro na auto-conclusão de agendamentos vencidos:', error);
+      return 0;
+    }
+  }
+
   // GET /agendamentos
   static async listar(req, res) {
-    const { data, status, cliente_id } = req.query;
+    await AgendamentoController.autoConcluirAgendamentosVencidos();
+    const { data, status, cliente_id, veiculo_id } = req.query;
     let whereClause = {};
 
     if (data) {
@@ -67,13 +131,20 @@ class AgendamentoController {
     if (cliente_id) {
       whereClause.cliente_id = cliente_id;
     }
+    if (veiculo_id) {
+      whereClause.veiculo_id = veiculo_id;
+    }
 
     try {
       const agendamentos = await Agendamento.findAll({
         where: whereClause,
         include: [
           { model: Cliente, as: 'cliente', include: [{ model: Usuario, as: 'usuario' }] },
-          { model: Veiculo, as: 'veiculo' },
+          { 
+            model: Veiculo, 
+            as: 'veiculo',
+            include: [{ model: ModeloVeiculo, as: 'modelo', include: [{ model: MarcaVeiculo, as: 'marca' }] }]
+          },
           { model: Usuario, as: 'criador' },
           { model: Servico, as: 'servico' }
         ],
@@ -85,6 +156,14 @@ class AgendamentoController {
         order: [[{ model: Usuario, as: 'usuario' }, 'nome', 'ASC']]
       });
 
+      const veiculos = await Veiculo.findAll({
+        include: [
+          { model: ModeloVeiculo, as: 'modelo', include: [{ model: MarcaVeiculo, as: 'marca' }] },
+          { model: Cliente, as: 'cliente', include: [{ model: Usuario, as: 'usuario' }] }
+        ],
+        order: [['placa', 'ASC']]
+      });
+
       const servicos = await Servico.findAll({
         order: [['nome', 'ASC']]
       });
@@ -93,8 +172,9 @@ class AgendamentoController {
         titulo: 'Lista de Agendamentos',
         agendamentos,
         clientes,
+        veiculos,
         servicos,
-        filtros: { data, status, cliente_id }
+        filtros: { data, status, cliente_id, veiculo_id }
       });
     } catch (error) {
       console.error('Erro ao listar agendamentos:', error);
@@ -105,6 +185,9 @@ class AgendamentoController {
   // GET /agendamentos/calendario-tela
   static async exibirCalendario(req, res) {
     try {
+      await AgendamentoController.autoConcluirAgendamentosVencidos();
+      const { cliente_id, veiculo_id } = req.query;
+
       const clientes = await Cliente.findAll({
         include: [{ model: Usuario, as: 'usuario' }],
         order: [[{ model: Usuario, as: 'usuario' }, 'nome', 'ASC']]
@@ -119,7 +202,9 @@ class AgendamentoController {
         clientes,
         servicos,
         horariosComerciais: HORARIOS_COMERCIAIS,
-        opcoesDuracao: OPCOES_DURACAO
+        opcoesDuracao: OPCOES_DURACAO,
+        clientePreSelecionado: cliente_id || null,
+        veiculoPreSelecionado: veiculo_id || null
       });
     } catch (error) {
       console.error('Erro ao exibir calendário:', error);
@@ -132,6 +217,8 @@ class AgendamentoController {
     const { start, end } = req.query; // datas YYYY-MM-DD enviadas pelo FullCalendar
 
     try {
+      await AgendamentoController.autoConcluirAgendamentosVencidos();
+
       const agendamentos = await Agendamento.findAll({
         where: {
           data_agendada: {
@@ -171,6 +258,8 @@ class AgendamentoController {
             servico: servicoNome,
             status: a.status,
             cliente: a.cliente ? a.cliente.usuario.nome : 'Cliente',
+            clienteId: a.cliente_id,
+            veiculoId: a.veiculo_id,
             placa: a.veiculo ? a.veiculo.placa : '',
             observacoes: a.observacoes,
             dataAgendada: a.data_agendada,
@@ -194,6 +283,7 @@ class AgendamentoController {
 
   // GET /agendamentos/horarios-disponiveis (Suporta duração flexível e verificação de conflitos)
   static async obterHorariosDisponiveis(req, res) {
+    await AgendamentoController.autoConcluirAgendamentosVencidos();
     const { data, duracao, ignorar_id } = req.query;
 
     if (!data) {
@@ -201,6 +291,33 @@ class AgendamentoController {
     }
 
     const duracaoMin = parseInt(duracao, 10) || 60;
+    const diaSemana = obterDiaDaSemana(data);
+
+    const agora = new Date();
+    const hojeStr = agora.toLocaleDateString('en-CA');
+    const horaAtualStr = agora.toTimeString().substring(0, 5);
+
+    // 0. Regra de Data no Passado: Bloqueio total para datas anteriores a hoje
+    if (data < hojeStr) {
+      const listaPassado = HORARIOS_COMERCIAIS.map(h => ({
+        horario: h,
+        horario_fim: calcularHorarioFim(h, duracaoMin),
+        ocupado: true,
+        motivo_bloqueio: 'Data no passado (não é possível agendar retroativamente)'
+      }));
+      return res.json(listaPassado);
+    }
+
+    // 1. Regra de Domingo: A oficina não abre aos domingos
+    if (diaSemana === 0) {
+      const listaDomingo = HORARIOS_COMERCIAIS.map(h => ({
+        horario: h,
+        horario_fim: calcularHorarioFim(h, duracaoMin),
+        ocupado: true,
+        motivo_bloqueio: 'Oficina fechada aos domingos'
+      }));
+      return res.json(listaDomingo);
+    }
 
     try {
       const whereClause = {
@@ -237,24 +354,65 @@ class AgendamentoController {
         };
       });
 
-      const minFechamento = horaParaMinutos(HORARIO_FECHAMENTO);
+      const minFechamentoSemana = horaParaMinutos(HORARIO_FECHAMENTO);
+      const minFechamentoSabado = horaParaMinutos(SABADO_HORARIO_FECHAMENTO);
 
       const listaHorarios = HORARIOS_COMERCIAIS.map(h => {
         const minInicio = horaParaMinutos(h);
         const minFim = minInicio + duracaoMin;
         const horarioFimEstimado = minutosParaHora(minFim);
 
-        // Verifica se o bloco ultrapassa o fechamento da oficina
-        if (minFim > minFechamento) {
+        // 0.1. Se for a data de hoje, horários já transcorridos não podem ser agendados
+        if (data === hojeStr && h <= horaAtualStr) {
           return {
             horario: h,
             horario_fim: horarioFimEstimado,
             ocupado: true,
-            motivo_bloqueio: `Ultrapassa horário de fechamento (${HORARIO_FECHAMENTO})`
+            motivo_bloqueio: 'Horário já transcorrido hoje (não é possível agendar retroativamente)'
           };
         }
 
-        // Verifica sobreposição com agendamentos existentes
+        // A. Regras de Sábado (diaSemana === 6): início apenas até as 10:00 e fechamento às 12:00
+        if (diaSemana === 6) {
+          if (h > SABADO_HORARIO_LIMITE_INICIO) {
+            return {
+              horario: h,
+              horario_fim: horarioFimEstimado,
+              ocupado: true,
+              motivo_bloqueio: `Aos sábados os atendimentos iniciam somente até as ${SABADO_HORARIO_LIMITE_INICIO} (fechamento às ${SABADO_HORARIO_FECHAMENTO})`
+            };
+          }
+          if (minFim > minFechamentoSabado) {
+            return {
+              horario: h,
+              horario_fim: horarioFimEstimado,
+              ocupado: true,
+              motivo_bloqueio: `Ultrapassa o fechamento de sábado (${SABADO_HORARIO_FECHAMENTO})`
+            };
+          }
+        } else {
+          // B. Regras de Segunda a Sexta: Fechamento às 18:00
+          if (minFim > minFechamentoSemana) {
+            return {
+              horario: h,
+              horario_fim: horarioFimEstimado,
+              ocupado: true,
+              motivo_bloqueio: `Ultrapassa horário de fechamento (${HORARIO_FECHAMENTO})`
+            };
+          }
+        }
+
+        // C. Regra de Horário de Almoço (12:00 às 14:00) para qualquer data
+        if (colideComAlmoco(h, horarioFimEstimado)) {
+          return {
+            horario: h,
+            horario_fim: horarioFimEstimado,
+            ocupado: true,
+            motivo_bloqueio: `Horário de almoço da oficina (${HORARIO_ALMOCO_INICIO} às ${HORARIO_ALMOCO_FIM})`
+          };
+        }
+
+        // D. Verifica sobreposição com agendamentos existentes
         const conflito = intervalosOcupados.find(ocupado =>
           verificarSobreposicao(h, horarioFimEstimado, ocupado.inicio, ocupado.fim)
         );
@@ -296,6 +454,12 @@ class AgendamentoController {
       return res.status(400).send('Horário de início fora do período comercial.');
     }
 
+    // Regra de Domingo: A oficina não abre aos domingos
+    const diaSemana = obterDiaDaSemana(data_agendada);
+    if (diaSemana === 0) {
+      return res.status(400).send('A oficina não abre aos domingos. Por favor, escolha uma data de segunda a sábado.');
+    }
+
     // Inconsistência lógica: Bloquear agendamento no passado
     const agora = new Date();
     const hojeStr = agora.toLocaleDateString('en-CA');
@@ -307,9 +471,24 @@ class AgendamentoController {
     const duracaoMin = parseInt(duracao_minutos, 10) || 60;
     const fimCalculado = horario_fim || calcularHorarioFim(horario_agendado, duracaoMin);
 
-    // Valida se o término não excede o expediente
-    if (horaParaMinutos(fimCalculado) > horaParaMinutos(HORARIO_FECHAMENTO)) {
-      return res.status(400).send(`O bloco de agendamento excede o horário de expediente da oficina (até às ${HORARIO_FECHAMENTO}).`);
+    // Validação de Sábado vs Dias Úteis
+    if (diaSemana === 6) {
+      if (horario_agendado > SABADO_HORARIO_LIMITE_INICIO) {
+        return res.status(400).send(`Aos sábados, a oficina realiza agendamentos com horário de início somente até as ${SABADO_HORARIO_LIMITE_INICIO}.`);
+      }
+      if (horaParaMinutos(fimCalculado) > horaParaMinutos(SABADO_HORARIO_FECHAMENTO)) {
+        return res.status(400).send(`Aos sábados, a oficina fecha às ${SABADO_HORARIO_FECHAMENTO}. O tempo estimado do serviço ultrapassa o expediente.`);
+      }
+    } else {
+      // Valida se o término não excede o expediente em dias de semana (18:00)
+      if (horaParaMinutos(fimCalculado) > horaParaMinutos(HORARIO_FECHAMENTO)) {
+        return res.status(400).send(`O bloco de agendamento excede o horário de expediente da oficina (até às ${HORARIO_FECHAMENTO}).`);
+      }
+    }
+
+    // Validação do Horário de Almoço (12:00 às 14:00) para qualquer data
+    if (colideComAlmoco(horario_agendado, fimCalculado)) {
+      return res.status(400).send(`O intervalo das ${HORARIO_ALMOCO_INICIO} às ${HORARIO_ALMOCO_FIM} é reservado para o almoço da oficina. Nenhum agendamento pode coincidir ou sobrepor este período.`);
     }
 
     try {
@@ -370,6 +549,22 @@ class AgendamentoController {
       const novoFim = horario_fim || calcularHorarioFim(novoInicio, novaDuracao);
       const novoStatus = status || agendamento.status;
 
+      // Inconsistência Lógica: Preservação de Histórico - Agendamentos já concluídos não podem ser revertidos ou cancelados
+      if (agendamento.status === 'concluido' && novoStatus !== 'concluido') {
+        return res.status(400).send('Inconsistência lógica: Um agendamento já CONCLUÍDO preserva o histórico de serviços executados e não pode ser cancelado ou revertido.');
+      }
+
+      // Regra de Negócio: Não permitir estender ou alterar tempo alocado de agendamentos já concluídos
+      if (agendamento.status === 'concluido') {
+        const mudouData = data_agendada && data_agendada !== agendamento.data_agendada;
+        const mudouHorario = horario_agendado && horario_agendado !== agendamento.horario_agendado;
+        const mudouDuracao = duracao_minutos && parseInt(duracao_minutos, 10) !== agendamento.duracao_minutos;
+
+        if (mudouData || mudouHorario || mudouDuracao) {
+          return res.status(400).send('Este agendamento já foi concluído e seu tempo alocado foi finalizado. Caso o cliente necessite de mais slots de tempo ou novos serviços, realize um novo agendamento de acordo com a disponibilidade da oficina.');
+        }
+      }
+
       // Inconsistência Lógica 1: Agendamentos futuros NÃO podem ser marcados como concluídos
       if (novoStatus === 'concluido') {
         const agora = new Date();
@@ -389,8 +584,40 @@ class AgendamentoController {
         }
       }
 
-      // Se o status for diferente de cancelado, verifica conflito de intervalo
+      // Se o status for diferente de cancelado, valida regras de data retroativa, expediente e conflito de intervalo
       if (novoStatus !== 'cancelado') {
+        const agora = new Date();
+        const hojeStr = agora.toLocaleDateString('en-CA');
+        const horaAtualStr = agora.toTimeString().substring(0, 5);
+
+        // Bloqueio de reagendamento para datas/horários passados
+        const ehPassado = novaData < hojeStr || (novaData === hojeStr && novoInicio < horaAtualStr);
+        if (ehPassado && (novaData !== agendamento.data_agendada || novoInicio !== agendamento.horario_agendado)) {
+          return res.status(400).send('Inconsistência lógica: Não é possível reagendar para datas ou horários que já passaram.');
+        }
+
+        const diaSemanaNovo = obterDiaDaSemana(novaData);
+        if (diaSemanaNovo === 0) {
+          return res.status(400).send('A oficina não abre aos domingos. Por favor, escolha uma data de segunda a sábado.');
+        }
+
+        if (diaSemanaNovo === 6) {
+          if (novoInicio > SABADO_HORARIO_LIMITE_INICIO) {
+            return res.status(400).send(`Aos sábados, a oficina realiza agendamentos com horário de início somente até as ${SABADO_HORARIO_LIMITE_INICIO}.`);
+          }
+          if (horaParaMinutos(novoFim) > horaParaMinutos(SABADO_HORARIO_FECHAMENTO)) {
+            return res.status(400).send(`Aos sábados, a oficina fecha às ${SABADO_HORARIO_FECHAMENTO}. O tempo estimado do serviço ultrapassa o expediente de sábado.`);
+          }
+        } else {
+          if (horaParaMinutos(novoFim) > horaParaMinutos(HORARIO_FECHAMENTO)) {
+            return res.status(400).send(`O bloco de agendamento excede o horário de expediente da oficina (até às ${HORARIO_FECHAMENTO}).`);
+          }
+        }
+
+        if (colideComAlmoco(novoInicio, novoFim)) {
+          return res.status(400).send(`O intervalo das ${HORARIO_ALMOCO_INICIO} às ${HORARIO_ALMOCO_FIM} é reservado para o almoço da oficina. Nenhum agendamento pode coincidir ou sobrepor este período.`);
+        }
+
         const agendamentosExistentes = await Agendamento.findAll({
           where: {
             id: { [Op.ne]: id },
@@ -431,6 +658,7 @@ class AgendamentoController {
 
   // Helper estático: Carrega a fila ordenada de agendamentos em janela de 24h
   static async carregarAlertas24h() {
+    await AgendamentoController.autoConcluirAgendamentosVencidos();
     const agora = new Date();
     const limite24h = new Date(agora.getTime() + 24 * 60 * 60 * 1000);
     const hojeStr = agora.toLocaleDateString('en-CA');
@@ -487,7 +715,7 @@ class AgendamentoController {
         const modeloVeiculo = a.veiculo && a.veiculo.modelo ? `${a.veiculo.modelo.marca ? a.veiculo.modelo.marca.nome + ' ' : ''}${a.veiculo.modelo.nome}` : '';
         const servicoNome = a.servico ? a.servico.nome : a.motivo_revisao;
 
-        const msgWhats = `Olá ${nomeCliente}, tudo bem? Aqui é da oficina. Lembramos que você possui um agendamento de revisão para ${dataFormatada} às ${a.horario_agendado} referente ao veículo ${modeloVeiculo ? modeloVeiculo + ' ' : ''}(${placaVeiculo}). Você confirma sua presença?`;
+        const msgWhats = `Olá ${nomeCliente}, tudo bem? Aqui é da oficina AUTEC. Lembramos que você possui um agendamento de revisão para ${dataFormatada} às ${a.horario_agendado} referente ao veículo ${modeloVeiculo ? modeloVeiculo + ' ' : ''}(${placaVeiculo}). Você confirma sua presença?`;
 
         filaAlertas.push({
           id: a.id,
@@ -561,7 +789,7 @@ class AgendamentoController {
       const placaVeiculo = agendamento.veiculo ? agendamento.veiculo.placa : '';
       const modeloVeiculo = agendamento.veiculo && agendamento.veiculo.modelo ? `${agendamento.veiculo.modelo.marca ? agendamento.veiculo.modelo.marca.nome + ' ' : ''}${agendamento.veiculo.modelo.nome}` : '';
 
-      const msgWhats = `Olá ${nomeCliente}, tudo bem? Aqui é da oficina. Lembramos que você possui um agendamento de revisão para ${dataFormatada} às ${agendamento.horario_agendado} referente ao veículo ${modeloVeiculo ? modeloVeiculo + ' ' : ''}(${placaVeiculo}). Você confirma sua presença?`;
+      const msgWhats = `Olá ${nomeCliente}, tudo bem? Aqui é da oficina AUTEC. Lembramos que você possui um agendamento de revisão para ${dataFormatada} às ${agendamento.horario_agendado} referente ao veículo ${modeloVeiculo ? modeloVeiculo + ' ' : ''}(${placaVeiculo}). Você confirma sua presença?`;
 
       return res.json({
         sucesso: true,
@@ -610,15 +838,33 @@ class AgendamentoController {
         return res.status(404).json({ erro: 'Agendamento não encontrado.' });
       }
 
-      await agendamento.update({
+      const agora = new Date();
+      const hojeStr = agora.toLocaleDateString('en-CA');
+      const horaAtualStr = agora.toTimeString().substring(0, 5);
+      const fim = agendamento.horario_fim || calcularHorarioFim(agendamento.horario_agendado, agendamento.duracao_minutos || 60);
+      const jaPassou = agendamento.data_agendada < hojeStr || (agendamento.data_agendada === hojeStr && fim <= horaAtualStr);
+
+      const dadosAtualizacao = {
         confirmacao_presenca: 'confirmada',
-        confirmado_em: new Date(),
+        confirmado_em: agora,
         confirmacao_adiada_ate: null
-      });
+      };
+
+      // Se o tempo alocado já expirou no momento em que a presença é confirmada, transiciona automaticamente para concluído
+      if (jaPassou && agendamento.status === 'agendado') {
+        dadosAtualizacao.status = 'concluido';
+      }
+
+      await agendamento.update(dadosAtualizacao);
+
+      const mensagemRetorno = dadosAtualizacao.status === 'concluido'
+        ? 'Presença confirmada e agendamento concluído automaticamente, pois o tempo alocado já foi finalizado.'
+        : 'Presença confirmada com sucesso! Baixa registrada no sistema.';
 
       return res.json({
         sucesso: true,
-        mensagem: 'Presença confirmada com sucesso! Baixa registrada no sistema.'
+        mensagem: mensagemRetorno,
+        statusAtual: dadosAtualizacao.status || agendamento.status
       });
 
     } catch (error) {

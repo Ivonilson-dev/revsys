@@ -6,11 +6,13 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Oficina.hasMany(models.RegistroTroca, {
         foreignKey: 'oficina_id',
-        as: 'registros_troca'
+        as: 'registros_troca',
+        onDelete: 'RESTRICT'
       });
       Oficina.hasMany(models.RegistroServico, {
         foreignKey: 'oficina_id',
-        as: 'registros_servico'
+        as: 'registros_servico',
+        onDelete: 'RESTRICT'
       });
     }
   }

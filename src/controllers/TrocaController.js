@@ -52,6 +52,11 @@ class TrocaController {
         return res.status(404).send('Veículo não encontrado');
       }
 
+      if (dataTrocaInformada === hojeStr && kmTrocaInt < veiculo.km_atual) {
+        await t.rollback();
+        return res.status(400).send(`Inconsistência lógica: A quilometragem na troca (${kmTrocaInt} km) não pode ser inferior à quilometragem atual do veículo (${veiculo.km_atual} km).`);
+      }
+
       // Preparar dados da oficina
       let idOficina = oficina_id ? parseInt(oficina_id) : null;
       let nomeOficinaManual = nome_oficina_manual || null;
@@ -74,9 +79,8 @@ class TrocaController {
         observacoes: observacoes || null
       }, { transaction: t });
 
-      // Regra de Negócio RF-33: Atualizar KM do veículo
-      const kmTrocaInt = parseInt(km_na_troca);
-      if (atualizar_km_veiculo === 'true' || atualizar_km_veiculo === true || kmTrocaInt > veiculo.km_atual) {
+      // Regra de Negócio RF-33: Atualizar KM do veículo (apenas se for maior, impedindo regressão)
+      if (kmTrocaInt > veiculo.km_atual) {
         await veiculo.update({
           km_atual: kmTrocaInt
         }, { transaction: t });

@@ -6,7 +6,8 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       MarcaPeca.hasMany(models.Peca, {
         foreignKey: 'marca_peca_id',
-        as: 'pecas'
+        as: 'pecas',
+        onDelete: 'RESTRICT'
       });
     }
   }

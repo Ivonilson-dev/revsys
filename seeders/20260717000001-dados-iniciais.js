@@ -12,7 +12,7 @@ module.exports = {
 
     await queryInterface.bulkInsert('usuarios', [
       {
-        nome: 'Administrador Oficina',
+        nome: 'Administrador',
         email: 'admin@revsys.com',
         senha_hash: senhaAdmin,
         papel: 'admin',

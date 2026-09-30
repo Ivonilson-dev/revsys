@@ -1,5 +1,6 @@
 const { sequelize, Veiculo, Cliente, Usuario, ModeloVeiculo, MarcaVeiculo, RegistroTroca, Peca, MarcaPeca, Agendamento, Notificacao, LogLgpd } = require('../../models');
 const { calcularStatusAlerta } = require('../utils/alertas');
+const AgendamentoController = require('./AgendamentoController');
 
 class ClienteAreaController {
   // GET /cliente/veiculos
@@ -7,6 +8,7 @@ class ClienteAreaController {
     const clienteId = req.session.usuario.clienteId;
 
     try {
+      await AgendamentoController.autoConcluirAgendamentosVencidos();
       const cliente = await Cliente.findByPk(clienteId, {
         include: [{ model: Usuario, as: 'usuario' }]
       });

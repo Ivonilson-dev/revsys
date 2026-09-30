@@ -7,15 +7,18 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Usuario.hasOne(models.Cliente, {
         foreignKey: 'usuario_id',
-        as: 'cliente'
+        as: 'cliente',
+        onDelete: 'RESTRICT'
       });
       Usuario.hasMany(models.Agendamento, {
         foreignKey: 'criado_por',
-        as: 'agendamentos_criados'
+        as: 'agendamentos_criados',
+        onDelete: 'RESTRICT'
       });
       Usuario.hasMany(models.Notificacao, {
         foreignKey: 'usuario_id',
-        as: 'notificacoes'
+        as: 'notificacoes',
+        onDelete: 'CASCADE'
       });
     }
 

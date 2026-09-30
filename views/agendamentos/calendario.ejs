@@ -48,7 +48,10 @@
     font-weight: 800 !important;
     color: #0f172a !important;
     letter-spacing: -0.025em;
-    text-transform: capitalize !important;
+  }
+
+  .fc .fc-toolbar-title::first-letter {
+    text-transform: uppercase !important;
   }
 
   /* Botão Base do Calendário */
@@ -199,6 +202,16 @@
     transform: scale(1.02);
   }
 
+  /* Dias no passado ficam visivelmente desabilitados */
+  .fc-day-past {
+    background-color: #f1f5f9 !important;
+    opacity: 0.65;
+    cursor: not-allowed !important;
+  }
+  .fc-day-past .fc-daygrid-day-number {
+    color: #94a3b8 !important;
+  }
+
   /* Ajustes específicos para telas mobile (< 768px) */
   @media (max-width: 768px) {
     .fc .fc-toolbar.fc-header-toolbar {
@@ -347,6 +360,19 @@
               <p class="text-xs text-slate-500 mt-0.5 font-normal">Cadastre um novo agendamento respeitando as regras de horários.</p>
             </div>
 
+            <!-- Regras de Horários e Expediente da Oficina -->
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-1.5 shadow-sm">
+              <span class="font-bold flex items-center gap-1.5 text-slate-900 text-xs uppercase tracking-wide">
+                <i data-lucide="clock" class="w-4 h-4 text-brand-600"></i>
+                Expediente da Oficina:
+              </span>
+              <ul class="text-[11px] text-slate-600 space-y-1 pl-4 list-disc">
+                <li><strong class="text-slate-800">Segunda a Sexta:</strong> 08:00 às 18:00 <span class="text-amber-700 font-semibold">(Almoço: 12:00 às 14:00)</span></li>
+                <li><strong class="text-slate-800">Sábado:</strong> 08:00 às 12:00 <span class="text-brand-700 font-semibold">(Início até as 10:00)</span></li>
+                <li><strong class="text-red-700">Domingo:</strong> <span class="text-red-600 font-semibold">Fechado</span></li>
+              </ul>
+            </div>
+
             <form action="/agendamentos" method="POST" class="space-y-4">
               
               <!-- Cliente -->
@@ -412,7 +438,7 @@
               <div>
                 <label for="data_agendada" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Data Agendada *</label>
                 <input type="date" id="data_agendada" name="data_agendada" required onchange="carregarHorariosDisponiveis(this.value)"
-                       min="<%= new Date().toISOString().split('T')[0] %>"
+                       min="<%= new Date().toLocaleDateString('en-CA') %>"
                        class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-sm sm:text-base focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
               </div>
 
@@ -516,6 +542,27 @@
               </div>
             </div>
             
+            <!-- Painel Informativo para Agendamento Concluído (Tempo alocado finalizado) -->
+            <div id="divEventoConcluidoInfo" class="hidden pt-3 border-t border-slate-800 space-y-2.5">
+              <div class="p-3 rounded-xl bg-emerald-950/60 border border-emerald-800/60 text-emerald-200">
+                <div class="flex items-start gap-2">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 mt-0.5 shrink-0"></i>
+                  <div>
+                    <span class="text-xs font-bold text-white block">Tempo Alocado Finalizado</span>
+                    <p class="text-[11px] text-emerald-300/90 leading-relaxed mt-0.5">
+                      Este atendimento foi marcado como concluído. Caso o cliente necessite de mais slots de tempo ou novos serviços, realize um novo agendamento conforme a disponibilidade da oficina.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <% if (['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
+                <button type="button" onclick="prepararNovoSlotDoModal()" class="w-full py-2.5 px-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md shadow-brand-500/10 active:scale-[0.98]">
+                  <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                  <span>Agendar Novo Slot para este Veículo</span>
+                </button>
+              <% } %>
+            </div>
+
             <!-- Ações Rápidas de Status -->
             <div id="divAcoesEvento" class="pt-3 border-t border-slate-800 flex items-center gap-2 flex-wrap">
               <button id="btnConfirmarPresencaEvento" onclick="darBaixaPresencaCalendario()" class="py-2 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm">
@@ -574,6 +621,7 @@
   }
 
   let eventoSelecionadoId = null;
+  let eventoSelecionadoProps = null;
   let calendarInstance = null;
 
   function aoMudarServico(selectElem) {
@@ -660,6 +708,40 @@
 
     if (!data) return;
 
+    // Checar se a data selecionada está no passado
+    const agoraHoje = new Date();
+    const hojeLocalStr = agoraHoje.toLocaleDateString('en-CA');
+    if (data < hojeLocalStr) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Data no Passado',
+        text: 'Não é possível agendar atendimentos em datas passadas. O calendário retroativo permanece bloqueado para novos agendamentos.',
+        confirmButtonColor: '#0284c7'
+      });
+      document.getElementById('data_agendada').value = '';
+      selectHorario.innerHTML = '<option value="" disabled selected>Data passada indisponível</option>';
+      selectHorario.disabled = true;
+      document.getElementById('cardBlocoResumo').classList.add('hidden');
+      return;
+    }
+
+    // Checar se a data selecionada é domingo (Oficina fechada)
+    const [ano, mes, dia] = data.split('-').map(Number);
+    const dt = new Date(ano, mes - 1, dia, 12, 0, 0);
+    if (dt.getDay() === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Oficina Fechada aos Domingos',
+        text: 'A oficina não abre aos domingos. Por favor, escolha uma data de segunda-feira a sábado.',
+        confirmButtonColor: '#0284c7'
+      });
+      document.getElementById('data_agendada').value = '';
+      selectHorario.innerHTML = '<option value="" disabled selected>Oficina fechada aos domingos</option>';
+      selectHorario.disabled = true;
+      document.getElementById('cardBlocoResumo').classList.add('hidden');
+      return;
+    }
+
     try {
       const res = await fetch(`/agendamentos/horarios-disponiveis?data=${data}&duracao=${duracao}`);
       if (res.ok) {
@@ -695,17 +777,66 @@
   function fecharDetalheEvento() {
     document.getElementById('cardDetalheEvento').classList.add('hidden');
     eventoSelecionadoId = null;
+    eventoSelecionadoProps = null;
+  }
+
+  async function prepararNovoSlotDoModal() {
+    if (!eventoSelecionadoProps) return;
+    const { clienteId, veiculoId } = eventoSelecionadoProps;
+
+    const selectCliente = document.getElementById('cliente_id');
+    if (selectCliente && clienteId) {
+      selectCliente.value = String(clienteId);
+      await carregarVeiculosDoCliente(clienteId);
+
+      if (veiculoId) {
+        const selectVeiculo = document.getElementById('veiculo_id');
+        if (selectVeiculo) {
+          selectVeiculo.value = String(veiculoId);
+        }
+      }
+
+      const dataInput = document.getElementById('data_agendada');
+      if (dataInput) {
+        dataInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        dataInput.focus();
+      }
+
+      Swal.fire({
+        icon: 'info',
+        title: 'Novo Slot de Horário',
+        text: 'Cliente e veículo pré-selecionados. Escolha a data e o horário disponível desejados para o novo agendamento.',
+        timer: 3500,
+        showConfirmButton: false,
+        customClass: { popup: 'rounded-2xl font-sans' }
+      });
+    }
   }
 
   async function alterarStatusEvento(novoStatus) {
     if (!eventoSelecionadoId) return;
 
     if (novoStatus === 'cancelado') {
+      const agoraEv = new Date();
+      const hojeStrEv = agoraEv.toLocaleDateString('en-CA');
+      const horaAtualStrEv = agoraEv.toTimeString().substring(0, 5);
+      const dataEv = eventoSelecionadoProps?.dataAgendada || '';
+      const horaEv = eventoSelecionadoProps?.horarioInicio || '';
+      const ehPassado = dataEv < hojeStrEv || (dataEv === hojeStrEv && horaEv <= horaAtualStrEv);
+
+      const tituloModal = ehPassado ? 'Tratar / Cancelar Agendamento Passado' : 'Cancelar Agendamento';
+      const textoModal = ehPassado
+        ? 'Este agendamento é de uma data passada. O cancelamento registrará a ocorrência/não comparecimento no histórico do veículo e do cliente (datas passadas não abrem vagas para agendamento). Por favor, informe o motivo:'
+        : 'O agendamento será cancelado e o horário futuro será desocupado na agenda. Por favor, informe o motivo do cancelamento (obrigatório):';
+      const placeholderModal = ehPassado
+        ? 'Ex: Cliente não compareceu, cancelou com antecedência...'
+        : 'Ex: Cliente solicitou reagendamento, imprevisto com peças...';
+
       const { value: motivo, isConfirmed } = await Swal.fire({
-        title: 'Cancelar Agendamento',
-        text: 'O horário será liberado na agenda. Por favor, informe o motivo do cancelamento (obrigatório):',
+        title: tituloModal,
+        text: textoModal,
         input: 'textarea',
-        inputPlaceholder: 'Ex: Cliente não compareceu, cancelou com antecedência...',
+        inputPlaceholder: placeholderModal,
         inputAttributes: {
           'aria-label': 'Motivo do cancelamento'
         },
@@ -740,13 +871,19 @@
           Swal.fire({
             icon: 'success',
             title: 'Cancelado com Sucesso',
-            text: 'O horário foi desocupado no calendário.',
-            timer: 1500,
+            text: ehPassado
+              ? 'O agendamento do passado foi cancelado e arquivado no histórico. Datas passadas permanecem indisponíveis na agenda.'
+              : 'O agendamento foi cancelado e a data e horário foram liberados para novo agendamento.',
+            timer: 2000,
             showConfirmButton: false
           });
           fecharDetalheEvento();
           if (calendarInstance) {
             calendarInstance.refetchEvents();
+          }
+          const dataInput = document.getElementById('data_agendada');
+          if (dataInput && dataInput.value) {
+            carregarHorariosDisponiveis(dataInput.value);
           }
         } else {
           const txt = await res.text();
@@ -911,10 +1048,73 @@
       moreLinkHint: (n) => `Mostrar mais ${n} agendamentos`,
       noEventsText: 'Nenhum agendamento para exibir',
       events: '/agendamentos/calendario',
+      businessHours: [
+        {
+          daysOfWeek: [1, 2, 3, 4, 5], // Seg a Sex
+          startTime: '08:00',
+          endTime: '18:00'
+        },
+        {
+          daysOfWeek: [6], // Sábado
+          startTime: '08:00',
+          endTime: '12:00'
+        }
+      ],
+      datesSet: function(info) {
+        const titleEl = document.querySelector('.fc-toolbar-title');
+        if (titleEl && titleEl.textContent) {
+          let txt = titleEl.textContent;
+          // Garante primeira letra maiúscula do mês e 'de' minúsculo
+          txt = txt.replace(/\bDe\b/g, 'de');
+          txt = txt.charAt(0).toUpperCase() + txt.slice(1);
+          titleEl.textContent = txt;
+        }
+      },
       dateClick: function(info) {
+        const dataStr = info.dateStr.split('T')[0];
+        const agoraClick = new Date();
+        const hojeClickStr = agoraClick.toLocaleDateString('en-CA');
+        const horaAtualClickStr = agoraClick.toTimeString().substring(0, 5);
+
+        // Bloqueio de cliques em datas passadas
+        if (dataStr < hojeClickStr) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Data no Passado',
+            text: 'Não é possível agendar em datas passadas. O calendário retroativo permanece indisponível para novos agendamentos.',
+            confirmButtonColor: '#0284c7'
+          });
+          return;
+        }
+
+        // Bloqueio de cliques em horários passados do dia de hoje
+        if (info.dateStr.includes('T')) {
+          const horaStr = info.dateStr.split('T')[1].substring(0, 5);
+          if (dataStr === hojeClickStr && horaStr <= horaAtualClickStr) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Horário já Transcorrido',
+              text: 'Este horário de hoje já passou. Por favor, escolha um horário futuro.',
+              confirmButtonColor: '#0284c7'
+            });
+            return;
+          }
+        }
+
+        const [ano, mes, dia] = dataStr.split('-').map(Number);
+        const dt = new Date(ano, mes - 1, dia, 12, 0, 0);
+        if (dt.getDay() === 0) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Oficina Fechada aos Domingos',
+            text: 'A oficina não abre aos domingos. Por favor, escolha uma data entre segunda-feira e sábado.',
+            confirmButtonColor: '#0284c7'
+          });
+          return;
+        }
+
         const dataInput = document.getElementById('data_agendada');
         if (dataInput) {
-          const dataStr = info.dateStr.split('T')[0];
           dataInput.value = dataStr;
           carregarHorariosDisponiveis(dataStr);
 
@@ -934,6 +1134,7 @@
       eventClick: function(info) {
         const props = info.event.extendedProps;
         eventoSelecionadoId = info.event.id;
+        eventoSelecionadoProps = props;
 
         document.getElementById('eventoCliente').innerText = props.cliente;
         
@@ -1029,12 +1230,18 @@
         const ehFuturoEv = dataAgEv > hojeStrEv || (dataAgEv === hojeStrEv && hInicio > horaAtualStrEv);
 
         const divAcoes = document.getElementById('divAcoesEvento');
+        const divConcluidoInfo = document.getElementById('divEventoConcluidoInfo');
         const btnConcluir = document.getElementById('btnConcluirEvento');
         const btnCancelar = document.getElementById('btnCancelarEvento');
 
-        if (props.status === 'concluido' || props.status === 'cancelado') {
+        if (props.status === 'concluido') {
           divAcoes.classList.add('hidden');
+          if (divConcluidoInfo) divConcluidoInfo.classList.remove('hidden');
+        } else if (props.status === 'cancelado') {
+          divAcoes.classList.add('hidden');
+          if (divConcluidoInfo) divConcluidoInfo.classList.add('hidden');
         } else {
+          if (divConcluidoInfo) divConcluidoInfo.classList.add('hidden');
           divAcoes.classList.remove('hidden');
           if (ehFuturoEv) {
             btnConcluir.classList.add('hidden'); // Mecânico não tem máquina do tempo!
@@ -1065,6 +1272,36 @@
     });
 
     calendarInstance.render();
+
+    // Pré-selecionar cliente e veículo caso venham via parâmetro de URL (ex: botão "Novo Slot")
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramCliId = urlParams.get('cliente_id') || '<%= typeof clientePreSelecionado !== "undefined" && clientePreSelecionado ? clientePreSelecionado : "" %>';
+    const paramVeicId = urlParams.get('veiculo_id') || '<%= typeof veiculoPreSelecionado !== "undefined" && veiculoPreSelecionado ? veiculoPreSelecionado : "" %>';
+    
+    if (paramCliId) {
+      const selectCli = document.getElementById('cliente_id');
+      if (selectCli) {
+        selectCli.value = paramCliId;
+        carregarVeiculosDoCliente(paramCliId).then(() => {
+          if (paramVeicId) {
+            const selectVeic = document.getElementById('veiculo_id');
+            if (selectVeic) selectVeic.value = paramVeicId;
+          }
+          const dataInput = document.getElementById('data_agendada');
+          if (dataInput) {
+            dataInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            dataInput.focus();
+          }
+        });
+      }
+    }
+
+    // Atualização em tempo real do calendário a cada 60 segundos
+    setInterval(() => {
+      if (calendarInstance) {
+        calendarInstance.refetchEvents();
+      }
+    }, 60000);
   });
 </script>
 

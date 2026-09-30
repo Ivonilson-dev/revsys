@@ -39,7 +39,9 @@ class VeiculoController {
       return res.render('veiculos/index', {
         titulo: 'Gerenciamento de Veículos',
         veiculos,
-        busca: busca || ''
+        busca: busca || '',
+        erro: req.query.erro || null,
+        sucessoMsg: req.query.sucesso || null
       });
     } catch (error) {
       console.error('Erro ao listar veículos:', error);
@@ -259,6 +261,7 @@ class VeiculoController {
         pecas,
         servicos,
         oficinas,
+        erro: req.query.erro || null,
         sucesso
       });
     } catch (error) {
@@ -345,6 +348,25 @@ class VeiculoController {
         });
       }
 
+      // Validação anti-regressão de KM: Não permitir KM menor que o maior registro do histórico
+      const [maxTroca, maxServico] = await Promise.all([
+        RegistroTroca.max('km_na_troca', { where: { veiculo_id: id } }),
+        RegistroServico.max('km_no_servico', { where: { veiculo_id: id } })
+      ]);
+      const maxHistoricoKm = Math.max(maxTroca || 0, maxServico || 0);
+
+      if (kmInt < maxHistoricoKm) {
+        const marcas = await MarcaVeiculo.findAll({ order: [['nome', 'ASC']] });
+        const modelos = await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }], order: [['nome', 'ASC']] });
+        return res.render('veiculos/editar', {
+          titulo: `Editar Veículo: ${veiculo.placa}`,
+          veiculo,
+          marcas,
+          modelos,
+          erro: `Inconsistência lógica: A quilometragem informada (${kmInt.toLocaleString('pt-BR')} km) não pode ser inferior ao maior registro histórico de manutenção deste veículo (${maxHistoricoKm.toLocaleString('pt-BR')} km).`
+        });
+      }
+
       // Validar placa única se mudou
       if (placaLimpa !== veiculo.placa) {
         const veiculoExistente = await Veiculo.findOne({ where: { placa: placaLimpa } });
@@ -384,16 +406,33 @@ class VeiculoController {
     try {
       const veiculo = await Veiculo.findByPk(id);
       if (!veiculo) {
-        return res.status(404).send('Veículo não encontrado');
+        return res.redirect('/veiculos?erro=Veículo não encontrado.');
       }
 
       const clienteId = veiculo.cliente_id;
+
+      // Consistência de Dados (RF / Regra de Negócio):
+      // Um veículo não pode ser excluído se possuir histórico de trocas de peças, serviços ou agendamentos
+      const [totalTrocas, totalServicos, totalAgendamentos] = await Promise.all([
+        RegistroTroca.count({ where: { veiculo_id: id } }),
+        RegistroServico.count({ where: { veiculo_id: id } }),
+        Agendamento.count({ where: { veiculo_id: id } })
+      ]);
+
+      if (totalTrocas > 0 || totalServicos > 0 || totalAgendamentos > 0) {
+        const motivos = [];
+        if (totalTrocas > 0) motivos.push(`${totalTrocas} registro(s) de troca de peça`);
+        if (totalServicos > 0) motivos.push(`${totalServicos} serviço(s) executado(s)`);
+        if (totalAgendamentos > 0) motivos.push(`${totalAgendamentos} agendamento(s)`);
+        return res.redirect(`/veiculos/${id}?erro=Não é possível excluir este veículo pois existem ${motivos.join(', ')} vinculados ao seu histórico.`);
+      }
+
       await veiculo.destroy();
 
       return res.redirect(`/clientes/${clienteId}?sucesso=Veículo removido com sucesso!`);
     } catch (error) {
       console.error('Erro ao deletar veículo:', error);
-      return res.status(500).send('Erro interno do servidor');
+      return res.redirect(`/veiculos/${id}?erro=Não foi possível excluir o veículo: restrição de integridade no banco de dados.`);
     }
   }
 }

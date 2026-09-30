@@ -25,10 +25,16 @@ class PainelController {
     }
 
     try {
-      // 1. Agendamentos de hoje
-      const hojeStr = new Date().toISOString().split('T')[0];
+      // Auto-concluir agendamentos confirmados vencidos
+      await AgendamentoController.autoConcluirAgendamentosVencidos();
+
+      // 1. Agendamentos de hoje (ignora cancelados para liberar a data/horário)
+      const hojeStr = new Date().toLocaleDateString('en-CA');
       const agendamentosHoje = await Agendamento.findAll({
-        where: { data_agendada: hojeStr },
+        where: { 
+          data_agendada: hojeStr,
+          status: { [Op.ne]: 'cancelado' }
+        },
         include: [
           { 
             model: Cliente, 
@@ -110,6 +116,7 @@ class PainelController {
       for (const veiculoId in ultimasTrocas) {
         let veiculoAtrasado = false;
         let veiculoInfo = null;
+        const itensAtrasados = [];
 
         for (const pecaId in ultimasTrocas[veiculoId]) {
           const troca = ultimasTrocas[veiculoId][pecaId];
@@ -118,6 +125,14 @@ class PainelController {
 
           if (statusAlerta.status === 'vencido') {
             veiculoAtrasado = true;
+            const kmPrevisto = troca.km_previsto_proximo;
+            const kmExcedido = (kmPrevisto && veiculoInfo.km_atual > kmPrevisto) ? (veiculoInfo.km_atual - kmPrevisto) : 0;
+            itensAtrasados.push({
+              peca: troca.peca,
+              troca,
+              statusAlerta,
+              kmExcedido
+            });
           }
 
           // Se estiver nos próximos 7 dias por data
@@ -136,7 +151,32 @@ class PainelController {
         }
 
         if (veiculoAtrasado && veiculoInfo) {
-          veiculosAtrasados.push(veiculoInfo);
+          const nomeCliente = veiculoInfo.cliente?.usuario?.nome || 'Cliente';
+          const placaFormatada = veiculoInfo.placa;
+          const modeloStr = veiculoInfo.modelo ? `${veiculoInfo.modelo.marca ? veiculoInfo.modelo.marca.nome + ' ' : ''}${veiculoInfo.modelo.nome}` : 'Veículo';
+          const kmFormatado = Number(veiculoInfo.km_atual).toLocaleString('pt-BR');
+          const listaPecas = itensAtrasados.map(i => i.peca.nome).join(', ');
+
+          const msgWhats = `Olá ${nomeCliente}, tudo bem? Aqui é da oficina AUTEC.\n\nNotamos que o seu veículo ${modeloStr} (Placa ${placaFormatada}) atingiu ${kmFormatado} km e está com a manutenção preventiva de: *${listaPecas}* com a quilometragem ou período estipulado ultrapassado.\n\nA realização desta manutenção é essencial para a conservação e segurança do veículo. Gostaríamos de convidá-lo a agendar uma revisão conosco. Qual o melhor dia e horário para você? Estamos à disposição!`;
+
+          let telWhats = veiculoInfo.cliente?.telefone_whatsapp ? String(veiculoInfo.cliente.telefone_whatsapp).replace(/\D/g, '') : '';
+          if (telWhats.length === 10 || telWhats.length === 11) {
+            telWhats = '55' + telWhats;
+          }
+
+          veiculosAtrasados.push({
+            id: veiculoInfo.id,
+            placa: veiculoInfo.placa,
+            km_atual: veiculoInfo.km_atual,
+            cliente_id: veiculoInfo.cliente_id,
+            cliente: veiculoInfo.cliente,
+            modelo: veiculoInfo.modelo,
+            itensAtrasados,
+            telefone_whatsapp: veiculoInfo.cliente?.telefone_whatsapp,
+            telefone_limpo: telWhats,
+            whatsapp_url: telWhats ? `https://wa.me/${telWhats}?text=${encodeURIComponent(msgWhats)}` : null,
+            whatsapp_mensagem: msgWhats
+          });
         }
       }
 

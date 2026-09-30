@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 const { Veiculo, RegistroTroca, Peca, MarcaPeca, Cliente, Usuario, ModeloVeiculo, MarcaVeiculo, Agendamento, Oficina, Servico } = require('../../models');
 const { calcularStatusAlerta } = require('../utils/alertas');
+const AgendamentoController = require('./AgendamentoController');
 
 class RelatorioController {
   // GET /relatorios
@@ -150,11 +151,25 @@ class RelatorioController {
         const statusAlerta = calcularStatusAlerta(troca, veiculo.km_atual);
 
         if (statusAlerta.status === 'vencido') {
+          const nomeCliente = veiculo.cliente?.usuario?.nome || 'Cliente';
+          const placaFormatada = veiculo.placa;
+          const modeloStr = veiculo.modelo ? `${veiculo.modelo.marca ? veiculo.modelo.marca.nome + ' ' : ''}${veiculo.modelo.nome}` : 'Veículo';
+          const kmFormatado = Number(veiculo.km_atual).toLocaleString('pt-BR');
+          const pecaNome = troca.peca ? troca.peca.nome : 'Peça';
+
+          const msgWhats = `Olá ${nomeCliente}, tudo bem? Aqui é da oficina AUTEC.\n\nNotamos que o seu veículo ${modeloStr} (Placa ${placaFormatada}) atingiu ${kmFormatado} km e está com a manutenção preventiva de: *${pecaNome}* com a quilometragem ou período estipulado ultrapassado.\n\nA realização desta manutenção é essencial para a conservação e segurança do veículo. Gostaríamos de convidá-lo a agendar uma revisão conosco. Qual o melhor dia e horário para você? Estamos à disposição!`;
+
+          let telWhats = veiculo.cliente?.telefone_whatsapp ? String(veiculo.cliente.telefone_whatsapp).replace(/\D/g, '') : '';
+          if (telWhats.length === 10 || telWhats.length === 11) {
+            telWhats = '55' + telWhats;
+          }
+
           itensVencidos.push({
             veiculo,
             peca: troca.peca,
             troca,
-            alerta: statusAlerta
+            alerta: statusAlerta,
+            whatsapp_url: telWhats ? `https://wa.me/${telWhats}?text=${encodeURIComponent(msgWhats)}` : null
           });
         }
       }
@@ -238,12 +253,13 @@ class RelatorioController {
   // GET /relatorios/agendamentos
   static async relatorioAgendamentos(req, res) {
     const { tipo } = req.query; // 'dia' ou 'mes'
-    const hojeStr = new Date().toISOString().split('T')[0];
+    const hojeStr = new Date().toLocaleDateString('en-CA');
     
     let whereClause = {};
     let subTitulo = 'Agendamentos';
 
     try {
+      await AgendamentoController.autoConcluirAgendamentosVencidos();
       if (tipo === 'mes') {
         const inicioMes = new Date();
         inicioMes.setDate(1);

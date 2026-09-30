@@ -20,7 +20,7 @@
 
     <!-- Filtros de Busca -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
-      <form action="/agendamentos" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end">
+      <form action="/agendamentos" method="GET" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 items-end">
         
         <!-- Filtro Data -->
         <div>
@@ -53,12 +53,32 @@
           </select>
         </div>
 
+        <!-- Filtro Veículo -->
+        <div>
+          <label for="veiculo_id" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Veículo</label>
+          <select id="veiculo_id" name="veiculo_id"
+                  class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2 px-3 text-sm focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
+            <option value="">Todos os Veículos</option>
+            <% if (typeof veiculos !== 'undefined') { %>
+              <% veiculos.forEach(v => { %>
+                <% 
+                  const descMod = v.modelo ? `${v.modelo.marca ? v.modelo.marca.nome + ' ' : ''}${v.modelo.nome}` : 'Modelo N/I';
+                  const descDono = v.cliente && v.cliente.usuario ? ` (${v.cliente.usuario.nome})` : '';
+                %>
+                <option value="<%= v.id %>" <%= filtros.veiculo_id == v.id ? 'selected' : '' %>>
+                  <%= formatarPlaca(v.placa) %> - <%= descMod %><%= descDono %>
+                </option>
+              <% }) %>
+            <% } %>
+          </select>
+        </div>
+
         <!-- Botões -->
         <div class="flex gap-2">
           <button type="submit" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition-all shadow-sm">
             Filtrar
           </button>
-          <% if (filtros.data || filtros.status || filtros.cliente_id) { %>
+          <% if (filtros.data || filtros.status || filtros.cliente_id || filtros.veiculo_id) { %>
             <a href="/agendamentos" class="flex-1 text-center border border-slate-300 hover:bg-slate-50 text-slate-700 py-2.5 px-4 rounded-xl text-sm transition-all font-semibold">
               Limpar
             </a>
@@ -100,7 +120,12 @@
                     telAg = '55' + telAg;
                   }
                   const dataFormatada = formatarData(a.data_agendada);
-                  const msgWhatsAg = `Olá ${a.cliente && a.cliente.usuario ? a.cliente.usuario.nome : ''}, tudo bem? Entramos em contato da oficina referente ao seu agendamento do dia ${dataFormatada} das ${a.horario_agendado} às ${a.horario_fim || ''}.`;
+                  const msgWhatsAg = `Olá ${a.cliente && a.cliente.usuario ? a.cliente.usuario.nome : ''}, tudo bem? Aqui é da oficina AUTEC, referente ao seu agendamento do dia ${dataFormatada} das ${a.horario_agendado} às ${a.horario_fim || ''}.`;
+                  
+                  const agoraItem = new Date();
+                  const hojeStrItem = agoraItem.toLocaleDateString('en-CA');
+                  const horaAtualStrItem = agoraItem.toTimeString().substring(0, 5);
+                  const ehAgendamentoFuturo = a.data_agendada > hojeStrItem || (a.data_agendada === hojeStrItem && a.horario_agendado > horaAtualStrItem);
                 %>
                 <tr class="hover:bg-slate-50/70 transition-colors">
                   <td class="p-4 pl-6">
@@ -133,7 +158,11 @@
                   <td class="p-4">
                     <div>
                       <% if (a.status === 'agendado') { %>
-                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-100 text-sky-800 border border-sky-200 uppercase">Agendado</span>
+                        <% if (!ehAgendamentoFuturo) { %>
+                          <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 uppercase" title="Agendamento de data passada não tratado">Pendente Passado</span>
+                        <% } else { %>
+                          <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-100 text-sky-800 border border-sky-200 uppercase">Agendado</span>
+                        <% } %>
                       <% } else if (a.status === 'concluido') { %>
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase">Concluído</span>
                       <% } else { %>
@@ -166,12 +195,6 @@
                     <% } %>
                   </td>
                   <td class="p-4 pr-6 text-right space-x-2">
-                    <% 
-                      const agoraItem = new Date();
-                      const hojeStrItem = agoraItem.toLocaleDateString('en-CA');
-                      const horaAtualStrItem = agoraItem.toTimeString().substring(0, 5);
-                      const ehAgendamentoFuturo = a.data_agendada > hojeStrItem || (a.data_agendada === hojeStrItem && a.horario_agendado > horaAtualStrItem);
-                    %>
                     <% if (a.status === 'agendado' && ['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
                       <% if (a.confirmacao_presenca !== 'confirmada') { %>
                         <!-- Confirmar Presença (Dar Baixa) -->
@@ -186,10 +209,15 @@
                           Concluir
                         </button>
                       <% } %>
-                      <!-- Cancelar (Horário liberado imediatamente, exige motivo) -->
-                      <button onclick="cancelarAgendamento(<%= a.id %>)" class="text-xs font-bold text-red-700 hover:text-red-800 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 transition-colors">
-                        Cancelar
+                      <!-- Cancelar (Se for passado, arquiva ocorrência sem abrir vaga no passado; se for futuro, libera vaga) -->
+                      <button onclick="cancelarAgendamento(<%= a.id %>, <%= !ehAgendamentoFuturo %>)" class="text-xs font-bold text-red-700 hover:text-red-800 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 transition-colors" title="<%= !ehAgendamentoFuturo ? 'Tratar / Arquivar agendamento passado como cancelado' : 'Cancelar agendamento e liberar horário' %>">
+                        <%= !ehAgendamentoFuturo ? 'Cancelar (Passado)' : 'Cancelar' %>
                       </button>
+                    <% } else if (a.status === 'concluido' && ['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
+                      <a href="/agendamentos/calendario-tela?cliente_id=<%= a.cliente_id %>&veiculo_id=<%= a.veiculo_id %>" class="text-xs font-bold text-brand-700 hover:text-brand-800 bg-brand-50 hover:bg-brand-100 px-2.5 py-1.5 rounded-lg border border-brand-200 transition-colors inline-flex items-center gap-1 shadow-sm" title="Cliente precisa de mais slots? Agendar novo horário">
+                        <i data-lucide="calendar-plus" class="w-3.5 h-3.5 text-brand-600"></i>
+                        <span>Novo Slot</span>
+                      </a>
                     <% } else { %>
                       <span class="text-xs text-slate-400 italic">Sem ações</span>
                     <% } %>
@@ -215,7 +243,12 @@
                 telAgMobile = '55' + telAgMobile;
               }
               const dataFormatadaMob = formatarData(a.data_agendada);
-              const msgWhatsAgMob = `Olá ${a.cliente && a.cliente.usuario ? a.cliente.usuario.nome : ''}, tudo bem? Entramos em contato da oficina referente ao seu agendamento do dia ${dataFormatadaMob} das ${a.horario_agendado} às ${a.horario_fim || ''}.`;
+              const msgWhatsAgMob = `Olá ${a.cliente && a.cliente.usuario ? a.cliente.usuario.nome : ''}, tudo bem? Aqui é da oficina AUTEC, referente ao seu agendamento do dia ${dataFormatadaMob} das ${a.horario_agendado} às ${a.horario_fim || ''}.`;
+              
+              const agoraMob = new Date();
+              const hojeStrMob = agoraMob.toLocaleDateString('en-CA');
+              const horaAtualStrMob = agoraMob.toTimeString().substring(0, 5);
+              const ehFuturoMob = a.data_agendada > hojeStrMob || (a.data_agendada === hojeStrMob && a.horario_agendado > horaAtualStrMob);
             %>
             <div class="p-4 sm:p-5 space-y-3 hover:bg-slate-50/70 transition-colors">
               <div class="flex items-center justify-between gap-2">
@@ -228,7 +261,11 @@
                   <% } %>
                 </span>
                 <% if (a.status === 'agendado') { %>
-                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 shrink-0">AGENDADO</span>
+                  <% if (!ehFuturoMob) { %>
+                    <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 shrink-0">PENDENTE PASSADO</span>
+                  <% } else { %>
+                    <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 shrink-0">AGENDADO</span>
+                  <% } %>
                 <% } else if (a.status === 'concluido') { %>
                   <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 shrink-0">CONCLUÍDO</span>
                 <% } else { %>
@@ -291,12 +328,6 @@
               </div>
 
               <!-- Ações no Mobile -->
-              <% 
-                const agoraMob = new Date();
-                const hojeStrMob = agoraMob.toLocaleDateString('en-CA');
-                const horaAtualStrMob = agoraMob.toTimeString().substring(0, 5);
-                const ehFuturoMob = a.data_agendada > hojeStrMob || (a.data_agendada === hojeStrMob && a.horario_agendado > horaAtualStrMob);
-              %>
               <% if (a.status === 'agendado' && ['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
                 <div class="flex gap-2 pt-2.5 border-t border-slate-100 flex-wrap">
                   <% if (a.confirmacao_presenca !== 'confirmada') { %>
@@ -310,9 +341,17 @@
                       Concluir
                     </button>
                   <% } %>
-                  <button onclick="cancelarAgendamento(<%= a.id %>)" class="flex-1 text-center py-2 px-3 rounded-xl bg-red-50 border border-red-200 text-red-800 font-bold text-xs sm:text-sm active:scale-[0.98] transition-all">
-                    Cancelar
+                  <button onclick="cancelarAgendamento(<%= a.id %>, <%= !ehFuturoMob %>)" class="flex-1 text-center py-2 px-3 rounded-xl bg-red-50 border border-red-200 text-red-800 font-bold text-xs sm:text-sm active:scale-[0.98] transition-all">
+                    <%= !ehFuturoMob ? 'Cancelar (Passado)' : 'Cancelar' %>
                   </button>
+                </div>
+              <% } else if (a.status === 'concluido' && ['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
+                <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                  <span class="text-[11px] text-slate-500 font-medium">Tempo alocado concluído</span>
+                  <a href="/agendamentos/calendario-tela?cliente_id=<%= a.cliente_id %>&veiculo_id=<%= a.veiculo_id %>" class="text-xs font-bold text-brand-700 hover:text-brand-800 bg-brand-50 hover:bg-brand-100 px-2.5 py-1.5 rounded-lg border border-brand-200 transition-colors inline-flex items-center gap-1">
+                    <i data-lucide="calendar-plus" class="w-3.5 h-3.5 text-brand-600"></i>
+                    <span>Agendar Novo Slot</span>
+                  </a>
                 </div>
               <% } %>
             </div>
@@ -364,12 +403,20 @@
     }
   }
 
-  async function cancelarAgendamento(id) {
+  async function cancelarAgendamento(id, ehPassado = false) {
+    const titulo = ehPassado ? 'Tratar / Cancelar Agendamento Passado' : 'Cancelar Agendamento';
+    const texto = ehPassado
+      ? 'Este agendamento pertence ao passado. O cancelamento registrará a ocorrência/não comparecimento no histórico do veículo e do cliente (datas passadas não abrem vagas para agendamento). Por favor, informe o motivo:'
+      : 'O agendamento será cancelado e o horário futuro será desocupado na agenda da oficina. Por favor, especifique o motivo do cancelamento (obrigatório):';
+    const placeholder = ehPassado
+      ? 'Ex: Cliente não compareceu, cancelou antes, serviço dispensado...'
+      : 'Ex: Cliente solicitou reagendamento, imprevisto com peças...';
+
     const { value: motivo, isConfirmed } = await Swal.fire({
-      title: 'Cancelar Agendamento',
-      text: 'O horário será liberado para outros clientes. Por favor, especifique o motivo do cancelamento (obrigatório):',
+      title: titulo,
+      text: texto,
       input: 'textarea',
-      inputPlaceholder: 'Ex: Cliente solicitou reagendamento, imprevisto com peças...',
+      inputPlaceholder: placeholder,
       inputAttributes: {
         'aria-label': 'Motivo do cancelamento'
       },
@@ -409,8 +456,10 @@
         Swal.fire({
           icon: 'success',
           title: 'Agendamento Cancelado',
-          text: 'O horário foi desocupado com sucesso.',
-          timer: 1500,
+          text: ehPassado
+            ? 'O agendamento do passado foi cancelado e arquivado no histórico. Datas passadas permanecem indisponíveis para novos agendamentos.'
+            : 'O agendamento foi cancelado e a data e horário foram liberados para novo agendamento.',
+          timer: 2000,
           showConfirmButton: false
         }).then(() => {
           window.location.reload();

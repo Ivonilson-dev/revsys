@@ -6,23 +6,28 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Veiculo.belongsTo(models.Cliente, {
         foreignKey: 'cliente_id',
-        as: 'cliente'
+        as: 'cliente',
+        onDelete: 'RESTRICT'
       });
       Veiculo.belongsTo(models.ModeloVeiculo, {
         foreignKey: 'modelo_id',
-        as: 'modelo'
+        as: 'modelo',
+        onDelete: 'RESTRICT'
       });
       Veiculo.hasMany(models.RegistroTroca, {
         foreignKey: 'veiculo_id',
-        as: 'registros_troca'
+        as: 'registros_troca',
+        onDelete: 'RESTRICT'
       });
       Veiculo.hasMany(models.RegistroServico, {
         foreignKey: 'veiculo_id',
-        as: 'registros_servico'
+        as: 'registros_servico',
+        onDelete: 'RESTRICT'
       });
       Veiculo.hasMany(models.Agendamento, {
         foreignKey: 'veiculo_id',
-        as: 'agendamentos'
+        as: 'agendamentos',
+        onDelete: 'RESTRICT'
       });
     }
   }

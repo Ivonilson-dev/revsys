@@ -70,10 +70,15 @@ router.post('/agendamentos/:id/confirmar-presenca', estaAutenticado, temPapel('a
 // 8. Cadastros Auxiliares (Marcas, Modelos, Peças, Serviços, Oficinas)
 router.get('/cadastros', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.exibirPainelCadastros);
 router.post('/marcas-veiculo', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.criarMarcaVeiculo);
+router.delete('/marcas-veiculo/:id', estaAutenticado, temPapel('admin', 'gerente'), CadastroBaseController.deletarMarcaVeiculo);
 router.post('/modelos-veiculo', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.criarModeloVeiculo);
+router.delete('/modelos-veiculo/:id', estaAutenticado, temPapel('admin', 'gerente'), CadastroBaseController.deletarModeloVeiculo);
 router.post('/marcas-peca', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.criarMarcaPeca);
+router.delete('/marcas-peca/:id', estaAutenticado, temPapel('admin', 'gerente'), CadastroBaseController.deletarMarcaPeca);
 router.post('/pecas', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.criarPeca);
+router.delete('/pecas/:id', estaAutenticado, temPapel('admin', 'gerente'), CadastroBaseController.deletarPeca);
 router.post('/oficinas', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.criarOficina);
+router.delete('/oficinas/:id', estaAutenticado, temPapel('admin', 'gerente'), CadastroBaseController.deletarOficina);
 router.post('/servicos', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.criarServico);
 router.put('/servicos/:id', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.editarServico);
 router.delete('/servicos/:id', estaAutenticado, temPapel('admin', 'gerente'), CadastroBaseController.deletarServico);

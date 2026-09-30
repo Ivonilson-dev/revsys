@@ -31,7 +31,7 @@
             <span>Editar Veículo</span>
           </a>
           <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
-            <form action="/veiculos/<%= veiculo.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Todos os registros de trocas de peças e serviços deste veículo serão apagados de forma permanente!', 'Excluir Veículo?'); return false;" class="w-full sm:w-auto inline">
+            <form action="/veiculos/<%= veiculo.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir este veículo? A exclusão só será permitida se não houver manutenções, peças ou serviços vinculados ao seu histórico.', 'Excluir Veículo?'); return false;" class="w-full sm:w-auto inline">
               <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-bold py-2.5 px-4 rounded-xl text-sm sm:text-base transition-all shadow-sm">
                 <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
                 <span>Excluir Veículo</span>
@@ -43,6 +43,13 @@
     </div>
 
     <!-- Alertas Globais -->
+    <% if (erroMsg) { %>
+      <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-800 text-base font-medium flex items-start space-x-2 shadow-sm transition-all duration-300">
+        <i data-lucide="alert-circle" class="w-5 h-5 shrink-0 mt-0.5 text-red-600"></i>
+        <span><%= erroMsg %></span>
+      </div>
+    <% } %>
+
     <% if (sucessoMsg) { %>
       <div id="alerta-global" class="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-800 text-base font-medium flex items-start space-x-2 shadow-sm transition-all duration-300">
         <i data-lucide="check-circle" class="w-5 h-5 shrink-0 mt-0.5 text-green-600"></i>

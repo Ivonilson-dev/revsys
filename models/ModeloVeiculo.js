@@ -6,11 +6,13 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       ModeloVeiculo.belongsTo(models.MarcaVeiculo, {
         foreignKey: 'marca_veiculo_id',
-        as: 'marca'
+        as: 'marca',
+        onDelete: 'RESTRICT'
       });
       ModeloVeiculo.hasMany(models.Veiculo, {
         foreignKey: 'modelo_id',
-        as: 'veiculos'
+        as: 'veiculos',
+        onDelete: 'RESTRICT'
       });
     }
   }
