@@ -58,9 +58,11 @@ RF-31	Termo de Consentimento LGPD	Checkbox obrigatório no cadastro: "Declaro qu
 RF-32	Painel de consentimento	Cliente pode revogar consentimento na área do cliente. Sistema inativa cadastro para novos contatos, mantendo histórico.
 MÓDULO 8 – REGRAS DE NEGÓCIO ADICIONAIS
 Código	Requisito	Descrição
-RF-33	Atualização do KM do veículo	Ao registrar troca, sistema pergunta se deve atualizar o KM atual do veículo.
-RF-34	Configuração de Horário Comercial	Agendamento respeita horário configurável (ex: 08-18h).
-RF-35	Sistema novo – dados iniciais	Atendente cadastra primeiros veículos manualmente; opcional tela de entrada em massa.
+RF-33	Atualização e Proteção Anti-Regressão de KM	Ao registrar troca ou serviço, o sistema permite atualizar o KM atual do veículo. Valida estritamente para impedir KM inferior ao atual já registrado. Em caso de discrepância, aborta via transação SQL com rollback e exibe alerta amigável na interface (SweetAlert2 e banner Tailwind) sem expor termos de desenvolvedor ("Inconsistência lógica").
+RF-34	Configuração de Horário Comercial (AUTEC)	Agendamento respeita expediente (08:00 às 18:00), fechamento no almoço (12:00 às 14:00), sábados das 08:00 às 12:00 (início permitido até às 10:00) e domingo totalmente fechado.
+RF-35	Fila de Confirmação de Presença (Janela 24h)	Alerta sequencial no Dashboard para agendamentos nas próximas 24h. O operador pode solicitar via WhatsApp, adiar por 60 min ou confirmar presença. Agendamentos cancelados ou concluídos são rigorosamente excluídos da fila e dos modais.
+RF-36	Notificações Detalhadas de Agendamento	Ao confirmar presença de um agendamento, o sistema gera dinamicamente uma notificação interna para a equipe contendo o modelo do veículo, a placa, o nome do cliente proprietário, a data e a hora da revisão.
+RF-37	Resiliência e Tratamento Amigável de Falhas de Banco	Caso o servidor MySQL esteja inacessível (conexão recusada, timeout ou offline), o sistema captura o erro globalmente e apresenta uma tela amigável (views/erros/banco.ejs) orientando o usuário a verificar a internet e contatar o suporte, sem exibir stack trace tanto em dev quanto em prod.
 3. REQUISITOS NÃO FUNCIONAIS (RNF)
 DESEMPENHO E ESCALABILIDADE
 Código	Requisito	Descrição
@@ -137,11 +139,17 @@ POST /pecas            → criar
 POST /troca            → registrar troca
 GET  /troca/veiculo/:veiculo_id → histórico do veículo
 
+// Serviços
+POST /servicos/veiculo/:id → registrar serviço avulso no veículo
+POST /servicos/veiculo/:id/excluir/:servico_id → remover registro de serviço
+
 // Agendamentos
 GET  /agendamentos/calendario → dados para calendário (JSON)
 POST /agendamentos     → criar agendamento
-PUT  /agendamentos/:id → remarcar/cancelar/concluir
-GET  /agendamentos     → lista com filtros
+POST /agendamentos/:id/status → atualizar status (cancelar, concluir, reagendar)
+POST /agendamentos/:id/confirmar-presenca → confirmar presença e gerar notificação
+POST /agendamentos/:id/adiar-presenca → adiar alerta de presença por 60 min
+GET  /agendamentos     → lista com filtros por data, cliente e veículo
 
 // Cliente (área pública)
 GET  /cliente/veiculos → veículos do cliente logado
@@ -152,27 +160,26 @@ POST /cliente/solicitar-manutencao → solicitar serviço
 GET  /relatorios/vencidos → trocas vencidas
 GET  /relatorios/proximos → próximas trocas (7 dias)
 GET  /relatorios/agendamentos → agendamentos do dia/mês
+
+// Notificações
+GET  /notificacoes     → listagem de notificações internas
+POST /notificacoes/:id/lida → marcar notificação como lida
+
 6. ORIENTAÇÕES PARA AGENTES DE IA (IMPLEMENTAÇÃO)
-Backend: Utilize sequelize-cli para migrations. Defina os models com os nomes em português (ex: Veiculo, RegistroTroca). Nos seeders, crie um usuário admin padrão e algumas marcas/modelos comuns.
+Backend: Desenvolvido integralmente em TypeScript com tipagem estrita (`strict: true`). Modelos em `models/` usando Sequelize v6 com `declare`.
 
-Middlewares: estaAutenticado, temPapel('admin'), etc.
+Middlewares: `estaAutenticado`, `temPapel('admin', 'gerente', 'atendente', 'mecanico', 'cliente')`.
 
-Validação de CPF: use biblioteca cpf-cnpj-validator ou algoritmo próprio.
+Resiliência de Banco de Dados: Interceptador global em `src/utils/erros.ts` que captura `SequelizeConnectionRefusedError` e falhas de socket, renderizando tela amigável (`views/erros/banco.ejs`) com orientações de checagem de internet e contato com suporte, sem expor mensagens técnicas tanto em desenvolvimento quanto em produção.
 
-Criptografia de CPF: utilize crypto-js ou o recurso de criptografia do Sequelize (campo ENCRYPTED).
+Feedback e Tratamento de Erros no Frontend: Validações lógicas (como KM inferior ao atual do veículo) nunca devem estourar telas brancas com erro HTTP puro. Devem redirecionar com mensagens amigáveis e claras (`?erro=...`) sem jargões de desenvolvedor, acionando modais interativos SweetAlert2 e banners Tailwind CSS.
 
-Frontend (EJS + Tailwind):
+Validação de CPF e Criptografia: Validação de dígito verificador real; criptografia simétrica AES-256-CBC no banco e HMAC-SHA256 para Blind Index em consultas exatas.
 
-Parta sempre do mobile: flex-col, w-full, text-base.
-
-Use sm:, md:, lg: para expandir.
-
-Menu hambúrguer em mobile; barra horizontal em desktop.
-
-Botão WhatsApp fixo (bottom-right) com z-50.
-
-Calendário: FullCalendar com eventos carregados via fetch('/agendamentos/calendario').
-
-Máscaras: Implementar com imask ou vanilla-masker nos campos de CPF, telefone, placa.
-
-LGPD: Exibir aviso no rodapé de todas as páginas: "Este sistema coleta dados pessoais conforme a LGPD. Você tem direito à privacidade e pode revogar seu consentimento a qualquer momento."
+Frontend (EJS + Tailwind + Turbo Drive):
+- Mobile First com flexibilidade e responsividade completa.
+- Navegação instantânea SPA com Turbo Drive local (`/js/turbo.js`).
+- Calendário: FullCalendar v6 interativo com bloqueio de datas passadas, domingo e horário de almoço (12h às 14h).
+- Máscaras: Implementadas via JavaScript em CPF, telefone, placa e CEP.
+- Fila de Confirmação de Presença: Modais sequenciais de alerta no dashboard (24h antes) processando estritamente agendamentos com status "agendado" (agendamentos cancelados ou concluídos são sumariamente excluídos da fila).
+- Notificações de Agendamento: Notificações do tipo `lembrete_agendamento` geradas dinamicamente contendo modelo do veículo, placa, nome do proprietário, data e hora da revisão.

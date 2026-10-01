@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="turbo-visit-control" content="reload">
+  <meta name="turbo-cache" content="no-cache">
+  <title><%= typeof titulo !== 'undefined' ? titulo : 'Sistema Sem Acesso aos Dados | RevSys' %></title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Estilos Embutidos Autossuficientes (Garante renderização perfeita instantânea no Turbo ou sem Internet) -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f1f5f9;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+    }
+    .card-erro {
+      max-width: 36rem;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 1.5rem;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+      padding: 2.25rem;
+      text-align: center;
+    }
+    @media (min-width: 640px) {
+      .card-erro { padding: 2.75rem; }
+    }
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background-color: #fef3c7;
+      color: #b45309;
+      border: 1px solid #fde68a;
+      margin-bottom: 0.75rem;
+    }
+    .titulo-erro {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.5rem;
+    }
+    @media (min-width: 640px) {
+      .titulo-erro { font-size: 1.875rem; }
+    }
+    .desc-erro {
+      color: #475569;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+    .box-orientacoes {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 1rem;
+      padding: 1.25rem;
+      text-align: left;
+      margin-bottom: 1.5rem;
+    }
+    .box-orientacoes-titulo {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.875rem;
+    }
+    .lista-passos {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.875rem;
+    }
+    .item-passo {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.875rem;
+      color: #334155;
+    }
+    .icone-circulo {
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 0.125rem;
+    }
+    .icone-azul { background-color: #e0f2fe; color: #0284c7; }
+    .icone-verde { background-color: #dcfce7; color: #16a34a; }
+    .icone-ambar { background-color: #fef3c7; color: #d97706; }
+    .acoes-grupo {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+    @media (min-width: 640px) {
+      .acoes-grupo { flex-direction: row; }
+    }
+    .btn-principal {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background-color: #0052cc;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      border: none;
+      box-shadow: 0 4px 6px -1px rgba(0, 82, 204, 0.2);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .btn-principal:hover { background-color: #0047b3; }
+    .btn-secundario {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background-color: #ffffff;
+      color: #334155;
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      border: 1px solid #cbd5e1;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .btn-secundario:hover { background-color: #f8fafc; color: #0f172a; }
+    .icone-destaque-wrapper {
+      position: relative;
+      width: 5.5rem;
+      height: 5.5rem;
+      margin: 0 auto 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .icone-destaque-pulso {
+      position: absolute;
+      inset: 0;
+      border-radius: 1.25rem;
+      background-color: rgba(254, 243, 199, 0.8);
+      animation: pulsoSuave 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    .icone-destaque-caixa {
+      position: relative;
+      width: 4.5rem;
+      height: 4.5rem;
+      border-radius: 1rem;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.3);
+    }
+    @keyframes pulsoSuave {
+      0%, 100% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.08); }
+    }
+    .spin { animation: rodar 1s linear infinite; }
+    @keyframes rodar {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+
+  <!-- Tailwind CSS CDN para navegadores com script ativo -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+
+  <div class="card-erro">
+    
+    <!-- Ícone Animado com SVG Nativo Inline -->
+    <div class="icone-destaque-wrapper">
+      <div class="icone-destaque-pulso"></div>
+      <div class="icone-destaque-caixa">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+          <path d="M3 5v14a9 3 0 0 0 18 0V5"></path>
+          <path d="M3 12a9 3 0 0 0 18 0"></path>
+          <path d="M12 11l-3 5h6l-3 5"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Título e Subtítulo -->
+    <div class="badge-status">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      Instabilidade Temporária
+    </div>
+    
+    <h1 class="titulo-erro">
+      Sistema Sem Acesso aos Dados
+    </h1>
+    
+    <p class="desc-erro">
+      O sistema está <strong>momentaneamente sem comunicação com a base de dados</strong>. Nenhum dado foi perdido ou alterado.
+    </p>
+
+    <!-- Card de Orientações Práticas com SVGs Nativos -->
+    <div class="box-orientacoes">
+      <div class="box-orientacoes-titulo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0052cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span>O que você deve fazer agora:</span>
+      </div>
+
+      <ul class="lista-passos">
+        <li class="item-passo">
+          <div class="icone-circulo icone-azul">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+              <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+              <line x1="12" y1="20" x2="12.01" y2="20"></line>
+            </svg>
+          </div>
+          <div>
+            <strong style="color: #0f172a;">1. Verifique sua conexão com a Internet:</strong>
+            <p style="color: #64748b; margin-top: 0.125rem;">Confirme se o seu computador, notebook ou smartphone está com acesso ativo à rede Wi-Fi ou cabo de rede.</p>
+          </div>
+        </li>
+
+        <li class="item-passo">
+          <div class="icone-circulo icone-verde">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+              <path d="M21 3v5h-5"></path>
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+              <path d="M8 16H3v5"></path>
+            </svg>
+          </div>
+          <div>
+            <strong style="color: #0f172a;">2. Aguarde alguns segundos e tente novamente:</strong>
+            <p style="color: #64748b; margin-top: 0.125rem;">Pode se tratar de uma oscilação momentânea de rede ou reinicialização preventiva de rotina do servidor.</p>
+          </div>
+        </li>
+
+        <li class="item-passo">
+          <div class="icone-circulo icone-ambar">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+              <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+            </svg>
+          </div>
+          <div>
+            <strong style="color: #0f172a;">3. Entre em contato com o suporte:</strong>
+            <p style="color: #64748b; margin-top: 0.125rem;">Se a sua conexão estiver operando normalmente e o aviso persistir, entre em contato imediatamente com o <strong>suporte técnico</strong> para rápido restabelecimento.</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Botões de Ação Imediata -->
+    <div class="acoes-grupo">
+      <button onclick="recarregarPagina(this)" class="btn-principal" id="btn-recarregar">
+        <svg id="icone-btn-refresh" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
+          <path d="M21 3v5h-5"></path>
+        </svg>
+        <span id="texto-btn-refresh">Tentar Conectar Novamente</span>
+      </button>
+
+      <a href="/" class="btn-secundario">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <span>Voltar ao Início</span>
+      </a>
+    </div>
+
+    <!-- Rodapé amigável -->
+    <div style="margin-top: 1.5rem; font-size: 0.75rem; color: #94a3b8;">
+      RevSys &bull; Sistema de Gestão Preventiva AUTEC
+    </div>
+
+  </div>
+
+  <script>
+    function recarregarPagina(btn) {
+      const icone = document.getElementById('icone-btn-refresh');
+      const texto = document.getElementById('texto-btn-refresh');
+      if (icone) icone.classList.add('spin');
+      if (texto) texto.textContent = 'Verificando conexão...';
+      if (btn) btn.disabled = true;
+
+      // Executa recarregamento nativo do navegador ignorando cache
+      setTimeout(function() {
+        window.location.reload();
+      }, 500);
+    }
+  </script>
+</body>
+</html>

@@ -659,7 +659,7 @@ ON DUPLICATE KEY UPDATE `cliente_id` = VALUES(`cliente_id`);
 -- Notificações de Teste
 INSERT INTO `notificacoes` (`id`, `tipo`, `mensagem`, `lida`, `usuario_id`) VALUES
 (1, 'alerta_troca', 'O veículo Toyota Corolla (BRA2E19) está com a troca de Óleo 5W30 GTX vencida por quilometragem.', 0, 1),
-(2, 'lembrete_agendamento', 'Agendamento de revisão confirmado para o veículo BRA2E19 no dia 05/10/2026 às 09:00.', 0, 3),
+(2, 'lembrete_agendamento', 'Agendamento de revisão confirmado para o veículo Toyota Corolla (BRA2E19) do cliente Carlos Eduardo Silva no dia 05/10/2026 às 09:00.', 0, 3),
 (3, 'solicitacao_cliente', 'O cliente Carlos Eduardo Silva solicitou revisão no Onix (ABC1D23).', 0, 2)
 ON DUPLICATE KEY UPDATE `usuario_id` = VALUES(`usuario_id`);
 

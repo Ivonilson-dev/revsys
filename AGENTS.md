@@ -1,26 +1,26 @@
-# Regras Invioláveis de Desenvolvimento (Rules) - RevSys
+# Diretrizes e Regras do Projeto RevSys (AGENTS.md)
 
-Este documento estabelece as **regras obrigatórias e invioláveis** que qualquer agente de IA ou desenvolvedor deve seguir rigorosamente ao dar manutenção ou expandir o sistema **RevSys**.
+Este documento define as regras obrigatórias e invioláveis para todos os agentes de IA, janelas de contexto e desenvolvedores atuando no repositório **RevSys**.
 
 ---
 
 ## 🛑 Regra 1: Idioma das Interações e Documentação
 - **Comunicação estritamente em Português do Brasil (pt-br)**.
-- Todos os comentários de código, mensagens de commit/resumo e documentações devem ser escritos em pt-br.
+- Todos os comentários de código, mensagens, resumos técnicos e documentações devem ser escritos em pt-br.
 
 ---
 
 ## 🛑 Regra 2: Restrição Estrita e Proibição de Comandos Git por Agentes
-- **APENAS o programador humano pode executar comandos no Git** (criação de branchs, commits, stashes, checkout, push, pull, status, etc.).
-- **Os agentes de IA JAMAIS devem executar qualquer tipo de ação ou comando Git** no terminal.
-- Caso sejam necessárias ações no versionamento, o agente deve apenas instruir ou avisar o usuário para que o mesmo execute os comandos manualmente na pasta do projeto (`c:\Projetos\RevSys\`).
+- **APENAS o programador humano pode executar comandos no Git** (criação de branches, commits, stashes, checkout, push, pull, status, etc.).
+- **Os agentes de IA JAMAIS devem executar qualquer tipo de comando Git no terminal** (`git status`, `git commit`, `git add`, `git branch`, etc. são terminantemente proibidos).
+- Caso sejam necessárias ações no versionamento, o agente deve apenas instruir amigavelmente o usuário para que ele execute os comandos no terminal.
 
 ---
 
 ## 🛑 Regra 3: Ordenação Alfabética Obrigatória em Listas e Selects (RF-02)
 - **TODOS** os selects, dropdowns, tabelas e listagens de dados cadastrais (Marcas de Veículo, Modelos de Veículo, Marcas de Peça, Peças, Serviços, Clientes, Oficinas) **DEVEM** ser retornados obrigatoriamente ordenados por nome em ordem alfabética (`order: [['nome', 'ASC']]`).
 - Na consulta de **Peças**, ordene prioritariamente pelo nome do fabricante/marca e secundariamente pelo nome da peça:
-  ```javascript
+  ```typescript
   order: [
     [{ model: MarcaPeca, as: 'marca' }, 'nome', 'ASC'],
     ['nome', 'ASC']
@@ -78,4 +78,3 @@ Este documento estabelece as **regras obrigatórias e invioláveis** que qualque
 - **À medida que o desenvolvimento for avançando, TODOS os arquivos `.md` do projeto (como `README.md`, `deploy_hostgator.md`, `scripts_bd_producao.md`, `requisitos.md`, `specifications.md`, `rules.md`, `skills.md`, etc.) DEVEM ser rigorosamente atualizados para acompanhar e refletir as implementações realizadas**.
 - **Sincronização Imediata com o Código**: Sempre que houver inclusão, refatoração, exclusão de funcionalidades, criação/alteração de rotas e controllers, alterações em esquemas de banco de dados, migrações, novas variáveis de ambiente ou alterações nos procedimentos de build e deploy (HostGator), os agentes de IA e desenvolvedores devem atualizar a documentação nos respectivos arquivos Markdown antes de considerar o ciclo de desenvolvimento concluído.
 - **Proibição de Documentação Obsoleta**: É expressamente proibido deixar documentações antigas, desatualizadas ou em desacordo com o código atual (TypeScript, Sequelize, EJS, rotinas de deploy, etc.). Toda janela de contexto e agente de IA deve inspecionar e manter a paridade documental com o estado atual do software.
-

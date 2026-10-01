@@ -23,16 +23,9 @@
 
   <!-- Script para Interatividade do Menu Mobile & Modais -->
   <script>
-    // Inicializar Ícones Lucide
-    lucide.createIcons();
-
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    const btnMenuMobile = document.getElementById('btnMenuMobile');
-    const btnFecharMenu = document.getElementById('btnFecharMenu');
-    const btnFecharMenuTopo = document.getElementById('btnFecharMenuTopo');
-
     function abrirMenuMobile() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
       if (sidebar && overlay) {
         sidebar.classList.remove('-translate-x-full');
         overlay.classList.remove('hidden');
@@ -41,6 +34,8 @@
     }
 
     function fecharMenuMobile() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
       if (sidebar && overlay) {
         sidebar.classList.add('-translate-x-full');
         overlay.classList.add('hidden');
@@ -48,26 +43,27 @@
       }
     }
 
-    if (btnMenuMobile) {
-      btnMenuMobile.addEventListener('click', abrirMenuMobile);
-    }
+    // Delegação de eventos no document para funcionar de forma resiliente em qualquer transição de página
+    if (!window._menuListenersConfigurados) {
+      window._menuListenersConfigurados = true;
 
-    if (btnFecharMenu) {
-      btnFecharMenu.addEventListener('click', fecharMenuMobile);
-    }
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('#btnMenuMobile')) {
+          abrirMenuMobile();
+        } else if (e.target.closest('#btnFecharMenu') || e.target.closest('#btnFecharMenuTopo') || e.target.closest('#sidebarOverlay')) {
+          fecharMenuMobile();
+        } else if (e.target.closest('#sidebar a')) {
+          // No mobile, fechar o menu automaticamente ao clicar em qualquer item
+          if (window.innerWidth < 768) {
+            fecharMenuMobile();
+          }
+        }
+      });
 
-    if (btnFecharMenuTopo) {
-      btnFecharMenuTopo.addEventListener('click', fecharMenuMobile);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') fecharMenuMobile();
+      });
     }
-
-    if (overlay) {
-      overlay.addEventListener('click', fecharMenuMobile);
-    }
-
-    // Fechar ao pressionar a tecla ESC
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') fecharMenuMobile();
-    });
 
     // Funções Globais para Alertas e Confirmações com SweetAlert2
     function confirmarAcaoModal(e, mensagem, titulo = 'Tem certeza?', textoBotao = 'Sim, confirmar!') {
@@ -246,12 +242,17 @@
       verificarScroll();
     }
 
-    // Disparar no carregamento do DOM
+    // Disparar no carregamento do DOM e a cada transição SPA pelo Turbo Drive
     function inicializarScriptsGlobais() {
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+      fecharMenuMobile();
       inicializarMascarasGlobais();
       configurarScrollToTop();
     }
 
+    document.addEventListener('turbo:load', inicializarScriptsGlobais);
     document.addEventListener('DOMContentLoaded', inicializarScriptsGlobais);
     // Também executar imediatamente caso o script seja avaliado após o DOM ready
     if (document.readyState === 'interactive' || document.readyState === 'complete') {

@@ -1,4 +1,5 @@
 <%- include('../parciais/cabecalho') %>
+<meta name="turbo-cache" content="no-cache">
 <%- include('../parciais/menu') %>
 
 <!-- Conteúdo da Página -->
@@ -525,7 +526,7 @@
 
 <script>
   // Fila de Agendamentos em Janela de 24h
-  let filaAlertas = <%- JSON.stringify(alertas24h || []) %>;
+  let filaAlertas = (<%- JSON.stringify(alertas24h || []) %>).filter(item => item && item.status === 'agendado');
   let filaIndexAtual = 0;
 
   function formatarPlacaJS(placa) {
@@ -550,17 +551,23 @@
   }
 
   function abrirFilaConfirmacao(index = 0) {
+    filaAlertas = (filaAlertas || []).filter(item => item && item.status === 'agendado');
     if (!filaAlertas || filaAlertas.length === 0) {
-      Swal.fire({
-        icon: 'info',
-        title: 'Nenhum Alerta Pendente',
-        text: 'Não há agendamentos nas próximas 24 horas pendentes de confirmação.',
-        timer: 2000,
-        showConfirmButton: false
-      });
+      fecharFilaConfirmacao();
+      atualizarBanner();
+      if (index !== -1) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Nenhum Alerta Pendente',
+          text: 'Não há agendamentos nas próximas 24 horas pendentes de confirmação.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      }
       return;
     }
-    filaIndexAtual = index;
+    filaIndexAtual = index === -1 ? 0 : index;
+    if (filaIndexAtual >= filaAlertas.length) filaIndexAtual = 0;
     document.getElementById('modalFilaConfirmacao').classList.remove('hidden');
     renderizarItemFila();
   }
@@ -583,6 +590,7 @@
   }
 
   function renderizarItemFila() {
+    filaAlertas = (filaAlertas || []).filter(item => item && item.status === 'agendado');
     const total = filaAlertas.length;
     const corpoCard = document.getElementById('filaCorpoCard');
     const corpoConcluido = document.getElementById('filaCorpoConcluido');
@@ -711,8 +719,11 @@
         atualizarBanner();
         renderizarItemFila();
       } else {
-        const erro = await res.json();
-        Swal.fire('Erro', erro.erro || 'Falha ao registrar solicitação.', 'error');
+        const erro = await res.json().catch(() => ({ erro: 'Falha ao registrar solicitação.' }));
+        Swal.fire('Aviso', erro.erro || 'Falha ao registrar solicitação.', 'warning');
+        filaAlertas.splice(filaIndexAtual, 1);
+        atualizarBanner();
+        renderizarItemFila();
       }
     } catch (e) {
       console.error(e);
@@ -744,8 +755,11 @@
         atualizarBanner();
         renderizarItemFila();
       } else {
-        const erro = await res.json();
-        Swal.fire('Erro', erro.erro || 'Falha ao adiar alerta.', 'error');
+        const erro = await res.json().catch(() => ({ erro: 'Falha ao adiar alerta.' }));
+        Swal.fire('Aviso', erro.erro || 'Falha ao adiar alerta.', 'warning');
+        filaAlertas.splice(filaIndexAtual, 1);
+        atualizarBanner();
+        renderizarItemFila();
       }
     } catch (e) {
       console.error(e);
@@ -795,8 +809,11 @@
         atualizarBanner();
         renderizarItemFila();
       } else {
-        const erro = await res.json();
-        Swal.fire('Erro', erro.erro || 'Falha ao confirmar presença.', 'error');
+        const erro = await res.json().catch(() => ({ erro: 'Falha ao confirmar presença.' }));
+        Swal.fire('Aviso', erro.erro || 'Falha ao confirmar presença.', 'warning');
+        filaAlertas.splice(filaIndexAtual, 1);
+        atualizarBanner();
+        renderizarItemFila();
       }
     } catch (e) {
       console.error(e);
@@ -869,18 +886,20 @@
       const res = await fetch('/agendamentos/alertas-24h');
       if (res.ok) {
         const novosAlertas = await res.json();
-        if (novosAlertas && novosAlertas.length > 0) {
+        const filtrados = (novosAlertas || []).filter(item => item && item.status === 'agendado');
+        if (filtrados.length > 0) {
           const antesTinha = filaAlertas.length;
-          filaAlertas = novosAlertas;
+          filaAlertas = filtrados;
           atualizarBanner();
-          // Se o modal estiver fechado e surgiram alertas ou expirou a repetição de 60 min, abre
+          // Se o modal estiver fechado e surgiram novos alertas, abre
           const modal = document.getElementById('modalFilaConfirmacao');
-          if (modal.classList.contains('hidden') && novosAlertas.length > 0 && antesTinha === 0) {
-            abrirFilaConfirmacao();
+          if (modal && modal.classList.contains('hidden') && filtrados.length > 0 && antesTinha === 0) {
+            abrirFilaConfirmacao(-1);
           }
         } else {
           filaAlertas = [];
           atualizarBanner();
+          fecharFilaConfirmacao();
         }
       }
     } catch (e) {
@@ -888,18 +907,47 @@
     }
   }
 
-  // Executa checagem inicial e timer periódico
-  document.addEventListener('DOMContentLoaded', () => {
-    lucide.createIcons();
+  // Executa checagem inicial e timer periódico com dados sincronizados
+  async function inicializarPainel() {
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
 
-    // Se houver agendamentos na janela de 24h, abre automaticamente o modal de alerta
-    if (filaAlertas && filaAlertas.length > 0) {
-      abrirFilaConfirmacao();
+    // Sincroniza ativamente com o servidor para garantir dados em tempo real
+    try {
+      const res = await fetch('/agendamentos/alertas-24h');
+      if (res.ok) {
+        const dadosFrescos = await res.json();
+        filaAlertas = (dadosFrescos || []).filter(item => item && item.status === 'agendado');
+        atualizarBanner();
+        if (filaAlertas.length > 0) {
+          abrirFilaConfirmacao(-1);
+        } else {
+          fecharFilaConfirmacao();
+        }
+      }
+    } catch (err) {
+      filaAlertas = (filaAlertas || []).filter(item => item && item.status === 'agendado');
+      atualizarBanner();
+      if (filaAlertas.length > 0) {
+        abrirFilaConfirmacao(-1);
+      } else {
+        fecharFilaConfirmacao();
+      }
     }
 
     // Polling a cada 60 segundos
-    setInterval(verificarNovosAlertas24h, 60000);
-  });
+    if (!window._painelPollingConfigurado) {
+      window._painelPollingConfigurado = true;
+      setInterval(verificarNovosAlertas24h, 60000);
+    }
+  }
+
+  document.addEventListener('turbo:load', inicializarPainel);
+  document.addEventListener('DOMContentLoaded', inicializarPainel);
+  if (document.readyState === 'interactive' || document.readyState === 'complete') {
+    inicializarPainel();
+  }
 </script>
 
 <%- include('../parciais/rodape') %>

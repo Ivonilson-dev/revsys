@@ -44,9 +44,14 @@
 
     <!-- Alertas Globais -->
     <% if (erroMsg) { %>
-      <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-800 text-base font-medium flex items-start space-x-2 shadow-sm transition-all duration-300">
-        <i data-lucide="alert-circle" class="w-5 h-5 shrink-0 mt-0.5 text-red-600"></i>
-        <span><%= erroMsg %></span>
+      <div id="alerta-global-erro" class="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border-2 border-amber-500/30 text-amber-950 text-base font-medium flex items-start space-x-3.5 shadow-md shadow-amber-500/5 transition-all duration-300">
+        <div class="p-2 bg-amber-500 text-white rounded-xl shadow-sm shrink-0">
+          <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <span class="block font-bold text-amber-950 text-base">Atenção no Lançamento</span>
+          <span class="block text-amber-900 text-sm mt-0.5 leading-relaxed"><%= erroMsg %></span>
+        </div>
       </div>
     <% } %>
 
@@ -361,7 +366,7 @@
             <p class="text-sm text-slate-500 mt-1">Registre um serviço que não exigiu troca de peças.</p>
           </div>
 
-          <form action="/registro-servico" method="POST" class="space-y-4">
+          <form id="formRegistroServico" action="/registro-servico" method="POST" class="space-y-4">
             <input type="hidden" name="veiculo_id" value="<%= veiculo.id %>">
             
             <!-- Serviço -->
@@ -423,7 +428,7 @@
             <p class="text-sm text-slate-500 mt-1">Insira um novo registro de troca para calcular alertas.</p>
           </div>
 
-          <form action="/troca" method="POST" class="space-y-4">
+          <form id="formRegistroTroca" action="/troca" method="POST" class="space-y-4">
             <input type="hidden" name="veiculo_id" value="<%= veiculo.id %>">
             
             <!-- Peça -->
@@ -569,6 +574,7 @@
 <script>
   function toggleOficinaManual(select) {
     const campoManual = document.getElementById('campo_oficina_manual');
+    if (!campoManual) return;
     if (select.value === "") {
       campoManual.classList.remove('hidden');
     } else {
@@ -576,10 +582,131 @@
     }
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  function inicializarDetalhesVeiculo() {
     const select = document.getElementById('oficina_id');
     if (select) toggleOficinaManual(select);
-  });
+
+    const kmAtualVeiculo = <%= Number(veiculo.km_atual) || 0 %>;
+    const hojeISO = '<%= new Date().toISOString().split("T")[0] %>';
+
+    // 1. Validação preventiva no formulário de Serviço
+    const formServico = document.getElementById('formRegistroServico');
+    if (formServico && !formServico._validacaoConfigurada) {
+      formServico._validacaoConfigurada = true;
+      formServico.addEventListener('submit', function(e) {
+        const dataServ = document.getElementById('data_servico')?.value || hojeISO;
+        const kmInput = parseInt(document.getElementById('km_no_servico')?.value, 10);
+
+        if (dataServ === hojeISO && !isNaN(kmInput) && kmInput < kmAtualVeiculo) {
+          e.preventDefault();
+          Swal.fire({
+            icon: 'warning',
+            title: 'Atenção à Quilometragem',
+            html: `
+              <div class="text-left text-sm text-slate-700 space-y-3">
+                <p class="font-medium text-slate-900 leading-relaxed">
+                  A quilometragem no serviço (<strong>${kmInput.toLocaleString('pt-BR')} km</strong>) não pode ser inferior à quilometragem atual do veículo (<strong>${kmAtualVeiculo.toLocaleString('pt-BR')} km</strong>).
+                </p>
+                <div class="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs flex items-start gap-2.5">
+                  <i data-lucide="info" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
+                  <span>A quilometragem informada deve ser igual ou superior ao último registro para evitar regressões no histórico de manutenção.</span>
+                </div>
+              </div>
+            `,
+            confirmButtonColor: '#0284c7',
+            confirmButtonText: 'Entendido, vou corrigir',
+            customClass: {
+              popup: 'rounded-3xl font-sans p-6 shadow-2xl',
+              confirmButton: 'rounded-xl font-bold px-6 py-2.5 text-sm shadow-md'
+            }
+          }).then(() => {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            const campoKm = document.getElementById('km_no_servico');
+            if (campoKm) {
+              campoKm.focus();
+              campoKm.select();
+            }
+          });
+        }
+      });
+    }
+
+    // 2. Validação preventiva no formulário de Troca de Peça
+    const formTroca = document.getElementById('formRegistroTroca');
+    if (formTroca && !formTroca._validacaoConfigurada) {
+      formTroca._validacaoConfigurada = true;
+      formTroca.addEventListener('submit', function(e) {
+        const dataTroca = document.getElementById('data_troca')?.value || hojeISO;
+        const kmInput = parseInt(document.getElementById('km_na_troca')?.value, 10);
+
+        if (dataTroca === hojeISO && !isNaN(kmInput) && kmInput < kmAtualVeiculo) {
+          e.preventDefault();
+          Swal.fire({
+            icon: 'warning',
+            title: 'Atenção à Quilometragem',
+            html: `
+              <div class="text-left text-sm text-slate-700 space-y-3">
+                <p class="font-medium text-slate-900 leading-relaxed">
+                  A quilometragem na troca (<strong>${kmInput.toLocaleString('pt-BR')} km</strong>) não pode ser inferior à quilometragem atual do veículo (<strong>${kmAtualVeiculo.toLocaleString('pt-BR')} km</strong>).
+                </p>
+                <div class="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs flex items-start gap-2.5">
+                  <i data-lucide="info" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
+                  <span>A quilometragem informada deve ser igual ou superior ao último registro para evitar regressões no histórico de manutenção.</span>
+                </div>
+              </div>
+            `,
+            confirmButtonColor: '#0284c7',
+            confirmButtonText: 'Entendido, vou corrigir',
+            customClass: {
+              popup: 'rounded-3xl font-sans p-6 shadow-2xl',
+              confirmButton: 'rounded-xl font-bold px-6 py-2.5 text-sm shadow-md'
+            }
+          }).then(() => {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            const campoKm = document.getElementById('km_na_troca');
+            if (campoKm) {
+              campoKm.focus();
+              campoKm.select();
+            }
+          });
+        }
+      });
+    }
+
+    // 3. Alerta personalizado em Modal se houver erro vindo do servidor
+    <% if (typeof erroMsg !== 'undefined' && erroMsg) { %>
+      if (!window._alertaErroExibido) {
+        window._alertaErroExibido = true;
+        Swal.fire({
+          icon: 'warning',
+          title: 'Atenção no Lançamento',
+          html: `
+            <div class="text-left text-sm text-slate-700 space-y-3">
+              <p class="font-medium text-slate-900 leading-relaxed"><%= erroMsg %></p>
+              <div class="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs flex items-start gap-2.5">
+                <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
+                <span>Verifique a quilometragem do veículo no hodômetro antes de cadastrar para manter o histórico íntegro.</span>
+              </div>
+            </div>
+          `,
+          confirmButtonColor: '#0284c7',
+          confirmButtonText: 'Entendido, vou corrigir',
+          customClass: {
+            popup: 'rounded-3xl font-sans p-6 shadow-2xl',
+            confirmButton: 'rounded-xl font-bold px-6 py-2.5 text-sm shadow-md'
+          }
+        }).then(() => {
+          if (typeof lucide !== 'undefined') lucide.createIcons();
+        });
+      }
+    <% } %>
+  }
+
+  document.addEventListener('turbo:load', inicializarDetalhesVeiculo);
+  document.addEventListener('DOMContentLoaded', inicializarDetalhesVeiculo);
+  if (document.readyState === 'interactive' || document.readyState === 'complete') {
+    inicializarDetalhesVeiculo();
+  }
 </script>
 
 <%- include('../parciais/rodape') %>

@@ -285,6 +285,18 @@ CREATE TABLE IF NOT EXISTS `notificacoes` (
   INDEX `idx_notificacoes_usuario_lida` (`usuario_id`, `lida`)
 ) ENGINE=InnoDB;
 
+-- --------------------------------------------------------
+-- 15. TABELA: sessoes (Persistência de Sessões no MySQL)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `sessoes` (
+  `sid` VARCHAR(128) NOT NULL PRIMARY KEY,
+  `dados` MEDIUMTEXT NOT NULL,
+  `expira_em` DATETIME NOT NULL,
+  `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+
 
 -- ========================================================
 -- DADOS INICIAIS ESSENCIAIS PARA PRODUÇÃO (SEEDS MESTRE)

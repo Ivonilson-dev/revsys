@@ -129,10 +129,12 @@
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
+  function inicializarMascarasClienteEditar() {
     // Máscara CEP
     const cepInput = document.getElementById('cep');
-    if (cepInput && typeof IMask !== 'undefined') IMask(cepInput, { mask: '00000-000' });
+    if (cepInput && typeof IMask !== 'undefined' && !cepInput._imask) {
+      cepInput._imask = IMask(cepInput, { mask: '00000-000' });
+    }
 
     // Máscara Telefone Dinâmica
     const telMask = [
@@ -141,11 +143,21 @@
     ];
 
     const telInput = document.getElementById('telefone');
-    if (telInput && typeof IMask !== 'undefined') IMask(telInput, { mask: telMask });
+    if (telInput && typeof IMask !== 'undefined' && !telInput._imask) {
+      telInput._imask = IMask(telInput, { mask: telMask });
+    }
 
     const whatsappInput = document.getElementById('telefone_whatsapp');
-    if (whatsappInput && typeof IMask !== 'undefined') IMask(whatsappInput, { mask: telMask });
-  });
+    if (whatsappInput && typeof IMask !== 'undefined' && !whatsappInput._imask) {
+      whatsappInput._imask = IMask(whatsappInput, { mask: telMask });
+    }
+  }
+
+  document.addEventListener('turbo:load', inicializarMascarasClienteEditar);
+  document.addEventListener('DOMContentLoaded', inicializarMascarasClienteEditar);
+  if (document.readyState === 'interactive' || document.readyState === 'complete') {
+    inicializarMascarasClienteEditar();
+  }
 </script>
 
 <%- include('../parciais/rodape') %>

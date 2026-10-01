@@ -987,8 +987,17 @@
   }
 
   // Inicialização do Calendário FullCalendar v6 com responsividade mobile inteligente (RF-17)
-  document.addEventListener('DOMContentLoaded', () => {
+  function inicializarCalendario() {
     const calendarEl = document.getElementById('calendar');
+    if (!calendarEl || typeof FullCalendar === 'undefined') return;
+
+    if (calendarInstance) {
+      try {
+        calendarInstance.destroy();
+      } catch (e) {}
+      calendarInstance = null;
+    }
+
     const isMobile = window.innerWidth < 768;
     
     calendarInstance = new FullCalendar.Calendar(calendarEl, {
@@ -1205,7 +1214,10 @@
         const presencaContainer = document.getElementById('eventoPresencaBadgeContainer');
         const btnConfirmarPresenca = document.getElementById('btnConfirmarPresencaEvento');
 
-        if (props.confirmacaoPresenca === 'confirmada') {
+        if (props.status === 'cancelado') {
+          presencaContainer.innerHTML = '<span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-500/20 text-slate-300 border border-slate-500/30"><i data-lucide="x-circle" class="w-3.5 h-3.5 text-slate-400"></i> Agendamento Cancelado</span>';
+          if (btnConfirmarPresenca) btnConfirmarPresenca.classList.add('hidden');
+        } else if (props.confirmacaoPresenca === 'confirmada') {
           presencaContainer.innerHTML = '<span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"><i data-lucide="user-check" class="w-3.5 h-3.5 text-emerald-400"></i> Presença Confirmada</span>';
           if (btnConfirmarPresenca) btnConfirmarPresenca.classList.add('hidden');
         } else if (props.confirmacaoPresenca === 'solicitada') {
@@ -1297,12 +1309,21 @@
     }
 
     // Atualização em tempo real do calendário a cada 60 segundos
-    setInterval(() => {
-      if (calendarInstance) {
-        calendarInstance.refetchEvents();
-      }
-    }, 60000);
-  });
+    if (!window._calendarioIntervalConfigurado) {
+      window._calendarioIntervalConfigurado = true;
+      setInterval(() => {
+        if (calendarInstance) {
+          calendarInstance.refetchEvents();
+        }
+      }, 60000);
+    }
+  }
+
+  document.addEventListener('turbo:load', inicializarCalendario);
+  document.addEventListener('DOMContentLoaded', inicializarCalendario);
+  if (document.readyState === 'interactive' || document.readyState === 'complete') {
+    inicializarCalendario();
+  }
 </script>
 
 <%- include('../parciais/rodape') %>

@@ -133,12 +133,13 @@
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const todosModelos = <%- JSON.stringify(modelos.map(m => ({ id: m.id, nome: m.nome, marca_veiculo_id: m.marca_veiculo_id }))) %>;
-    const modeloSelecionadoId = "<%= dados.modelo_id || '' %>";
-
+  function inicializarFormVeiculoNovo() {
     const marcaSelect = document.getElementById('marca_id');
     const modeloSelect = document.getElementById('modelo_id');
+    if (!marcaSelect || !modeloSelect) return;
+
+    const todosModelos = <%- JSON.stringify(modelos.map(m => ({ id: m.id, nome: m.nome, marca_veiculo_id: m.marca_veiculo_id }))) %>;
+    const modeloSelecionadoId = "<%= dados.modelo_id || '' %>";
 
     function atualizarModelos(marcaId, modeloIdParaSelecionar = '') {
       modeloSelect.innerHTML = '<option value="" disabled selected>Selecione o Modelo...</option>';
@@ -230,7 +231,13 @@
       placaInput.addEventListener('input', atualizarPreviewPlaca);
       atualizarPreviewPlaca();
     }
-  });
+  }
+
+  document.addEventListener('turbo:load', inicializarFormVeiculoNovo);
+  document.addEventListener('DOMContentLoaded', inicializarFormVeiculoNovo);
+  if (document.readyState === 'interactive' || document.readyState === 'complete') {
+    inicializarFormVeiculoNovo();
+  }
 </script>
 
 <%- include('../parciais/rodape') %>

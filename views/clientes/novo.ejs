@@ -160,17 +160,17 @@
 
 <script>
   // Inicialização de Máscaras (RNF-15)
-  document.addEventListener('DOMContentLoaded', () => {
+  function inicializarMascarasClienteNovo() {
     // Máscara CPF
     const cpfInput = document.getElementById('cpfInput');
-    if (cpfInput && typeof IMask !== 'undefined') {
-      IMask(cpfInput, { mask: '000.000.000-00' });
+    if (cpfInput && typeof IMask !== 'undefined' && !cpfInput._imask) {
+      cpfInput._imask = IMask(cpfInput, { mask: '000.000.000-00' });
     }
 
     // Máscara CEP
     const cepInput = document.getElementById('cep');
-    if (cepInput && typeof IMask !== 'undefined') {
-      IMask(cepInput, { mask: '00000-000' });
+    if (cepInput && typeof IMask !== 'undefined' && !cepInput._imask) {
+      cepInput._imask = IMask(cepInput, { mask: '00000-000' });
     }
 
     // Máscara Telefone Dinâmica (Fixo ou Celular)
@@ -180,15 +180,21 @@
     ];
 
     const telInput = document.getElementById('telefone');
-    if (telInput && typeof IMask !== 'undefined') {
-      IMask(telInput, { mask: telMask });
+    if (telInput && typeof IMask !== 'undefined' && !telInput._imask) {
+      telInput._imask = IMask(telInput, { mask: telMask });
     }
 
     const whatsappInput = document.getElementById('telefone_whatsapp');
-    if (whatsappInput && typeof IMask !== 'undefined') {
-      IMask(whatsappInput, { mask: telMask });
+    if (whatsappInput && typeof IMask !== 'undefined' && !whatsappInput._imask) {
+      whatsappInput._imask = IMask(whatsappInput, { mask: telMask });
     }
-  });
+  }
+
+  document.addEventListener('turbo:load', inicializarMascarasClienteNovo);
+  document.addEventListener('DOMContentLoaded', inicializarMascarasClienteNovo);
+  if (document.readyState === 'interactive' || document.readyState === 'complete') {
+    inicializarMascarasClienteNovo();
+  }
 </script>
 
 <%- include('../parciais/rodape') %>

@@ -16,8 +16,14 @@
   <!-- SweetAlert2 para alertas e confirmações modernas -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  <!-- IMask para máscaras em inputs de CPF, CNPJ, telefone, placa e CEP (RNF-15) -->
   <script src="https://unpkg.com/imask"></script>
+
+  <!-- FullCalendar v6 CDN & Idioma Português do Brasil no Head para Cache Global -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales/pt-br.global.min.js"></script>
+
+  <!-- Turbo Drive (Hotwire) - Navegação SPA Instantânea Servida Localmente (Zero dependência de CDN) -->
+  <script src="/js/turbo.js"></script>
 
   <!-- Tailwind CSS CDN com configuração customizada -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -63,6 +69,13 @@
       -webkit-tap-highlight-color: transparent;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Barra de Progresso Turbo Drive Estilizada com Azul AUTEC (brand-500) */
+    .turbo-progress-bar {
+      height: 3px !important;
+      background-color: #0284c7 !important;
+      box-shadow: 0 0 10px rgba(2, 132, 199, 0.8) !important;
     }
     
     /* Suporte a Safe Areas para iPhone e dispositivos modernos com notch */
