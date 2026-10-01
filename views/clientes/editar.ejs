@@ -28,7 +28,7 @@
 
     <!-- Card de Formulário -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
-      <form action="/clientes/<%= cliente.id %>?_method=PUT" method="POST" class="space-y-8">
+      <form id="formEditarCliente" action="/clientes/<%= cliente.id %>?_method=PUT" method="POST" class="space-y-8">
         
         <!-- Seção 1: Dados Pessoais -->
         <div class="space-y-4">
@@ -110,6 +110,119 @@
           </div>
         </div>
 
+        <!-- Seção 3: Status do Cadastro e Inativação -->
+        <div class="space-y-4 pt-4 border-t border-slate-100">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h2 class="text-base font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="shield-alert" class="w-4 h-4 text-brand-600"></i>
+              Status do Cadastro
+            </h2>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold <%= cliente.ativo ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200' %>">
+              <span class="w-1.5 h-1.5 rounded-full mr-1.5 <%= cliente.ativo ? 'bg-emerald-500' : 'bg-amber-500' %>"></span>
+              <%= cliente.ativo ? 'Cadastro Ativo' : 'Cadastro Inativo' %>
+            </span>
+          </div>
+
+          <div class="bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200 space-y-4">
+            <div>
+              <label for="ativo" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">Definir Situação do Cliente *</label>
+              <select id="ativo" name="ativo" onchange="alternarCamposInativacaoCliente(this.value)"
+                      class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-3 px-4 text-base focus:outline-none focus:border-brand-500 transition-all font-semibold">
+                <option value="1" <%= cliente.ativo ? 'selected' : '' %>>Ativo (Acesso normal, permite agendamentos e manutenções)</option>
+                <option value="0" <%= !cliente.ativo ? 'selected' : '' %>>Inativo (Bloqueia novos agendamentos e solicitações)</option>
+              </select>
+              <p class="text-xs text-slate-500 mt-1.5 flex items-center gap-1">
+                <i data-lucide="info" class="w-3.5 h-3.5 inline text-slate-400 shrink-0"></i>
+                <span>Apenas é possível inativar clientes que não possuam nenhum agendamento pendente no sistema.</span>
+              </p>
+
+              <!-- Indicador de checagem de pendências -->
+              <div id="indicador-checando-cliente" class="hidden mt-2 p-2.5 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 text-xs font-medium flex items-center gap-2">
+                <div class="w-3.5 h-3.5 border-2 border-sky-600 border-t-transparent rounded-full animate-spin"></div>
+                <span>Verificando pendências do cliente e de seus veículos...</span>
+              </div>
+
+              <!-- Alerta Dinâmico de Bloqueio por Pendências Ativas -->
+              <div id="alerta-pendencias-cliente" class="<%= (typeof pendenciasAgendamentos !== 'undefined' && pendenciasAgendamentos && pendenciasAgendamentos.length > 0) ? '' : 'hidden' %> mt-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-950 space-y-3 shadow-xs">
+                <div class="flex items-start gap-2.5">
+                  <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
+                  <div class="flex-1">
+                    <h4 class="font-bold text-sm sm:text-base text-amber-900" id="titulo-pendencias-cliente">
+                      Inativação Bloqueada: <%= (typeof pendenciasAgendamentos !== 'undefined' && pendenciasAgendamentos) ? pendenciasAgendamentos.length : 0 %> agendamento(s) ativo(s)
+                    </h4>
+                    <p class="text-xs sm:text-sm text-amber-800 mt-0.5" id="desc-pendencias-cliente">
+                      Este cliente ou seus veículos possuem agendamentos marcados com status "Agendado". Conclua ou cancele todos os agendamentos antes de inativar o cadastro.
+                    </p>
+                  </div>
+                </div>
+
+                <div id="lista-pendencias-cliente" class="space-y-2 max-h-48 overflow-y-auto pr-1 text-xs">
+                  <% if (typeof pendenciasAgendamentos !== 'undefined' && pendenciasAgendamentos && pendenciasAgendamentos.length > 0) { %>
+                    <% pendenciasAgendamentos.forEach(p => { %>
+                      <div class="p-2.5 bg-white/90 rounded-lg border border-amber-300 flex items-center justify-between gap-2 shadow-2xs">
+                        <div>
+                          <strong class="text-slate-900 block"><%= p.motivo %></strong>
+                          <span class="text-slate-600">Data: <%= p.data %> às <%= p.horario %></span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 uppercase shrink-0">
+                          Agendado
+                        </span>
+                      </div>
+                    <% }) %>
+                  <% } %>
+                </div>
+
+                <div class="pt-2 border-t border-amber-500/20 flex flex-wrap items-center justify-between gap-2">
+                  <a href="/clientes/<%= cliente.id %>" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition-colors">
+                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                    <span>Ver Ficha e Histórico do Cliente</span>
+                  </a>
+                  <button type="button" onclick="window.verificarPendenciasCliente(true)" class="text-xs text-amber-800 hover:text-amber-950 font-bold underline cursor-pointer">
+                    Atualizar Checagem
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bloco de Motivo de Inativação (Exibido quando selecionar Inativo) -->
+            <div id="container-motivo-inativacao" class="<%= cliente.ativo ? 'hidden' : '' %> space-y-3 pt-3 border-t border-slate-200/80">
+              <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-900 text-xs sm:text-sm font-medium flex items-start gap-2">
+                <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 text-amber-600 mt-0.5"></i>
+                <div>
+                  <strong>Atenção:</strong> O cliente só será inativado se não houver agendamentos em aberto. O motivo da inativação é de preenchimento estritamente obrigatório.
+                </div>
+              </div>
+
+              <div>
+                <label for="motivo_inativacao_opcao" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">Motivo da Inativação *</label>
+                <select id="motivo_inativacao_opcao" name="motivo_inativacao_opcao" onchange="alternarOutroMotivoCliente(this.value)"
+                        class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-sm sm:text-base focus:outline-none focus:border-brand-500 transition-all font-medium">
+                  <option value="" disabled <%= !cliente.motivo_inativacao ? 'selected' : '' %>>Selecione o motivo da inativação...</option>
+                  <option value="Mudou para concorrente" <%= cliente.motivo_inativacao === 'Mudou para concorrente' ? 'selected' : '' %>>Mudou para concorrente</option>
+                  <option value="Falecimento" <%= cliente.motivo_inativacao === 'Falecimento' ? 'selected' : '' %>>Falecimento</option>
+                  <option value="Vendeu o veículo / Não possui mais veículo" <%= cliente.motivo_inativacao === 'Vendeu o veículo / Não possui mais veículo' ? 'selected' : '' %>>Vendeu o veículo / Não possui mais veículo</option>
+                  <option value="Mudou de cidade / endereço distante" <%= cliente.motivo_inativacao === 'Mudou de cidade / endereço distante' ? 'selected' : '' %>>Mudou de cidade / endereço distante</option>
+                  <option value="Inadimplência / Desacordo comercial" <%= cliente.motivo_inativacao === 'Inadimplência / Desacordo comercial' ? 'selected' : '' %>>Inadimplência / Desacordo comercial</option>
+                  <option value="Outros" <%= (cliente.motivo_inativacao && cliente.motivo_inativacao.startsWith('Outros')) ? 'selected' : '' %>>Outros (especificar)</option>
+                </select>
+              </div>
+
+              <!-- Campo livre quando seleciona 'Outros' -->
+              <div id="container-motivo-outro" class="<%= (cliente.motivo_inativacao && cliente.motivo_inativacao.startsWith('Outros')) ? '' : 'hidden' %>">
+                <label for="motivo_inativacao_outro" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">Descreva o Motivo Detalhado *</label>
+                <textarea id="motivo_inativacao_outro" name="motivo_inativacao_outro" rows="2" placeholder="Digite detalhadamente a justificativa para inativação..."
+                          class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-sm sm:text-base focus:outline-none focus:border-brand-500 transition-all font-medium"><%= (cliente.motivo_inativacao && cliente.motivo_inativacao.startsWith('Outros: ')) ? cliente.motivo_inativacao.replace('Outros: ', '') : '' %></textarea>
+              </div>
+
+              <% if (!cliente.ativo && cliente.inativado_em) { %>
+                <p class="text-xs text-slate-500 italic">
+                  Inativado em: <%= new Date(cliente.inativado_em).toLocaleString('pt-BR') %>
+                </p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
         <!-- Botões de Ação -->
         <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-4 border-t border-slate-100">
           <a href="/clientes/<%= cliente.id %>" class="w-full sm:w-auto text-center px-5 py-3 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 text-base font-semibold transition-all">
@@ -129,7 +242,133 @@
 </div>
 
 <script>
+  window.pendenciasClienteCache = null;
+
+  // Consulta assíncrona de pendências do cliente com exibição inline e modal
+  window.verificarPendenciasCliente = async function(abrirModalAutomatico = false) {
+    const indicador = document.getElementById('indicador-checando-cliente');
+    const alertaContainer = document.getElementById('alerta-pendencias-cliente');
+    const listaContainer = document.getElementById('lista-pendencias-cliente');
+    const tituloEl = document.getElementById('titulo-pendencias-cliente');
+    const descEl = document.getElementById('desc-pendencias-cliente');
+
+    if (indicador) indicador.classList.remove('hidden');
+
+    try {
+      const resp = await fetch('/clientes/<%= cliente.id %>/pendencias-inativacao');
+      const dados = await resp.json();
+      window.pendenciasClienteCache = dados;
+
+      if (indicador) indicador.classList.add('hidden');
+
+      if (dados.sucesso && dados.temPendencias) {
+        if (alertaContainer) alertaContainer.classList.remove('hidden');
+        if (tituloEl) {
+          tituloEl.textContent = `Inativação Bloqueada: ${dados.totalPendencias} agendamento(s) ativo(s)`;
+        }
+        if (descEl) {
+          descEl.textContent = `Este cliente ou seus veículos possuem ${dados.totalPendencias} agendamento(s) com status "Agendado". Conclua ou cancele todos os agendamentos antes de inativar o cadastro.`;
+        }
+
+        if (listaContainer) {
+          listaContainer.innerHTML = dados.pendencias.map(p => `
+            <div class="p-2.5 bg-white/90 rounded-lg border border-amber-300 flex items-center justify-between gap-2 shadow-2xs">
+              <div>
+                <strong class="text-slate-900 block font-semibold text-xs sm:text-sm">${p.motivo}</strong>
+                <span class="text-slate-600 text-[11px] sm:text-xs">Veículo: <b>${p.veiculo}</b> • Data: <b>${p.data} às ${p.horario}</b></span>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 uppercase shrink-0">
+                Agendado
+              </span>
+            </div>
+          `).join('');
+        }
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        if (abrirModalAutomatico && typeof Swal !== 'undefined') {
+          const itensHtml = dados.pendencias.map(p => `
+            <div class="p-2.5 bg-white rounded-lg border border-amber-200 text-left mb-1.5 shadow-xs">
+              <strong class="text-slate-900 text-xs block">${p.motivo}</strong>
+              <span class="text-slate-600 text-[11px]">Veículo: ${p.veiculo} • Data: ${p.data} às ${p.horario} (Agendado)</span>
+            </div>
+          `).join('');
+
+          Swal.fire({
+            icon: 'warning',
+            title: 'Inativação Não Permitida',
+            html: `
+              <div class="text-left space-y-3">
+                <p class="text-sm text-slate-700 leading-relaxed font-medium">
+                  O cliente <b><%= cliente.usuario.nome %></b> não pode ser inativado porque possui <b>${dados.totalPendencias} agendamento(s) ativo(s)</b> vinculado(s) a ele ou a seus veículos:
+                </p>
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 max-h-48 overflow-y-auto">
+                  ${itensHtml}
+                </div>
+                <p class="text-xs text-slate-500 leading-normal">
+                  Para inativar o cadastro, acesse o histórico do cliente e realize a conclusão ou o cancelamento dos agendamentos em aberto.
+                </p>
+              </div>
+            `,
+            confirmButtonText: 'Ver Ficha do Cliente',
+            showCancelButton: true,
+            cancelButtonText: 'Entendido',
+            confirmButtonColor: '#0284c7',
+            cancelButtonColor: '#64748b',
+            customClass: {
+              popup: 'rounded-2xl font-sans',
+              confirmButton: 'rounded-xl font-bold px-4 py-2.5 text-sm',
+              cancelButton: 'rounded-xl font-bold px-4 py-2.5 text-sm'
+            }
+          }).then((res) => {
+            if (res.isConfirmed) {
+              window.open('/clientes/<%= cliente.id %>', '_blank');
+            }
+          });
+        }
+      } else {
+        if (alertaContainer) alertaContainer.classList.add('hidden');
+      }
+    } catch (err) {
+      if (indicador) indicador.classList.add('hidden');
+      console.warn('Erro ao consultar pendências do cliente:', err);
+    }
+  };
+
+  window.alternarCamposInativacaoCliente = function(valor) {
+    const container = document.getElementById('container-motivo-inativacao');
+    const selectMotivo = document.getElementById('motivo_inativacao_opcao');
+    if (!container) return;
+
+    if (valor === '0') {
+      container.classList.remove('hidden');
+      if (selectMotivo) selectMotivo.setAttribute('required', 'required');
+      window.verificarPendenciasCliente(true);
+    } else {
+      container.classList.add('hidden');
+      if (selectMotivo) selectMotivo.removeAttribute('required');
+      const alertaContainer = document.getElementById('alerta-pendencias-cliente');
+      if (alertaContainer) alertaContainer.classList.add('hidden');
+    }
+  };
+
+  window.alternarOutroMotivoCliente = function(valor) {
+    const containerOutro = document.getElementById('container-motivo-outro');
+    const textareaOutro = document.getElementById('motivo_inativacao_outro');
+    if (!containerOutro) return;
+
+    if (valor === 'Outros') {
+      containerOutro.classList.remove('hidden');
+      if (textareaOutro) textareaOutro.setAttribute('required', 'required');
+    } else {
+      containerOutro.classList.add('hidden');
+      if (textareaOutro) textareaOutro.removeAttribute('required');
+    }
+  };
+
   function inicializarMascarasClienteEditar() {
+    const form = document.getElementById('formEditarCliente');
+
     // Máscara CEP
     const cepInput = document.getElementById('cep');
     if (cepInput && typeof IMask !== 'undefined' && !cepInput._imask) {
@@ -151,6 +390,85 @@
     if (whatsappInput && typeof IMask !== 'undefined' && !whatsappInput._imask) {
       whatsappInput._imask = IMask(whatsappInput, { mask: telMask });
     }
+
+    // Inicializar estado dos campos de inativação
+    const selectAtivo = document.getElementById('ativo');
+    if (selectAtivo) {
+      if (selectAtivo.value === '0') {
+        const container = document.getElementById('container-motivo-inativacao');
+        if (container) container.classList.remove('hidden');
+        window.verificarPendenciasCliente(false);
+      }
+    }
+    const selectMotivo = document.getElementById('motivo_inativacao_opcao');
+    if (selectMotivo) {
+      window.alternarOutroMotivoCliente(selectMotivo.value);
+    }
+
+    // Interceptação com feedback humanizado antes de submeter
+    if (form && !form._interceptorInativacao) {
+      form._interceptorInativacao = true;
+      form.addEventListener('submit', async function(e) {
+        const selectAtivoAtual = document.getElementById('ativo');
+        if (selectAtivoAtual && selectAtivoAtual.value === '0') {
+          const selectMotivoAtual = document.getElementById('motivo_inativacao_opcao');
+          if (!selectMotivoAtual || !selectMotivoAtual.value) {
+            e.preventDefault();
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Motivo Obrigatório',
+                text: 'Por favor, selecione o motivo da inativação para salvar as alterações.',
+                confirmButtonColor: '#0284c7'
+              });
+            }
+            if (selectMotivoAtual) selectMotivoAtual.focus();
+            return;
+          }
+
+          if (selectMotivoAtual.value === 'Outros') {
+            const textareaOutro = document.getElementById('motivo_inativacao_outro');
+            if (!textareaOutro || !textareaOutro.value.trim()) {
+              e.preventDefault();
+              if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                  icon: 'warning',
+                  title: 'Justificativa Obrigatória',
+                  text: 'Ao escolher a opção "Outros", você deve descrever detalhadamente o motivo da inativação.',
+                  confirmButtonColor: '#0284c7'
+                });
+              }
+              if (textareaOutro) textareaOutro.focus();
+              return;
+            }
+          }
+
+          // Se já identificou pendências em cache
+          if (window.pendenciasClienteCache && window.pendenciasClienteCache.temPendencias) {
+            e.preventDefault();
+            window.verificarPendenciasCliente(true);
+            return;
+          }
+        }
+      });
+    }
+
+    // Se houve erro retornado do servidor, abrir modal SweetAlert2 imediatamente
+    <% if (typeof erro !== 'undefined' && erro) { %>
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Atenção na Operação',
+          html: `<p class="text-sm text-slate-700 leading-relaxed font-medium"><%= erro %></p>`,
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#0284c7',
+          customClass: {
+            popup: 'rounded-2xl font-sans',
+            confirmButton: 'rounded-xl font-bold px-5 py-2.5 text-sm'
+          }
+        });
+      }
+    <% } %>
   }
 
   document.addEventListener('turbo:load', inicializarMascarasClienteEditar);

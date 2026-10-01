@@ -15,8 +15,10 @@ import {
   Servico 
 } from '../../models';
 import { VeiculoAttributes } from '../../models/Veiculo';
+import { TipoAcaoAuditoria } from '../../models/LogAuditoria';
 import { calcularStatusAlerta } from '../utils/alertas';
 import { isDatabaseConnectionError, tratarErroRequisicao } from '../utils/erros';
+import AuditoriaService from '../services/AuditoriaService';
 
 export interface ICadastroVeiculoBody {
   placa?: string;
@@ -35,6 +37,9 @@ export interface IEdicaoVeiculoBody {
   cor?: string;
   km_atual?: string | number;
   condicao?: 'novo' | 'usado';
+  ativo?: string | boolean;
+  motivo_inativacao_opcao?: string;
+  motivo_inativacao_outro?: string;
 }
 
 export class VeiculoController {
@@ -215,6 +220,16 @@ export class VeiculoController {
         condicao: condicao as 'novo' | 'usado'
       });
 
+      // Registro de Auditoria
+      await AuditoriaService.registrar({
+        req,
+        acao: 'CRIAR',
+        recurso: 'Veículos',
+        registro_id: novoVeiculo.id,
+        descricao: `Cadastrou o veículo placa ${novoVeiculo.placa} (Ano ${novoVeiculo.ano}, Cor ${novoVeiculo.cor}, ${novoVeiculo.km_atual.toLocaleString('pt-BR')} km).`,
+        dados_novos: { placa: novoVeiculo.placa, modelo_id, cliente_id, ano: anoInt, cor, km_atual: kmInt, condicao }
+      });
+
       res.redirect(`/veiculos/${novoVeiculo.id}?sucesso=Veículo cadastrado com sucesso!`);
     } catch (error) {
       tratarErroRequisicao(error, req, res);
@@ -336,7 +351,7 @@ export class VeiculoController {
       const veiculo = await Veiculo.findByPk(Number(id), {
         include: [
           { model: Cliente, as: 'cliente', include: [{ model: Usuario, as: 'usuario' }] },
-          { model: ModeloVeiculo, as: 'modelo' }
+          { model: ModeloVeiculo, as: 'modelo', include: [{ model: MarcaVeiculo, as: 'marca' }] }
         ]
       });
 
@@ -372,25 +387,49 @@ export class VeiculoController {
    */
   public static async editar(req: Request<{ id: string }, {}, IEdicaoVeiculoBody>, res: Response): Promise<void> {
     const { id } = req.params;
-    const { placa, modelo_id, ano, cor, km_atual, condicao } = req.body;
+    const { 
+      placa, modelo_id, ano, cor, km_atual, condicao,
+      ativo, motivo_inativacao_opcao, motivo_inativacao_outro 
+    } = req.body;
 
     const placaLimpa = (placa || '').replace(/[^A-Z0-9]/gi, '').toUpperCase();
 
     try {
-      const veiculo = await Veiculo.findByPk(Number(id));
+      const veiculo = await Veiculo.findByPk(Number(id), {
+        include: [
+          { model: Cliente, as: 'cliente', include: [{ model: Usuario, as: 'usuario' }] },
+          { model: ModeloVeiculo, as: 'modelo', include: [{ model: MarcaVeiculo, as: 'marca' }] }
+        ]
+      });
       if (!veiculo) {
         res.status(404).send('Veículo não encontrado');
         return;
       }
+
+      const veiculoParaExibir = {
+        ...veiculo.toJSON(),
+        cliente: veiculo.cliente,
+        modelo: veiculo.modelo,
+        modelo_id: modelo_id ? Number(modelo_id) : veiculo.modelo_id,
+        placa: placaLimpa || veiculo.placa,
+        ano: ano !== undefined && !isNaN(Number(ano)) ? Number(ano) : veiculo.ano,
+        cor: cor || veiculo.cor,
+        km_atual: km_atual !== undefined && !isNaN(Number(km_atual)) ? Number(km_atual) : veiculo.km_atual,
+        condicao: (condicao as any) || veiculo.condicao,
+        ativo: ativo !== undefined ? (ativo === '1' || ativo === 'true' || ativo === true) : veiculo.ativo,
+        motivo_inativacao: motivo_inativacao_opcao === 'Outros' 
+          ? `Outros: ${motivo_inativacao_outro || ''}` 
+          : (motivo_inativacao_opcao || veiculo.motivo_inativacao)
+      };
 
       const anoInt = parseInt(String(ano), 10);
       const anoMax = new Date().getFullYear() + 1;
       if (isNaN(anoInt) || anoInt < 1900 || anoInt > anoMax) {
         const marcas = await MarcaVeiculo.findAll({ order: [['nome', 'ASC']] });
         const modelos = await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }], order: [['nome', 'ASC']] });
-        res.render('veiculos/editar', {
+        res.status(422).render('veiculos/editar', {
           titulo: `Editar Veículo: ${veiculo.placa}`,
-          veiculo,
+          veiculo: veiculoParaExibir,
           marcas,
           modelos,
           erro: `O ano de fabricação deve estar entre 1900 e ${anoMax}.`
@@ -402,9 +441,9 @@ export class VeiculoController {
       if (isNaN(kmInt) || kmInt < 0) {
         const marcas = await MarcaVeiculo.findAll({ order: [['nome', 'ASC']] });
         const modelos = await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }], order: [['nome', 'ASC']] });
-        res.render('veiculos/editar', {
+        res.status(422).render('veiculos/editar', {
           titulo: `Editar Veículo: ${veiculo.placa}`,
-          veiculo,
+          veiculo: veiculoParaExibir,
           marcas,
           modelos,
           erro: 'A quilometragem atual não pode ser negativa.'
@@ -422,9 +461,9 @@ export class VeiculoController {
       if (kmInt < maxHistoricoKm) {
         const marcas = await MarcaVeiculo.findAll({ order: [['nome', 'ASC']] });
         const modelos = await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }], order: [['nome', 'ASC']] });
-        res.render('veiculos/editar', {
+        res.status(422).render('veiculos/editar', {
           titulo: `Editar Veículo: ${veiculo.placa}`,
-          veiculo,
+          veiculo: veiculoParaExibir,
           marcas,
           modelos,
           erro: `A quilometragem informada (${kmInt.toLocaleString('pt-BR')} km) não pode ser inferior ao maior registro histórico de manutenção deste veículo (${maxHistoricoKm.toLocaleString('pt-BR')} km).`
@@ -438,9 +477,9 @@ export class VeiculoController {
         if (veiculoExistente) {
           const marcas = await MarcaVeiculo.findAll({ order: [['nome', 'ASC']] });
           const modelos = await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }], order: [['nome', 'ASC']] });
-          res.render('veiculos/editar', {
+          res.status(422).render('veiculos/editar', {
             titulo: `Editar Veículo: ${veiculo.placa}`,
-            veiculo,
+            veiculo: veiculoParaExibir,
             marcas,
             modelos,
             erro: 'Esta placa já está cadastrada em outro veículo.'
@@ -449,16 +488,137 @@ export class VeiculoController {
         }
       }
 
+      // Processar Status Ativo / Inativo
+      const querInativar = ativo !== undefined && (ativo === '0' || ativo === false || ativo === 'false' || ativo === 'inativo');
+      const querReativar = ativo !== undefined && (ativo === '1' || ativo === true || ativo === 'true' || ativo === 'ativo');
+
+      let novoAtivo = veiculo.ativo;
+      let novoMotivoInativacao = veiculo.motivo_inativacao;
+      let novoInativadoEm = veiculo.inativado_em;
+      let acaoAuditoria: TipoAcaoAuditoria = 'ATUALIZAR';
+      let descricaoAuditoria = `Atualizou os dados do veículo placa ${veiculo.placa} (Hodômetro: ${veiculo.km_atual.toLocaleString('pt-BR')} km).`;
+
+      if (querInativar && veiculo.ativo) {
+        // REGRA DE OURO: Só é possível inativar se não houver agendamentos pendentes
+        const agendamentosPendentes = await Agendamento.findAll({
+          where: {
+            veiculo_id: veiculo.id,
+            status: 'agendado'
+          },
+          order: [['data_agendada', 'ASC'], ['horario_agendado', 'ASC']]
+        });
+
+        if (agendamentosPendentes.length > 0) {
+          const marcas = await MarcaVeiculo.findAll({ order: [['nome', 'ASC']] });
+          const modelos = await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }], order: [['nome', 'ASC']] });
+          const pendenciasFormatadas = agendamentosPendentes.map(a => ({
+            id: a.id,
+            data: a.data_agendada ? new Date(a.data_agendada).toLocaleDateString('pt-BR') : '',
+            horario: a.horario_agendado || '',
+            motivo: a.motivo_revisao || 'Revisão / Manutenção Geral'
+          }));
+
+          res.status(422).render('veiculos/editar', {
+            titulo: `Editar Veículo: ${veiculo.placa}`,
+            veiculo: veiculoParaExibir,
+            marcas,
+            modelos,
+            pendenciasAgendamentos: pendenciasFormatadas,
+            erro: `Não é possível inativar este veículo: existe(m) ${agendamentosPendentes.length} agendamento(s) com status "Agendado" marcado(s) para ele. Conclua ou cancele todos os agendamentos antes de inativar.`
+          });
+          return;
+        }
+
+        // Validação estrita do motivo da inativação
+        const opcao = (motivo_inativacao_opcao || '').trim();
+        if (!opcao) {
+          const marcas = await MarcaVeiculo.findAll({ order: [['nome', 'ASC']] });
+          const modelos = await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }], order: [['nome', 'ASC']] });
+          res.status(422).render('veiculos/editar', {
+            titulo: `Editar Veículo: ${veiculo.placa}`,
+            veiculo: veiculoParaExibir,
+            marcas,
+            modelos,
+            erro: 'Para inativar o veículo, é obrigatório selecionar o motivo da inativação.'
+          });
+          return;
+        }
+
+        let motivoFinal = opcao;
+        if (opcao === 'Outros') {
+          const outroTexto = (motivo_inativacao_outro || '').trim();
+          if (!outroTexto) {
+            const marcas = await MarcaVeiculo.findAll({ order: [['nome', 'ASC']] });
+            const modelos = await ModeloVeiculo.findAll({ include: [{ model: MarcaVeiculo, as: 'marca' }], order: [['nome', 'ASC']] });
+            res.status(422).render('veiculos/editar', {
+              titulo: `Editar Veículo: ${veiculo.placa}`,
+              veiculo: veiculoParaExibir,
+              marcas,
+              modelos,
+              erro: 'Ao escolher a opção de motivo "Outros", você deve descrever detalhadamente o motivo no campo de texto.'
+            });
+            return;
+          }
+          motivoFinal = `Outros: ${outroTexto}`;
+        }
+
+        novoAtivo = false;
+        novoMotivoInativacao = motivoFinal;
+        novoInativadoEm = new Date();
+        acaoAuditoria = 'INATIVAR';
+        descricaoAuditoria = `Inativou o veículo placa ${veiculo.placa} (Motivo: ${motivoFinal}).`;
+      } else if (querReativar && !veiculo.ativo) {
+        novoAtivo = true;
+        novoMotivoInativacao = null;
+        novoInativadoEm = null;
+        acaoAuditoria = 'REATIVAR';
+        descricaoAuditoria = `Reativou o veículo placa ${veiculo.placa}.`;
+      }
+
+      const dadosAnt = {
+        placa: veiculo.placa,
+        modelo_id: veiculo.modelo_id,
+        ano: veiculo.ano,
+        cor: veiculo.cor,
+        km_atual: veiculo.km_atual,
+        condicao: veiculo.condicao,
+        ativo: veiculo.ativo,
+        motivo_inativacao: veiculo.motivo_inativacao
+      };
+
       await veiculo.update({
         placa: placaLimpa || veiculo.placa,
         modelo_id: modelo_id ? Number(modelo_id) : veiculo.modelo_id,
         ano: anoInt,
         cor: cor || veiculo.cor,
         km_atual: kmInt,
-        condicao: condicao ? (condicao as 'novo' | 'usado') : veiculo.condicao
+        condicao: condicao ? (condicao as 'novo' | 'usado') : veiculo.condicao,
+        ativo: novoAtivo,
+        motivo_inativacao: novoMotivoInativacao,
+        inativado_em: novoInativadoEm
       });
 
-      res.redirect(`/veiculos/${veiculo.id}?sucesso=Veículo atualizado com sucesso!`);
+      // Registro de Auditoria
+      await AuditoriaService.registrar({
+        req,
+        acao: acaoAuditoria,
+        recurso: 'Veículos',
+        registro_id: veiculo.id,
+        descricao: descricaoAuditoria,
+        dados_anteriores: dadosAnt,
+        dados_novos: { 
+          placa: veiculo.placa, modelo_id: veiculo.modelo_id, ano: anoInt, cor: veiculo.cor, 
+          km_atual: kmInt, condicao: veiculo.condicao, ativo: novoAtivo, motivo_inativacao: novoMotivoInativacao 
+        }
+      });
+
+      const msgSucesso = acaoAuditoria === 'INATIVAR' 
+        ? 'Veículo inativado com sucesso!' 
+        : acaoAuditoria === 'REATIVAR' 
+          ? 'Veículo reativado com sucesso!' 
+          : 'Veículo atualizado com sucesso!';
+
+      res.redirect(`/veiculos/${veiculo.id}?sucesso=${encodeURIComponent(msgSucesso)}`);
     } catch (error) {
       tratarErroRequisicao(error, req, res);
     }
@@ -479,6 +639,7 @@ export class VeiculoController {
       }
 
       const clienteId = veiculo.cliente_id;
+      const placaVeiculo = veiculo.placa;
 
       const [totalTrocas, totalServicos, totalAgendamentos] = await Promise.all([
         RegistroTroca.count({ where: { veiculo_id: Number(id) } }),
@@ -497,6 +658,15 @@ export class VeiculoController {
 
       await veiculo.destroy();
 
+      // Registro de Auditoria
+      await AuditoriaService.registrar({
+        req,
+        acao: 'EXCLUIR',
+        recurso: 'Veículos',
+        registro_id: id,
+        descricao: `Excluiu o veículo de placa ${placaVeiculo} (ID: ${id}) do cliente ID ${clienteId}.`
+      });
+
       res.redirect(`/clientes/${clienteId}?sucesso=Veículo removido com sucesso!`);
     } catch (error) {
       console.error('Erro ao deletar veículo:', error);
@@ -505,6 +675,39 @@ export class VeiculoController {
         return;
       }
       res.redirect(`/veiculos/${id}?erro=Não foi possível excluir o veículo: restrição de integridade no banco de dados.`);
+    }
+  }
+
+  /**
+   * GET /veiculos/:id/pendencias-inativacao
+   * Consulta assíncrona para checagem preventiva de pendências antes da inativação
+   */
+  public static async verificarPendenciasInativacao(req: Request<{ id: string }>, res: Response): Promise<void> {
+    const { id } = req.params;
+    try {
+      const agendamentos = await Agendamento.findAll({
+        where: {
+          veiculo_id: Number(id),
+          status: 'agendado'
+        },
+        order: [['data_agendada', 'ASC'], ['horario_agendado', 'ASC']]
+      });
+
+      res.json({
+        sucesso: true,
+        temPendencias: agendamentos.length > 0,
+        totalPendencias: agendamentos.length,
+        pendencias: agendamentos.map(a => ({
+          id: a.id,
+          data: a.data_agendada ? new Date(a.data_agendada).toLocaleDateString('pt-BR') : '',
+          horario: a.horario_agendado || '',
+          motivo: a.motivo_revisao || 'Revisão / Manutenção Geral',
+          status: a.status
+        }))
+      });
+    } catch (error) {
+      console.error('Erro ao verificar pendencias de veiculo:', error);
+      res.status(500).json({ sucesso: false, erro: 'Falha ao consultar pendências do veículo.' });
     }
   }
 }

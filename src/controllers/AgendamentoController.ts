@@ -4,6 +4,7 @@ import { AgendamentoAttributes } from '../../models/Agendamento';
 import { Op, WhereOptions } from 'sequelize';
 import { IHorarioSlot, IDuracaoOpcao } from '../types';
 import { tratarErroRequisicao } from '../utils/erros';
+import AuditoriaService from '../services/AuditoriaService';
 
 // Configuração de Horários Comerciais com intervalos flexíveis de 30 minutos (RF-20 / RF-34)
 export const HORARIOS_COMERCIAIS: readonly string[] = [
@@ -528,6 +529,22 @@ export class AgendamentoController {
       return;
     }
 
+    // Validação de Status Ativo do Cliente e do Veículo
+    const [clienteAlvo, veiculoAlvo] = await Promise.all([
+      Cliente.findByPk(Number(cliente_id), { include: [{ model: Usuario, as: 'usuario' }] }),
+      Veiculo.findByPk(Number(veiculo_id))
+    ]);
+
+    if (!clienteAlvo || !clienteAlvo.ativo) {
+      res.status(400).send(`Não é possível realizar agendamento: o cliente selecionado encontra-se inativo no sistema.`);
+      return;
+    }
+
+    if (!veiculoAlvo || !veiculoAlvo.ativo) {
+      res.status(400).send(`Não é possível realizar agendamento: o veículo placa ${veiculoAlvo?.placa || ''} encontra-se inativo no sistema.`);
+      return;
+    }
+
     if (!HORARIOS_COMERCIAIS.includes(horario_agendado)) {
       res.status(400).send('Horário de início fora do período comercial.');
       return;
@@ -591,7 +608,7 @@ export class AgendamentoController {
         return;
       }
 
-      await Agendamento.create({
+      const novoAgendamento = await Agendamento.create({
         cliente_id: Number(cliente_id),
         veiculo_id: Number(veiculo_id),
         servico_id: servico_id ? parseInt(String(servico_id), 10) : null,
@@ -603,6 +620,16 @@ export class AgendamentoController {
         observacoes: observacoes || null,
         criado_por,
         status: 'agendado'
+      });
+
+      // Registro de Auditoria
+      await AuditoriaService.registrar({
+        req,
+        acao: 'CRIAR',
+        recurso: 'Agendamentos',
+        registro_id: novoAgendamento.id,
+        descricao: `Agendou revisão para a data ${data_agendada} às ${horario_agendado} (Duração: ${duracaoMin} min) - Motivo: ${motivo_revisao}.`,
+        dados_novos: { cliente_id, veiculo_id, data_agendada, horario_agendado, duracao_minutos: duracaoMin, motivo_revisao }
       });
 
       res.redirect('/agendamentos/calendario-tela?sucesso=Agendamento criado com sucesso!');
@@ -726,6 +753,13 @@ export class AgendamentoController {
         }
       }
 
+      const dadosAnt = {
+        status: agendamento.status,
+        data_agendada: agendamento.data_agendada,
+        horario_agendado: agendamento.horario_agendado,
+        motivo_revisao: agendamento.motivo_revisao
+      };
+
       await agendamento.update({
         status: novoStatus,
         data_agendada: novaData,
@@ -736,6 +770,19 @@ export class AgendamentoController {
         observacoes: observacoes !== undefined ? observacoes : agendamento.observacoes,
         motivo_cancelamento: novoStatus === 'cancelado' ? motivo_cancelamento!.trim() : (novoStatus === 'agendado' ? null : agendamento.motivo_cancelamento),
         confirmacao_adiada_ate: novoStatus === 'cancelado' ? null : agendamento.confirmacao_adiada_ate
+      });
+
+      // Registro de Auditoria
+      await AuditoriaService.registrar({
+        req,
+        acao: novoStatus === 'cancelado' ? 'CANCELAR' : 'ATUALIZAR',
+        recurso: 'Agendamentos',
+        registro_id: agendamento.id,
+        descricao: novoStatus === 'cancelado'
+          ? `Cancelou o agendamento ID #${agendamento.id} referente à data ${agendamento.data_agendada} (Motivo: ${motivo_cancelamento}).`
+          : `Atualizou o agendamento ID #${agendamento.id} (Status: ${novoStatus}, Data: ${novaData} às ${novoInicio}).`,
+        dados_anteriores: dadosAnt,
+        dados_novos: { status: novoStatus, data_agendada: novaData, horario_agendado: novoInicio }
       });
 
       res.status(200).send('Agendamento atualizado com sucesso!');
@@ -927,6 +974,15 @@ export class AgendamentoController {
         confirmacao_adiada_ate: em60Min
       });
 
+      // Registro de Auditoria
+      await AuditoriaService.registrar({
+        req,
+        acao: 'ADIAR_PRESENCA',
+        recurso: 'Agendamentos',
+        registro_id: agendamento.id,
+        descricao: `Adiou alerta de confirmação de presença do agendamento ID #${agendamento.id} por 60 minutos.`
+      });
+
       res.json({
         sucesso: true,
         mensagem: 'Alerta adiado por 60 minutos com sucesso.'
@@ -989,6 +1045,15 @@ export class AgendamentoController {
         mensagem: `Agendamento de revisão confirmado para o veículo ${modeloVeiculo} (${placaVeiculo}) do cliente ${nomeCliente} no dia ${dataFormatada} às ${agendamento.horario_agendado}.`,
         lida: false,
         usuario_id: agendamento.criado_por || 1
+      });
+
+      // Registro de Auditoria
+      await AuditoriaService.registrar({
+        req,
+        acao: 'CONFIRMAR_PRESENCA',
+        recurso: 'Agendamentos',
+        registro_id: agendamento.id,
+        descricao: `Confirmou presença para o agendamento ID #${agendamento.id} (${modeloVeiculo} - ${placaVeiculo}) em ${dataFormatada} às ${agendamento.horario_agendado}.`
       });
 
       const mensagemRetorno = dadosAtualizacao.status === 'concluido'

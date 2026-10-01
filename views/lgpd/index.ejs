@@ -1,0 +1,493 @@
+<%- include('../parciais/cabecalho') %>
+<%- include('../parciais/menu') %>
+
+<div class="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 md:p-8 pb-24 md:pb-8 smooth-scroll">
+  <div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- Barra Superior de Controle e Ações (Oculta na Impressão) -->
+    <div class="nao-imprimir bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="flex items-center space-x-3.5">
+        <div class="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-600 flex items-center justify-center shrink-0 shadow-2xs">
+          <i data-lucide="shield-check" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Conformidade e Governança LGPD</h1>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+              Vigente
+            </span>
+          </div>
+          <p class="text-slate-500 text-xs sm:text-sm mt-0.5">
+            Lei Federal nº 13.709/2018 (Lei Geral de Proteção de Dados Pessoais) • Versão <%= versaoDocumento %>
+          </p>
+        </div>
+      </div>
+
+      <!-- Botões de Ação Solicitados: Impressão e Exportação para PDF -->
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- Botão 1: Impressão -->
+        <button type="button" 
+                onclick="imprimirTermo()" 
+                class="inline-flex items-center justify-center space-x-2 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold py-2.5 px-4 rounded-xl shadow-2xs hover:shadow-xs transition-all text-sm active:scale-95 cursor-pointer">
+          <i data-lucide="printer" class="w-4 h-4 text-slate-700"></i>
+          <span>Imprimir Termo</span>
+        </button>
+
+        <!-- Botão 2: Exportação para PDF -->
+        <button type="button" 
+                id="btnExportarPdf" 
+                onclick="exportarTermoPDF()" 
+                class="inline-flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-5 rounded-xl shadow-sm hover:shadow active:scale-95 transition-all text-sm cursor-pointer">
+          <i data-lucide="file-down" class="w-4 h-4 text-white"></i>
+          <span>Exportar para PDF</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- DOCUMENTO DO TERMO DE CONFORMIDADE LGPD (Área Capturada para Impressão e PDF) -->
+    <div id="documento-termo-lgpd" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-10 md:p-12 text-slate-800 space-y-8 relative overflow-hidden">
+      
+      <!-- Faixa Decorativa Superior -->
+      <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-slate-900 via-brand-600 to-slate-900 nao-imprimir"></div>
+
+      <!-- Cabeçalho Oficial do Documento / Timbre AUTEC -->
+      <div class="border-b border-slate-200 pb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center space-x-3.5">
+          <div class="bg-slate-900 p-3 rounded-2xl text-white shadow-sm flex items-center justify-center">
+            <i data-lucide="wrench" class="w-7 h-7"></i>
+          </div>
+          <div>
+            <span class="text-xs font-bold uppercase tracking-widest text-slate-500 block leading-none">RevSys</span>
+            <span class="text-2xl font-black text-slate-900 tracking-wider block uppercase leading-tight mt-0.5">AUTEC</span>
+            <span class="text-xs text-slate-500 font-medium">Centro Automotivo Especializado</span>
+          </div>
+        </div>
+
+        <div class="text-left sm:text-right space-y-1">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">
+            <i data-lucide="shield" class="w-3.5 h-3.5 text-brand-600"></i>
+            <span>Segurança da Informação & Governança</span>
+          </div>
+          <p class="text-xs text-slate-500">Última Atualização: <strong><%= dataVigencia %></strong></p>
+          <p class="text-xs text-slate-500">Documento Oficial: <strong>TER-LGPD-AUTEC-<%= new Date().getFullYear() %></strong></p>
+        </div>
+      </div>
+
+      <!-- Título Principal do Termo -->
+      <div class="text-center space-y-2 pt-2">
+        <h2 class="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 uppercase tracking-tight">
+          Declaração de Conformidade e Política de Tratamento de Dados Pessoais (LGPD)
+        </h2>
+        <p class="text-sm sm:text-base text-slate-600 max-w-3xl mx-auto leading-relaxed">
+          Termo de transparência, governança e conformidade às diretrizes da <strong>Lei Federal nº 13.709/2018 (Lei Geral de Proteção de Dados Pessoais)</strong> no âmbito das atividades mecânicas e preventivas operadas pela oficina <strong>AUTEC</strong>.
+        </p>
+      </div>
+
+      <!-- Destaque Informativo / Preâmbulo -->
+      <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-700 text-sm leading-relaxed space-y-2">
+        <div class="flex items-center space-x-2 text-slate-900 font-bold text-base">
+          <i data-lucide="info" class="w-5 h-5 text-brand-600 shrink-0"></i>
+          <span>Compromisso Institucional AUTEC com a Privacidade</span>
+        </div>
+        <p>
+          A <strong>AUTEC</strong> atua com rigor e responsabilidade no gerenciamento de dados de seus clientes, colaboradores e veículos. O sistema <strong>RevSys</strong> foi concebido sob a metodologia <em>Privacy by Design</em> e <em>Privacy by Default</em>, assegurando que o tratamento de dados pessoais ocorra com estrita finalidade técnica, transparência, segurança cibernética e respeito absoluto aos direitos fundamentais de liberdade e de privacidade dos titulares.
+        </p>
+      </div>
+
+      <!-- Seção 1: Atividade Exercida e Escopo do Sistema -->
+      <div class="space-y-3 quebra-evitar">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2 border-b border-slate-100 pb-2">
+          <span class="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs font-black">1</span>
+          <span>Atividade Exercida e Escopo do Sistema</span>
+        </h3>
+        <p class="text-slate-700 text-sm leading-relaxed text-justify">
+          O sistema <strong>RevSys</strong> é uma plataforma dedicada exclusivamente à <strong>gestão de manutenções preventivas, trocas de peças, histórico mecânico veicular e agendamento de revisões automotivas</strong>. Sua finalidade primordial é promover a segurança veicular dos condutores, prevenir acidentes causados pelo desgaste de componentes críticos (tais como sistemas de freio, suspensão, óleo lubrificante, filtros e correias) e fornecer transparência aos proprietários sobre a integridade e histórico de seus veículos.
+        </p>
+      </div>
+
+      <!-- Seção 2: Dados Pessoais Coletados e Tratamento de Dados Sensíveis -->
+      <div class="space-y-4 quebra-evitar">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2 border-b border-slate-100 pb-2">
+          <span class="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs font-black">2</span>
+          <span>Categorias de Dados Coletados e Tratamento de Dados Sensíveis</span>
+        </h3>
+        <p class="text-slate-700 text-sm leading-relaxed">
+          Para o regular cumprimento da prestação de serviços mecânicos e emissão dos respectivos históricos, o sistema processa estritamente os dados necessários para essa finalidade:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Card Dados Pessoais -->
+          <div class="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
+            <div class="flex items-center space-x-2 text-slate-900 font-bold text-sm">
+              <i data-lucide="user" class="w-4 h-4 text-brand-600"></i>
+              <span>Dados Cadastrais do Cliente</span>
+            </div>
+            <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+              <li><strong>Nome Completo:</strong> Identificação do titular e proprietário legal.</li>
+              <li><strong>Telefone / WhatsApp:</strong> Contato estritamente operacional para aviso de manutenções vencidas, confirmação de horários e liberação do veículo.</li>
+              <li><strong>E-mail:</strong> Acesso seguro ao Portal do Cliente e recuperação de credenciais.</li>
+              <li><strong>Endereço:</strong> Emissão de comprovantes de garantia e notas fiscais de serviço.</li>
+            </ul>
+          </div>
+
+          <!-- Card Dados Veiculares -->
+          <div class="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
+            <div class="flex items-center space-x-2 text-slate-900 font-bold text-sm">
+              <i data-lucide="car" class="w-4 h-4 text-brand-600"></i>
+              <span>Dados Automotivos e Operacionais</span>
+            </div>
+            <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+              <li><strong>Placa e Chassi:</strong> Identificação unívoca do veículo submetido à revisão.</li>
+              <li><strong>Marca, Modelo e Ano:</strong> Adequação das peças de reposição e especificações do fabricante.</li>
+              <li><strong>Hodômetro (KM Atual):</strong> Cálculo preditivo da vida útil de componentes mecânicos.</li>
+              <li><strong>Histórico de Trocas e Serviços:</strong> Registro temporal dos reparos efetuados.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Box Especial: Proteção de CPF -->
+        <div class="p-4 rounded-xl bg-brand-50/70 border border-brand-200 text-slate-800 text-xs sm:text-sm leading-relaxed space-y-1.5">
+          <div class="flex items-center space-x-2 text-brand-900 font-bold">
+            <i data-lucide="lock" class="w-4 h-4 text-brand-700 shrink-0"></i>
+            <span>Tratamento Diferenciado e Criptografia do CPF</span>
+          </div>
+          <p class="text-justify">
+            Em conformidade com as diretrizes de segurança da informação, o <strong>CPF (Cadastro de Pessoa Física)</strong> dos clientes <strong>NUNCA é gravado em texto puro ou aberto no banco de dados</strong>. O sistema adota criptografia simétrica militar <strong>AES-256-CBC</strong> para armazenamento e algoritmo criptográfico de derivação unidirecional <strong>Blind Index (HMAC SHA-256)</strong> para localização rápida e segura, impedindo que acessos indevidos ou vazamentos exponham o documento dos clientes.
+          </p>
+        </div>
+      </div>
+
+      <!-- Seção 3: Bases Legais do Tratamento -->
+      <div class="space-y-3 quebra-evitar">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2 border-b border-slate-100 pb-2">
+          <span class="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs font-black">3</span>
+          <span>Bases Legais de Tratamento (Art. 7º da Lei 13.709/2018)</span>
+        </h3>
+        <p class="text-slate-700 text-sm leading-relaxed">
+          Todo e qualquer tratamento de dados pessoais no RevSys está expressamente respaldado pelas seguintes hipóteses legais previstas na LGPD:
+        </p>
+
+        <div class="space-y-2 text-xs sm:text-sm text-slate-700">
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start space-x-3">
+            <div class="w-6 h-6 rounded-md bg-slate-200 text-slate-800 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">I</div>
+            <div>
+              <strong class="text-slate-900">Execução de Contrato e Procedimentos Preliminares (Art. 7º, V):</strong>
+              <p class="text-slate-600 mt-0.5">Necessário para cadastrar a ordem de serviço, requisitar peças compatíveis, executar o conserto mecânico e gerenciar o agendamento solicitado pelo cliente.</p>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start space-x-3">
+            <div class="w-6 h-6 rounded-md bg-slate-200 text-slate-800 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">II</div>
+            <div>
+              <strong class="text-slate-900">Legítimo Interesse da Oficina e do Titular (Art. 7º, IX):</strong>
+              <p class="text-slate-600 mt-0.5">Alertar preventivamente o proprietário sobre peças veiculares próximas do vencimento ou já expiradas, resguardando a integridade física dos ocupantes do automóvel e a preservação do bem patrimonial.</p>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start space-x-3">
+            <div class="w-6 h-6 rounded-md bg-slate-200 text-slate-800 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">III</div>
+            <div>
+              <strong class="text-slate-900">Cumprimento de Obrigação Legal e Regulatória (Art. 7º, II):</strong>
+              <p class="text-slate-600 mt-0.5">Emissão de notas fiscais de serviço, guarda de registros obrigatórios para fins tributários e cumprimento dos prazos legais de garantia estabelecidos pelo Código de Defesa do Consumidor (CDC).</p>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start space-x-3">
+            <div class="w-6 h-6 rounded-md bg-slate-200 text-slate-800 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">IV</div>
+            <div>
+              <strong class="text-slate-900">Consentimento Livre, Informado e Revogável (Art. 7º, I):</strong>
+              <p class="text-slate-600 mt-0.5">Para recebimento de lembretes e avisos automatizados via WhatsApp, podendo ser revogado ou concedido a qualquer tempo pelo cliente através de seu painel exclusivo.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção 4: Uso e Compartilhamento de Informações (Cláusula de Não Compartilhamento) -->
+      <div class="space-y-4 quebra-evitar">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2 border-b border-slate-100 pb-2">
+          <span class="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs font-black">4</span>
+          <span>Regras Estritas de Uso e Não Compartilhamento de Informações</span>
+        </h3>
+        
+        <!-- Alerta de Não Comercialização -->
+        <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 text-xs sm:text-sm leading-relaxed space-y-1.5">
+          <div class="flex items-center space-x-2 text-emerald-900 font-bold">
+            <i data-lucide="check-shield" class="w-5 h-5 text-emerald-700 shrink-0"></i>
+            <span>Compromisso Absoluto de Não Comercialização de Dados</span>
+          </div>
+          <p class="text-justify font-medium">
+            A <strong>AUTEC declara de forma categórica e irrevogável que NUNCA comercializa, vende, cede, aluga ou monetiza os dados pessoais ou informações veiculares de seus clientes</strong> para companhias de seguro, bancos, concessionárias, financeiras, empresas de telemarketing ou agências de publicidade de terceiros.
+          </p>
+        </div>
+
+        <p class="text-slate-700 text-sm leading-relaxed text-justify">
+          O compartilhamento de dados ocorre exclusivamente nos seguintes cenários operacionais indispensáveis:
+        </p>
+
+        <ul class="text-xs sm:text-sm text-slate-700 space-y-2 list-disc list-inside">
+          <li>
+            <strong>Oficinas Parceiras Homologadas:</strong> Exclusivamente quando o cliente optar por realizar determinado serviço em uma oficina conveniada cadastrada no sistema, transmitindo apenas o histórico técnico veicular e o primeiro nome do proprietário para execução do serviço mecânico.
+          </li>
+          <li>
+            <strong>Operadores de Hospedagem e Infraestrutura:</strong> Servidores em nuvem e data centers contratados para manter a aplicação em funcionamento (HostGator), sujeitos a cláusulas rígidas de confidencialidade e segurança cibernética.
+          </li>
+          <li>
+            <strong>Ordens Judiciais e Autoridades Públicas:</strong> Somente mediante intimação formal de autoridades policiais, judiciais ou fiscais legalmente constituídas, em cumprimento estrito da legislação brasileira.
+          </li>
+        </ul>
+      </div>
+
+      <!-- Seção 5: Medidas Técnicas e de Segurança da Informação -->
+      <div class="space-y-3 quebra-evitar">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2 border-b border-slate-100 pb-2">
+          <span class="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs font-black">5</span>
+          <span>Medidas Técnicas de Segurança da Informação Implementadas</span>
+        </h3>
+        <p class="text-slate-700 text-sm leading-relaxed">
+          O sistema RevSys emprega controles técnicos e de governança para mitigar riscos de incidentes, acessos não autorizados ou destruição acidental de dados:
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-700">
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-1">
+            <span class="font-bold text-slate-900 block text-sm">🔒 Criptografia AES-256 e Blind Index</span>
+            <p>Camada criptográfica avançada para proteção de dados sensíveis em repouso e consultas anônimas.</p>
+          </div>
+
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-1">
+            <span class="font-bold text-slate-900 block text-sm">🛡️ Controle de Acesso Baseado em Níveis (RBAC)</span>
+            <p>Separação rígida de papéis: Administradores, Gerentes, Atendentes, Mecânicos e Clientes com privilégios mínimos necessários.</p>
+          </div>
+
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-1">
+            <span class="font-bold text-slate-900 block text-sm">📜 Trilha de Auditoria Imutável (`logs_auditoria`)</span>
+            <p>Registro automático e higienizado de todas as inclusões, edições, exclusões e autenticações com IP e operador.</p>
+          </div>
+
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-1">
+            <span class="font-bold text-slate-900 block text-sm">🔑 Sessões Isoladas e Hash com Salt</span>
+            <p>Senhas armazenadas com algoritmo bcrypt de alto custo computacional e sessões persistentes no banco de dados.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção 6: Direitos dos Titulares de Dados -->
+      <div class="space-y-3 quebra-evitar">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2 border-b border-slate-100 pb-2">
+          <span class="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs font-black">6</span>
+          <span>Direitos dos Titulares de Dados Pessoais (Art. 18 da LGPD)</span>
+        </h3>
+        <p class="text-slate-700 text-sm leading-relaxed text-justify">
+          O cliente da AUTEC, na qualidade de titular de dados pessoais, pode exercer a qualquer momento os seguintes direitos garantidos pela legislação:
+        </p>
+
+        <ul class="text-xs sm:text-sm text-slate-700 space-y-2 list-disc list-inside">
+          <li><strong>Confirmação e Acesso:</strong> Obter a confirmação de que seus dados estão sendo tratados e acessar a ficha completa de seus veículos através do Portal do Cliente.</li>
+          <li><strong>Correção:</strong> Solicitar a atualização de dados cadastrais incompletos, inexatos ou desatualizados.</li>
+          <li><strong>Revogação do Consentimento:</strong> Desativar o recebimento de avisos de revisão preventiva via WhatsApp de forma instantânea com um clique no Portal do Cliente, com registro transparente em `logs_lgpd`.</li>
+          <li><strong>Anonimização ou Eliminação:</strong> Requerer a exclusão de dados desnecessários ou excessivos, ressalvados os períodos legais de guarda fiscal e garantia mecânica.</li>
+        </ul>
+      </div>
+
+      <!-- Seção 7: Canal de Contato do DPO / Encarregado -->
+      <div class="space-y-3 quebra-evitar">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2 border-b border-slate-100 pb-2">
+          <span class="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs font-black">7</span>
+          <span>Canal de Atendimento e Encarregado de Dados (DPO)</span>
+        </h3>
+        <p class="text-slate-700 text-sm leading-relaxed text-justify">
+          Para esclarecimento de dúvidas, solicitações de titulares, revogação de consentimentos ou reporte de inconformidades, a AUTEC disponibiliza canal exclusivo de governança e privacidade:
+        </p>
+
+        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs sm:text-sm">
+          <div>
+            <span class="font-bold text-slate-900 block"><%= dpoContato.nome %></span>
+            <span class="text-slate-600 block"><%= dpoContato.oficina %></span>
+          </div>
+          <div class="flex items-center space-x-2 bg-white px-3 py-2 rounded-lg border border-slate-200">
+            <i data-lucide="mail" class="w-4 h-4 text-brand-600"></i>
+            <a href="mailto:<%= dpoContato.email %>" class="font-semibold text-brand-600 hover:underline">
+              <%= dpoContato.email %>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rodapé Institucional com Assinatura / Validação -->
+      <div class="pt-6 border-t border-slate-200 text-center space-y-2 text-xs text-slate-500 quebra-evitar">
+        <p class="font-semibold text-slate-700">
+          AUTEC Centro Automotivo Especializado • RevSys - Sistema Especialista de Revisões Preventivas
+        </p>
+        <p>
+          Documento certificado para atendimento das disposições da Lei Federal nº 13.709/2018. Todos os direitos reservados.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<%- include('../parciais/rodape') %>
+
+<!-- Biblioteca html2pdf.js para Exportação Direta de Alta Qualidade -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<!-- Estilização Específica para Impressão A4 do Termo LGPD -->
+<style>
+  @media print {
+    /* Ocultar elementos irrelevantes na impressão */
+    .nao-imprimir,
+    #sidebar,
+    #sidebarOverlay,
+    #btnScrollToTop,
+    header,
+    footer,
+    nav {
+      display: none !important;
+    }
+
+    body {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      font-size: 10.5pt !important;
+      line-height: 1.4 !important;
+    }
+
+    /* Container do documento impresso */
+    #documento-termo-lgpd {
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+
+    /* Evitar quebra no meio de seções */
+    .quebra-evitar {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 1.5cm 1.2cm 1.5cm 1.2cm;
+    }
+  }
+</style>
+
+<!-- Script dos Botões: Impressão e Exportação para PDF -->
+<script>
+  /**
+   * Dispara a impressão nativa formatada do termo LGPD
+   */
+  function imprimirTermo() {
+    window.print();
+  }
+
+  /**
+   * Exporta o documento do termo diretamente para arquivo PDF (Download nativo)
+   */
+  function exportarTermoPDF() {
+    const elemento = document.getElementById('documento-termo-lgpd');
+    const botaoExportar = document.getElementById('btnExportarPdf');
+
+    if (!elemento) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: 'Documento não localizado para exportação.',
+          confirmButtonColor: '#0f172a'
+        });
+      } else {
+        alert('Documento não localizado.');
+      }
+      return;
+    }
+
+    // Se a biblioteca html2pdf estiver disponível, gera e baixa diretamente o arquivo PDF
+    if (typeof html2pdf !== 'undefined') {
+      const textoOriginal = botaoExportar ? botaoExportar.innerHTML : '';
+      if (botaoExportar) {
+        botaoExportar.disabled = true;
+        botaoExportar.innerHTML = `
+          <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          <span>Gerando PDF...</span>
+        `;
+      }
+
+      const opcoes = {
+        margin: [12, 10, 12, 10], // top, left, bottom, right em mm
+        filename: 'Termo_Conformidade_LGPD_AUTEC.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true,
+          logging: false,
+          scrollY: 0
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait' 
+        },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      html2pdf()
+        .set(opcoes)
+        .from(elemento)
+        .save()
+        .then(() => {
+          if (botaoExportar) {
+            botaoExportar.disabled = false;
+            botaoExportar.innerHTML = textoOriginal;
+          }
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              icon: 'success',
+              title: 'PDF Exportado com Sucesso!',
+              text: 'O arquivo "Termo_Conformidade_LGPD_AUTEC.pdf" foi gerado e baixado no seu dispositivo.',
+              timer: 3500,
+              showConfirmButton: false
+            });
+          }
+        })
+        .catch((err) => {
+          console.error('Erro na geração do PDF:', err);
+          if (botaoExportar) {
+            botaoExportar.disabled = false;
+            botaoExportar.innerHTML = textoOriginal;
+          }
+          // Fallback gracioso para a janela de impressão
+          window.print();
+        });
+    } else {
+      // Fallback gracioso chamando a impressão nativa onde o usuário pode selecionar "Salvar como PDF"
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'info',
+          title: 'Exportação para PDF',
+          text: 'Selecione a opção "Salvar como PDF" na tela de impressão a seguir.',
+          confirmButtonColor: '#0f172a',
+          confirmButtonText: 'Abrir Visualização'
+        }).then(() => {
+          window.print();
+        });
+      } else {
+        window.print();
+      }
+    }
+  }
+
+  // Recarregar os ícones do Lucide no carregamento e em transições Turbo
+  document.addEventListener('turbo:load', () => {
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  });
+</script>

@@ -70,13 +70,14 @@
               <th class="p-4">Cor</th>
               <th class="p-4">Último KM Registrado</th>
               <th class="p-4">Proprietário</th>
+              <th class="p-4">Situação</th>
               <th class="p-4 pr-6 text-right">Ações</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 text-slate-800 text-base">
             <% if (veiculos.length === 0) { %>
               <tr>
-                <td colspan="7" class="p-10 text-center text-slate-500 text-base font-medium">
+                <td colspan="8" class="p-10 text-center text-slate-500 text-base font-medium">
                   <i data-lucide="car" class="w-10 h-10 mx-auto mb-3 text-slate-300"></i>
                   Nenhum veículo encontrado.
                 </td>
@@ -97,6 +98,19 @@
                   <td class="p-4 font-bold text-slate-900"><%= Number(veiculo.km_atual).toLocaleString('pt-BR') %> km</td>
                   <td class="p-4 text-slate-700 font-medium">
                     <%= veiculo.cliente ? veiculo.cliente.usuario.nome : 'Sem Proprietário' %>
+                  </td>
+                  <td class="p-4">
+                    <% if (veiculo.ativo) { %>
+                      <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span>Ativo</span>
+                      </span>
+                    <% } else { %>
+                      <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300" title="<%= veiculo.motivo_inativacao || 'Veículo Inativo' %>">
+                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                        <span>Inativo</span>
+                      </span>
+                    <% } %>
                   </td>
                   <td class="p-4 pr-6 text-right space-x-2">
                     <a href="/veiculos/<%= veiculo.id %>" class="inline-flex items-center justify-center p-2.5 rounded-xl hover:bg-slate-200 text-slate-600 hover:text-slate-950 transition-colors" title="Ver Prontuário / Alertas">
@@ -126,9 +140,16 @@
           <% veiculos.forEach(veiculo => { %>
             <div class="p-4 sm:p-5 space-y-3.5 hover:bg-slate-50/70 transition-colors">
               <div class="flex items-center justify-between gap-2">
-                <span class="<%= obterClassePlaca(veiculo.placa) %> px-2.5 py-1 text-xs sm:text-sm">
-                  <%= formatarPlaca(veiculo.placa) %>
-                </span>
+                <div class="flex items-center gap-2">
+                  <span class="<%= obterClassePlaca(veiculo.placa) %> px-2.5 py-1 text-xs sm:text-sm">
+                    <%= formatarPlaca(veiculo.placa) %>
+                  </span>
+                  <% if (veiculo.ativo) { %>
+                    <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">ATIVO</span>
+                  <% } else { %>
+                    <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300" title="<%= veiculo.motivo_inativacao || '' %>">INATIVO</span>
+                  <% } %>
+                </div>
                 <span class="font-bold text-slate-900 text-sm sm:text-base truncate">
                   <%= veiculo.modelo ? veiculo.modelo.marca.nome + ' ' + veiculo.modelo.nome : 'Modelo N/I' %>
                 </span>

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { sequelize, RegistroTroca, Veiculo } from '../../models';
 import { tratarErroRequisicao } from '../utils/erros';
+import AuditoriaService from '../services/AuditoriaService';
 
 export interface IRegistroTrocaDTO {
   veiculo_id?: string | number;
@@ -105,7 +106,7 @@ export class TrocaController {
       }
 
       // Criar registro de troca
-      await RegistroTroca.create({
+      const novaTroca = await RegistroTroca.create({
         veiculo_id: Number(veiculo_id),
         peca_id: Number(peca_id),
         oficina_id: idOficina,
@@ -126,6 +127,16 @@ export class TrocaController {
       }
 
       await t.commit();
+
+      // Registro de Auditoria
+      await AuditoriaService.registrar({
+        req,
+        acao: 'CRIAR',
+        recurso: 'Trocas de Peças',
+        registro_id: novaTroca.id,
+        descricao: `Registrou troca de peça para o veículo placa ${veiculo.placa} com ${kmTrocaInt.toLocaleString('pt-BR')} km (Executado por: ${executado_por}).`,
+        dados_novos: { veiculo_id, peca_id, km_na_troca: kmTrocaInt, executado_por }
+      });
       
       res.redirect(`/veiculos/${veiculo_id}?sucesso=Troca de peça registrada com sucesso!`);
 
@@ -150,7 +161,17 @@ export class TrocaController {
       }
 
       const veiculoId = troca.veiculo_id;
+      const kmNaTroca = troca.km_na_troca;
       await troca.destroy();
+
+      // Registro de Auditoria
+      await AuditoriaService.registrar({
+        req,
+        acao: 'EXCLUIR',
+        recurso: 'Trocas de Peças',
+        registro_id: id,
+        descricao: `Excluiu o registro de troca de peça ID #${id} do veículo ID #${veiculoId} (${kmNaTroca} km).`
+      });
 
       res.redirect(`/veiculos/${veiculoId}?sucesso=Registro de troca removido com sucesso!`);
     } catch (error) {

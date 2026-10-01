@@ -21,11 +21,14 @@ export interface ClienteAttributes {
   telefone_whatsapp?: string | null;
   consentimento_lgpd: boolean;
   data_consentimento_lgpd?: Date | null;
+  ativo: boolean;
+  motivo_inativacao?: string | null;
+  inativado_em?: Date | null;
   criado_em?: Date;
   atualizado_em?: Date;
 }
 
-export interface ClienteCreationAttributes extends Optional<ClienteAttributes, 'id' | 'cpf_hash' | 'logradouro' | 'numero' | 'bairro' | 'cidade' | 'estado' | 'cep' | 'telefone_whatsapp' | 'consentimento_lgpd' | 'data_consentimento_lgpd' | 'criado_em' | 'atualizado_em'> {}
+export interface ClienteCreationAttributes extends Optional<ClienteAttributes, 'id' | 'cpf_hash' | 'logradouro' | 'numero' | 'bairro' | 'cidade' | 'estado' | 'cep' | 'telefone_whatsapp' | 'consentimento_lgpd' | 'data_consentimento_lgpd' | 'ativo' | 'motivo_inativacao' | 'inativado_em' | 'criado_em' | 'atualizado_em'> {}
 
 export class Cliente extends Model<ClienteAttributes, ClienteCreationAttributes> implements ClienteAttributes {
   declare id: number;
@@ -41,6 +44,9 @@ export class Cliente extends Model<ClienteAttributes, ClienteCreationAttributes>
   declare telefone_whatsapp: string | null;
   declare consentimento_lgpd: boolean;
   declare data_consentimento_lgpd: Date | null;
+  declare ativo: boolean;
+  declare motivo_inativacao: string | null;
+  declare inativado_em: Date | null;
   declare readonly criado_em: Date;
   declare readonly atualizado_em: Date;
 
@@ -183,6 +189,19 @@ export function initCliente(sequelize: Sequelize): typeof Cliente {
       defaultValue: false
     },
     data_consentimento_lgpd: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    ativo: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true
+    },
+    motivo_inativacao: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    inativado_em: {
       type: DataTypes.DATE,
       allowNull: true
     }

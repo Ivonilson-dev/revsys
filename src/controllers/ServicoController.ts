@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { sequelize, RegistroServico, Veiculo } from '../../models';
 import { tratarErroRequisicao } from '../utils/erros';
+import AuditoriaService from '../services/AuditoriaService';
 
 export interface IRegistroServicoDTO {
   veiculo_id?: string | number;
@@ -103,7 +104,7 @@ export class ServicoController {
         nomeManual = null;
       }
 
-      await RegistroServico.create({
+      const novoReg = await RegistroServico.create({
         veiculo_id: Number(veiculo_id),
         servico_id: Number(servico_id),
         oficina_id: idOficina,
@@ -124,6 +125,16 @@ export class ServicoController {
       }
 
       await t.commit();
+
+      // Registro de Auditoria
+      await AuditoriaService.registrar({
+        req,
+        acao: 'CRIAR',
+        recurso: 'Serviços em Veículos',
+        registro_id: novoReg.id,
+        descricao: `Registrou serviço executado no veículo placa ${veiculo.placa} com ${kmServicoInt.toLocaleString('pt-BR')} km (Executado por: ${executado_por}).`,
+        dados_novos: { veiculo_id, servico_id, km_no_servico: kmServicoInt, executado_por }
+      });
       
       res.redirect(`/veiculos/${veiculo_id}?sucesso=Registro de serviço realizado com sucesso!`);
 
@@ -148,7 +159,17 @@ export class ServicoController {
       }
 
       const veiculoId = reg.veiculo_id;
+      const kmNoServico = reg.km_no_servico;
       await reg.destroy();
+
+      // Registro de Auditoria
+      await AuditoriaService.registrar({
+        req,
+        acao: 'EXCLUIR',
+        recurso: 'Serviços em Veículos',
+        registro_id: id,
+        descricao: `Excluiu o registro de serviço ID #${id} do veículo ID #${veiculoId} (${kmNoServico} km).`
+      });
 
       res.redirect(`/veiculos/${veiculoId}?sucesso=Registro de serviço removido com sucesso!`);
     } catch (error) {

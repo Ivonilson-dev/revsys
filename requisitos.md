@@ -63,6 +63,13 @@ RF-34	Configuração de Horário Comercial (AUTEC)	Agendamento respeita expedien
 RF-35	Fila de Confirmação de Presença (Janela 24h)	Alerta sequencial no Dashboard para agendamentos nas próximas 24h. O operador pode solicitar via WhatsApp, adiar por 60 min ou confirmar presença. Agendamentos cancelados ou concluídos são rigorosamente excluídos da fila e dos modais.
 RF-36	Notificações Detalhadas de Agendamento	Ao confirmar presença de um agendamento, o sistema gera dinamicamente uma notificação interna para a equipe contendo o modelo do veículo, a placa, o nome do cliente proprietário, a data e a hora da revisão.
 RF-37	Resiliência e Tratamento Amigável de Falhas de Banco	Caso o servidor MySQL esteja inacessível (conexão recusada, timeout ou offline), o sistema captura o erro globalmente e apresenta uma tela amigável (views/erros/banco.ejs) orientando o usuário a verificar a internet e contatar o suporte, sem exibir stack trace tanto em dev quanto em prod.
+RF-38	Módulo de Auditoria e Rastreabilidade de Operações	Registro contínuo e seguro de todas as ações de CRUD, logins, tentativas com falha e logouts em tabela dedicada (`logs_auditoria`). Página exclusiva para o perfil Administrador com filtros por período, usuário, ação, módulo e busca livre. Geração de relatórios formatados para impressão em papel e exportação nativa em PDF ou CSV com cabeçalho oficial AUTEC.
+RF-39	Classificação de Níveis de Acesso (Tabela dedicada)	Tabela `niveis_acesso` para controle e classificação formal dos privilégios de acesso do sistema (Admin, Gerente, Atendente, Mecânico e Cliente), com chave estrangeira na tabela de usuários.
+RF-40	Termo e Declaração de Conformidade LGPD no Menu	Página institucional acessível pela rota `/lgpd` (exibida como a última opção do menu de navegação com texto "LGPD" para todos os perfis). Apresenta os termos de governança, finalidades de tratamento para serviços automotivos, regras rígidas de segurança com criptografia de CPF, política estrita de não comercialização/compartilhamento externo de dados e canais do DPO. Contém botões dedicados para impressão e exportação direta do documento para PDF.
+RF-41	Cadastro e Gestão de Usuários com Nível de Acesso no Cadastro Base	Opção exclusiva para o perfil Administrador no painel de Cadastros Base (`/cadastros`) que permite cadastrar novos usuários definindo nome, e-mail, senha e nível de acesso correspondente (a partir da tabela `niveis_acesso`, com ordenação alfabética obrigatória conforme RF-02). Inclui listagem dos usuários ativos com badges de perfil, exclusão com modal de confirmação e proteção contra auto-exclusão e exclusão do administrador principal. Todas as operações são registradas na trilha de auditoria (`logs_auditoria`).
+RF-42	Abertura Sob Demanda de Formulários no Cadastro Base	No painel de Cadastros Base (`/cadastros`), todos os formulários de inserção (Marcas de Veículos, Modelos, Fabricantes de Peças, Peças, Serviços da Oficina, Oficinas e Usuários do Sistema) permanecem recolhidos por padrão, sendo exibidos sob demanda através de botões gatilho dedicados com alternância visual (`+ Novo...` / `Cancelar`), atalhos de ação rápida no topo e foco inteligente, otimizando o espaço em tela e a usabilidade.
+RF-43	Sanfona (Accordion) de Itens Cadastrados e Busca por Palavra-Chave no Cadastro Base	No painel de Cadastros Base (`/cadastros`), os itens cadastrados de cada uma das seções ficam recolhidos dentro de elementos do tipo sanfona (accordion) por padrão, liberados via botão gatilho "Ver Itens" com contador dinâmico e alternância para "Ocultar Itens". Cada seção aberta disponibiliza um filtro de pesquisa instantâneo por palavra-chave (tolerante a acentos e maiúsculas/minúsculas) que filtra em tempo real as linhas ou cards pelo nome, fabricante, e-mail, perfil ou CNPJ, exibindo feedback amigável caso nenhum resultado coincida.
+RF-44	Inativação de Clientes e Veículos com Checagem Proativa de Pendências e Feedback Personalizado	Nos formulários de edição de cliente (`/clientes/:id/editar`) e de veículo (`/veiculos/:id/editar`), é disponibilizada a opção de alterar a situação entre Ativo e Inativo. Ao alternar para Inativo ou submeter o formulário, o sistema realiza checagem proativa assíncrona (`/veiculos/:id/pendencias-inativacao` e `/clientes/:id/pendencias-inativacao`). Havendo qualquer agendamento pendente ativo (status "Agendado"), o sistema bloqueia preventivamente a inativação, exibe um banner inline descritivo e abre um modal personalizado (SweetAlert2) detalhando data, horário e motivo de cada agendamento pendente, fornecendo atalho direto para a ficha do veículo/cliente para conclusão ou cancelamento prévio. O motivo da inativação é estritamente obrigatório a partir de opções predefinidas com abertura dinâmica de campo de texto para "Outros". Clientes e veículos inativos ficam bloqueados para novos agendamentos e solicitações de manutenção, com badges visuais em listagens e banners de destaque em suas telas de detalhes.
 3. REQUISITOS NÃO FUNCIONAIS (RNF)
 DESEMPENHO E ESCALABILIDADE
 Código	Requisito	Descrição
@@ -104,11 +111,12 @@ RNF-24	Calendário responsivo	Touch-friendly, fonte ≥14px.
 RNF-25	Backup automático	Backup diário do MySQL.
 4. MODELO DE DADOS (NOMES EM PORTUGUÊS)
 Tabela (PT-BR)	Campos (PT-BR)	Relacionamento
-usuarios	id, nome, email (único), senha_hash, papel (admin/gerente/atendente/mecanico/cliente), telefone, criado_em	-
-clientes	id, usuario_id (FK), cpf (único), endereco (logradouro, numero, bairro, cidade, estado, cep), consentimento_lgpd (boolean), data_consentimento_lgpd (datetime), telefone_whatsapp	1:1 com usuarios
+niveis_acesso	id, nome (ENUM: admin, gerente, atendente, mecanico, cliente), titulo, descricao, nivel_hierarquia, criado_em	1:N com usuarios
+usuarios	id, nome, email (único), senha_hash, papel (admin/gerente/atendente/mecanico/cliente), nivel_acesso_id (FK), telefone, criado_em	N:1 com niveis_acesso
+clientes	id, usuario_id (FK), cpf (único), endereco (logradouro, numero, bairro, cidade, estado, cep), consentimento_lgpd (boolean), data_consentimento_lgpd (datetime), telefone_whatsapp, ativo (boolean), motivo_inativacao (text), inativado_em (datetime)	1:1 com usuarios
 marcas_veiculo	id, nome	-
 modelos_veiculo	id, nome, marca_veiculo_id (FK)	N:1 com marcas_veiculo
-veiculos	id, placa (única), modelo_id (FK), cliente_id (FK), ano, cor, km_atual, condicao (ENUM: 'novo', 'usado')	N:1 com cliente, N:1 com modelo
+veiculos	id, placa (única), modelo_id (FK), cliente_id (FK), ano, cor, km_atual, condicao (ENUM: 'novo', 'usado'), ativo (boolean), motivo_inativacao (text), inativado_em (datetime)	N:1 com cliente, N:1 com modelo
 marcas_peca	id, nome	-
 pecas	id, nome, marca_peca_id (FK)	N:1 com marcas_peca
 oficinas	id, nome, cnpj, telefone, endereco, email, whatsapp_numero	-
@@ -116,6 +124,7 @@ registros_troca	id, veiculo_id (FK), peca_id (FK), oficina_id (FK - pode ser NUL
 agendamentos	id, cliente_id (FK), veiculo_id (FK), data_agendada (date), horario_agendado (time), status (agendado/concluido/cancelado), motivo_revisao (text), observacoes, criado_por (usuario_id FK), criado_em	N:1 com cliente, N:1 com veiculo, N:1 com usuario
 logs_lgpd	id, cliente_id (FK), consentimento_dado (boolean), ip_origem, user_agent, criado_em	N:1 com cliente
 notificacoes	id, tipo (solicitacao_cliente, alerta_troca, lembrete_agendamento), mensagem, lida (boolean), usuario_id (FK), criado_em	N:1 com usuario
+logs_auditoria	id, usuario_id (FK), usuario_nome, usuario_email, usuario_papel, acao, recurso, registro_id, descricao, dados_anteriores (JSON), dados_novos (JSON), ip, user_agent, criado_em	N:1 com usuarios
 5. ROTAS SUGERIDAS (TUDO EM PORTUGUÊS)
 text
 GET  /login            → exibe login
@@ -131,9 +140,10 @@ PUT  /veiculos/:id     → atualizar
 DEL  /veiculos/:id     → deletar
 GET  /veiculos/:id     → detalhes (com histórico e agendamentos)
 
-GET  /pecas            → listar peças
-POST /pecas            → criar
-... (CRUD similar para: marcas-veiculo, modelos-veiculo, oficinas, clientes, usuarios)
+// Cadastros Auxiliares e Usuários do Sistema
+GET  /cadastros         → visão unificada de marcas, modelos, peças, serviços, oficinas e usuários
+POST /usuarios          → criar novo usuário com nível de acesso (Exclusivo Administrador)
+DELETE /usuarios/:id    → excluir usuário do sistema (Exclusivo Administrador)
 
 // Trocas
 POST /troca            → registrar troca
@@ -150,6 +160,14 @@ POST /agendamentos/:id/status → atualizar status (cancelar, concluir, reagenda
 POST /agendamentos/:id/confirmar-presenca → confirmar presença e gerar notificação
 POST /agendamentos/:id/adiar-presenca → adiar alerta de presença por 60 min
 GET  /agendamentos     → lista com filtros por data, cliente e veículo
+
+// Auditoria e Rastreabilidade (Exclusivo Administrador)
+GET  /auditoria        → listagem com filtros por período, usuário, ação, módulo e busca livre
+GET  /auditoria/relatorio → visualização formatada para impressão em papel e exportação em PDF/CSV
+GET  /auditoria/:id/detalhes → detalhes completos da operação em JSON para modal
+
+// Termo e Conformidade LGPD (Todos os perfis)
+GET  /lgpd                → página institucional de conformidade LGPD, termo e regras de tratamento com impressão e exportação para PDF
 
 // Cliente (área pública)
 GET  /cliente/veiculos → veículos do cliente logado

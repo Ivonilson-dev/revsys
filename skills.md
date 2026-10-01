@@ -178,7 +178,19 @@ if (kmInformado < veiculo.km_atual) {
 ```
 *Na view, utilize modais SweetAlert2 e banners Tailwind CSS com ícones do Lucide Icons.*
 
-### 6.3 Disparo Dinâmico de Notificações Internas
+### 6.3 Compatibilidade com Turbo Drive e Status HTTP 422 (Unprocessable Entity)
+Quando um formulário for re-renderizado com mensagens de erro ou pendências sem fazer redirecionamento (isto é, utilizando `res.render(...)` diretamente no método do Controller), **SEMPRE defina o status HTTP como 422**:
+```typescript
+// OBRIGATÓRIO com Turbo Drive / Hotwire:
+return res.status(422).render('veiculos/editar', {
+  veiculo,
+  erro: 'Existem pendências ativas que impedem esta ação.',
+  pendenciasAgendamentos
+});
+```
+*Motivo Arquitetural*: O **Turbo Drive** gerencia as submissões de formulário assincronamente. Se o servidor responder a um erro de validação com o código HTTP padrão `200 OK`, o Turbo descarta o corpo da resposta silenciosamente e o DOM não é atualizado, provocando a impressão de "travamento" ou "não aconteceu nada". Com o status `422`, o Turbo Drive substitui o DOM com sucesso, exibindo os alertas e modais programados.
+
+### 6.4 Disparo Dinâmico de Notificações Internas
 Ao registrar ações críticas (como a confirmação de presença em agendamentos), crie notificações completas que facilitem a identificação rápida pela oficina:
 ```typescript
 await Notificacao.create({
@@ -188,3 +200,29 @@ await Notificacao.create({
   lida: false
 });
 ```
+
+---
+
+## 7. Registro de Auditoria e Rastreabilidade (AuditoriaService)
+
+Para cumprir os requisitos de governança e rastreabilidade (RF-38 e RF-39), qualquer ação relevante de autenticação ou mutação de dados (CRUD) deve ser registrada via `AuditoriaService`:
+
+```typescript
+import AuditoriaService from '../services/AuditoriaService';
+
+// Exemplo em um Controller após criar ou atualizar um registro:
+await AuditoriaService.registrar({
+  req,
+  acao: 'CRIAR', // ou 'ATUALIZAR', 'EXCLUIR', 'LOGIN', 'LOGOUT', etc.
+  recurso: 'clientes',
+  registro_id: novoCliente.id,
+  descricao: `Cadastrou o cliente "${novoCliente.nome}" no sistema.`,
+  dados_novos: { id: novoCliente.id, nome: novoCliente.nome, telefone: novoCliente.telefone }
+});
+```
+
+### Características Automáticas do AuditoriaService:
+1. **Identificação Transparente**: Extrai ID, nome, e-mail e papel do operador diretamente da sessão autenticada.
+2. **Captura de Rede Confiável**: Extrai o IP real do cliente tratando cabeçalhos `x-forwarded-for` e proxies reversos (como Cloudflare ou Apache/Passenger).
+3. **Higienização LGPD Recursiva**: Remove campos sensíveis como `senha`, `password`, `hash`, `token` e mascara automaticamente CPFs no formato `***.XXX.XXX-**` antes de salvar no banco `logs_auditoria`.
+4. **Resiliência Total**: O método nunca lança exceções para a rota chamadora; falhas de log são capturadas internamente para não interromper a operação do usuário.

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Usuario, Cliente } from '../../models';
 import { isDatabaseConnectionError, tratarErroRequisicao } from '../utils/erros';
+import AuditoriaService from '../services/AuditoriaService';
 
 export interface ILoginBody {
   email?: string;
@@ -47,6 +48,15 @@ export class AutenticacaoController {
       });
 
       if (!usuario) {
+        // Registra tentativa de acesso não autorizada
+        await AuditoriaService.registrar({
+          req,
+          usuario: { email, nome: 'Desconhecido' },
+          acao: 'LOGIN_FALHA',
+          recurso: 'Autenticação',
+          descricao: `Tentativa de login frustrada: usuário não encontrado (${email}).`
+        });
+
         res.render('autenticacao/login', {
           erro: 'E-mail ou senha incorretos.',
           mensagem: null,
@@ -58,6 +68,16 @@ export class AutenticacaoController {
       const senhaValida = await usuario.verificarSenha(senha);
 
       if (!senhaValida) {
+        // Registra tentativa com senha inválida
+        await AuditoriaService.registrar({
+          req,
+          usuario: { id: usuario.id, nome: usuario.nome, email: usuario.email, papel: usuario.papel },
+          acao: 'LOGIN_FALHA',
+          recurso: 'Autenticação',
+          registro_id: usuario.id,
+          descricao: `Tentativa de login com senha incorreta para o usuário ${usuario.nome} (${usuario.email}).`
+        });
+
         res.render('autenticacao/login', {
           erro: 'E-mail ou senha incorretos.',
           mensagem: null,
@@ -74,6 +94,16 @@ export class AutenticacaoController {
         papel: usuario.papel,
         clienteId: usuario.cliente ? usuario.cliente.id : undefined
       };
+
+      // Registra login bem-sucedido na auditoria
+      await AuditoriaService.registrar({
+        req,
+        usuario: { id: usuario.id, nome: usuario.nome, email: usuario.email, papel: usuario.papel },
+        acao: 'LOGIN',
+        recurso: 'Autenticação',
+        registro_id: usuario.id,
+        descricao: `Usuário ${usuario.nome} realizou login com sucesso no sistema (Perfil: ${usuario.papel.toUpperCase()}).`
+      });
 
       // Redirecionar para onde estava tentando acessar ou para o painel
       const redirecionarPara = req.session.redirecionarPara || '/painel';
@@ -99,6 +129,18 @@ export class AutenticacaoController {
    * Encerra a sessão e desloga o usuário
    */
   public static async sair(req: Request, res: Response): Promise<void> {
+    const usuarioLogado = req.session?.usuario;
+    if (usuarioLogado) {
+      await AuditoriaService.registrar({
+        req,
+        usuario: usuarioLogado,
+        acao: 'LOGOUT',
+        recurso: 'Autenticação',
+        registro_id: usuarioLogado.id,
+        descricao: `Usuário ${usuarioLogado.nome} encerrou sua sessão no sistema.`
+      });
+    }
+
     req.session.destroy((err) => {
       if (err) {
         console.error('Erro ao destruir sessão:', err);

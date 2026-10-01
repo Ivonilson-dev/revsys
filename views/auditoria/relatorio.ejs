@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= titulo %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @media print {
+      .nao-imprimir {
+        display: none !important;
+      }
+      body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        font-size: 11pt;
+      }
+      .quebra-evitar {
+        page-break-inside: avoid;
+      }
+      @page {
+        size: A4 landscape;
+        margin: 1.2cm 1cm 1.2cm 1cm;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen p-4 sm:p-6 md:p-8">
+
+  <!-- Barra de Ações do Relatório (Oculta na Impressão) -->
+  <div class="max-w-7xl mx-auto mb-6 nao-imprimir">
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <a href="/auditoria" class="inline-flex items-center justify-center p-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition-colors shadow-2xs" title="Voltar para a tela de auditoria">
+          <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        </a>
+        <div>
+          <h2 class="font-extrabold text-slate-900 text-base leading-tight">Visualização para Impressão e PDF</h2>
+          <p class="text-xs text-slate-500">Utilize o botão ao lado para imprimir ou salvar como PDF no navegador.</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Exportar CSV -->
+        <button type="button" 
+                onclick="exportarParaCSV()" 
+                class="inline-flex items-center space-x-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-bold py-2.5 px-4 rounded-xl shadow-2xs transition-all text-sm active:scale-95">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i>
+          <span>Exportar Planilha (CSV)</span>
+        </button>
+
+        <!-- Botão Principal de Impressão -->
+        <button type="button" 
+                onclick="window.print()" 
+                class="inline-flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-5 rounded-xl shadow-sm hover:shadow active:scale-95 transition-all text-sm">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          <span>Imprimir / Salvar em PDF</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Folha do Relatório Oficial -->
+  <div class="max-w-7xl mx-auto bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm print:border-none print:shadow-none print:p-0">
+
+    <!-- Cabeçalho Institucional AUTEC / RevSys -->
+    <div class="border-b-2 border-slate-900 pb-4 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div class="flex items-center space-x-3.5">
+        <div class="bg-slate-900 p-2.5 rounded-xl text-white shadow-xs">
+          <i data-lucide="wrench" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="text-[11px] font-black uppercase tracking-widest text-slate-500 leading-none">AUTEC Centro Automotivo • RevSys</div>
+          <h1 class="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight mt-0.5">
+            Relatório Oficial de Auditoria e Rastreabilidade
+          </h1>
+        </div>
+      </div>
+
+      <div class="text-right text-xs text-slate-600 space-y-0.5">
+        <div><strong class="text-slate-800">Emissão:</strong> <%= dataEmissao.toLocaleString('pt-BR') %></div>
+        <div><strong class="text-slate-800">Emissor:</strong> <%= usuarioEmissor ? usuarioEmissor.nome : 'Administrador' %> (<%= usuarioEmissor ? usuarioEmissor.papel.toUpperCase() : 'ADMIN' %>)</div>
+        <div class="text-[11px] text-slate-400">Ambiente Auditado: Produção / Homologação</div>
+      </div>
+    </div>
+
+    <!-- Parâmetros de Filtro do Relatório -->
+    <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 mb-5 text-xs grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div>
+        <span class="text-slate-500 font-bold block uppercase text-[10px]">Período:</span>
+        <span class="font-semibold text-slate-800">
+          <%= filtros.data_inicio ? filtros.data_inicio.split('-').reverse().join('/') : 'Início' %> até <%= filtros.data_fim ? filtros.data_fim.split('-').reverse().join('/') : 'Atual' %>
+        </span>
+      </div>
+      <div>
+        <span class="text-slate-500 font-bold block uppercase text-[10px]">Usuário:</span>
+        <span class="font-semibold text-slate-800"><%= filtros.usuario_nome %></span>
+      </div>
+      <div>
+        <span class="text-slate-500 font-bold block uppercase text-[10px]">Ação / Operação:</span>
+        <span class="font-semibold text-slate-800"><%= filtros.acao %></span>
+      </div>
+      <div>
+        <span class="text-slate-500 font-bold block uppercase text-[10px]">Módulo:</span>
+        <span class="font-semibold text-slate-800"><%= filtros.recurso %></span>
+      </div>
+      <% if (filtros.busca) { %>
+        <div class="col-span-2 sm:col-span-4 pt-1 border-t border-slate-200">
+          <span class="text-slate-500 font-bold text-[10px] uppercase">Termo Pesquisado:</span>
+          <span class="font-mono text-slate-800 font-semibold">"<%= filtros.busca %>"</span>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Resumo Numérico -->
+    <div class="flex items-center justify-between text-xs font-bold text-slate-600 mb-3 px-1">
+      <span>Total de Registros Localizados: <strong class="text-slate-900"><%= logs.length %></strong></span>
+      <span>Confidencialidade: Uso Interno e Fiscalização</span>
+    </div>
+
+    <!-- Tabela Impressa dos Registros -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs border border-slate-200" id="tabelaAuditoriaRelatorio">
+        <thead>
+          <tr class="bg-slate-100 text-slate-800 font-extrabold uppercase tracking-wider border-b border-slate-300">
+            <th class="p-2.5 border-r border-slate-200">Data/Hora</th>
+            <th class="p-2.5 border-r border-slate-200">Usuário</th>
+            <th class="p-2.5 border-r border-slate-200">Ação</th>
+            <th class="p-2.5 border-r border-slate-200">Módulo</th>
+            <th class="p-2.5 border-r border-slate-200">Descrição da Operação</th>
+            <th class="p-2.5">Origem (IP)</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 text-slate-800">
+          <% if (logs.length === 0) { %>
+            <tr>
+              <td colspan="6" class="p-8 text-center text-slate-500 font-medium">
+                Nenhum registro de auditoria corresponde aos filtros aplicados.
+              </td>
+            </tr>
+          <% } else { %>
+            <% logs.forEach((log, index) => { 
+                 const d = new Date(log.criado_em);
+                 const dataHora = d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            %>
+              <tr class="quebra-evitar <%= index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70' %>">
+                <td class="p-2 border-r border-slate-200 whitespace-nowrap font-mono font-medium">
+                  <%= dataHora %>
+                </td>
+                <td class="p-2 border-r border-slate-200">
+                  <div class="font-bold text-slate-900"><%= log.usuario_nome || 'Sistema' %></div>
+                  <div class="text-[10px] text-slate-500"><%= log.usuario_papel || '-' %></div>
+                </td>
+                <td class="p-2 border-r border-slate-200 font-bold whitespace-nowrap">
+                  <%= log.acao %>
+                </td>
+                <td class="p-2 border-r border-slate-200 whitespace-nowrap font-medium">
+                  <%= log.recurso %>
+                </td>
+                <td class="p-2 border-r border-slate-200 leading-tight">
+                  <%= log.descricao %>
+                </td>
+                <td class="p-2 whitespace-nowrap font-mono text-[11px] text-slate-600">
+                  <%= log.ip || '127.0.0.1' %>
+                </td>
+              </tr>
+            <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Rodapé Oficial do Relatório -->
+    <div class="mt-8 pt-4 border-t border-slate-200 text-[11px] text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>
+        Sistema RevSys • AUTEC Centro Automotivo Especializado
+      </div>
+      <div>
+        Documento gerado eletronicamente em conformidade com as diretrizes de governança e LGPD.
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+
+    // Função para exportação simples para CSV (planilha)
+    function exportarParaCSV() {
+      const tabela = document.getElementById('tabelaAuditoriaRelatorio');
+      let csv = [];
+      const linhas = tabela.querySelectorAll('tr');
+
+      for (let i = 0; i < linhas.length; i++) {
+        let linha = [];
+        const colunas = linhas[i].querySelectorAll('td, th');
+        for (let j = 0; j < colunas.length; j++) {
+          // Limpa quebras de linha e aspas
+          let texto = colunas[j].innerText.replace(/"/g, '""').trim();
+          linha.push('"' + texto + '"');
+        }
+        csv.push(linha.join(';'));
+      }
+
+      const csvString = '\uFEFF' + csv.join('\r\n');
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'relatorio_auditoria_autec_' + new Date().toISOString().slice(0,10) + '.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>

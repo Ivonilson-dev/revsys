@@ -49,7 +49,8 @@ c:\Projetos\RevSys\
 ├── dist/                           # Saída compilada do TypeScript (gerada por npm run build)
 ├── models/                         # Modelos TypeScript do Sequelize e associações
 │   ├── index.ts                    # Registrador central de modelos e associações
-│   ├── Usuario.ts
+│   ├── NivelAcesso.ts              # Classificação formal de papéis e níveis de acesso
+│   ├── Usuario.ts                  # Autenticação e associação ao nível de acesso
 │   ├── Cliente.ts
 │   ├── MarcaVeiculo.ts
 │   ├── ModeloVeiculo.ts
@@ -62,9 +63,10 @@ c:\Projetos\RevSys\
 │   ├── Oficina.ts
 │   ├── Agendamento.ts
 │   ├── LogLgpd.ts
+│   ├── LogAuditoria.ts             # Trilha de auditoria e operações de usuários
 │   └── Notificacao.ts
 ├── seeders/
-│   └── 20260717000001-dados-iniciais.js # Seeder inicial completo (marcas, modelos, peças, serviços)
+│   └── 20260717000001-dados-iniciais.js # Seeder inicial completo (níveis de acesso, usuários, marcas, modelos, peças, serviços)
 ├── src/
 │   ├── app.ts                      # Entrada principal da aplicação Express (TypeScript)
 │   ├── controllers/                # Lógica de controle das requisições (TypeScript)
@@ -77,8 +79,12 @@ c:\Projetos\RevSys\
 │   │   ├── AgendamentoController.ts
 │   │   ├── CadastroBaseController.ts # CRUD de tabelas auxiliares (Marcas, Peças, Serviços, etc.)
 │   │   ├── RelatorioController.ts
+│   │   ├── AuditoriaController.ts  # Gestão de auditoria, filtros e relatórios PDF/impressão
+│   │   ├── LgpdController.ts       # Declaração e termos de conformidade e governança LGPD
 │   │   ├── NotificacaoController.ts
 │   │   └── ClienteAreaController.ts
+│   ├── services/
+│   │   └── AuditoriaService.ts     # Serviço de gravação de logs de auditoria e sanitização LGPD
 │   ├── middlewares/                # Middlewares de autenticação e RBAC
 │   │   └── autorizacao.ts
 │   ├── routes/
@@ -100,6 +106,8 @@ c:\Projetos\RevSys\
 │   ├── agendamentos/
 │   ├── cadastros/
 │   ├── relatorios/
+│   ├── auditoria/                  # Views de auditoria (index.ejs e relatorio.ejs para impressão/PDF)
+│   ├── lgpd/                       # View do termo e conformidade LGPD com botões de impressão e PDF
 │   ├── parciais/
 │   └── erros/                      # Telas amigáveis (banco.ejs, 500.ejs, 404.ejs, 403.ejs)
 ├── public/                         # Arquivos estáticos servidos pelo Express
@@ -115,15 +123,17 @@ c:\Projetos\RevSys\
 
 ## 4. Modelos e Relacionamentos de Dados
 
-1. **`Usuario` 1:1 `Cliente`** (opcional: clientes possuem conta de usuário no papel `cliente`).
-2. **`MarcaVeiculo` 1:N `ModeloVeiculo`**: Marcas automotivas (ex: Fiat, Volkswagen, Toyota).
-3. **`ModeloVeiculo` 1:N `Veiculo`**: Modelos específicos vinculados à marca.
-4. **`Cliente` 1:N `Veiculo`**: Proprietário do veículo.
-5. **`MarcaPeca` 1:N `Peca`**: Fabricantes de peças (ex: Bosch, NGK, Cofap).
-6. **`Veiculo` 1:N `RegistroTroca` 1:N `Peca`**: Histórico de trocas de componentes com previsão de próxima manutenção por KM e Data.
-7. **`Veiculo` 1:N `RegistroServico` 1:N `Servico`**: Histórico de execução de serviços que não dependem de troca de peças (ex: Alinhamento 3D, Sangria de Freio, Higienização).
-8. **`Agendamento`**: Vincula `Cliente`, `Veiculo` e opcionalmente `Servico` para reserva de box em horário comercial (08:00 às 17:00).
-9. **`Oficina`**: Cadastro de matriz/filiais e oficinas externas executoras.
+1. **`NivelAcesso` 1:N `Usuario`**: Classificação formal dos papéis de acesso do sistema (Admin, Gerente, Atendente, Mecânico e Cliente).
+2. **`Usuario` 1:1 `Cliente`** (opcional: clientes possuem conta de usuário no papel `cliente`).
+3. **`MarcaVeiculo` 1:N `ModeloVeiculo`**: Marcas automotivas (ex: Fiat, Volkswagen, Toyota).
+4. **`ModeloVeiculo` 1:N `Veiculo`**: Modelos específicos vinculados à marca.
+5. **`Cliente` 1:N `Veiculo`**: Proprietário do veículo.
+6. **`MarcaPeca` 1:N `Peca`**: Fabricantes de peças (ex: Bosch, NGK, Cofap).
+7. **`Veiculo` 1:N `RegistroTroca` 1:N `Peca`**: Histórico de trocas de componentes com previsão de próxima manutenção por KM e Data.
+8. **`Veiculo` 1:N `RegistroServico` 1:N `Servico`**: Histórico de execução de serviços que não dependem de troca de peças (ex: Alinhamento 3D, Sangria de Freio, Higienização).
+9. **`Agendamento`**: Vincula `Cliente`, `Veiculo` e opcionalmente `Servico` para reserva de box em horário comercial (08:00 às 17:00).
+10. **`Oficina`**: Cadastro de matriz/filiais e oficinas externas executoras.
+11. **`Usuario` 1:N `LogAuditoria`**: Trilha de auditoria das ações e operações realizadas pelos usuários.
 
 ---
 
@@ -158,4 +168,30 @@ c:\Projetos\RevSys\
 - **RF-37 / RNF-26 (Resiliência e Tratamento Humanizado de Falha de Conexão de Dados)**:
   - Interceptador de exceções de banco em `src/utils/erros.ts` captura erros de socket e conexão (`SequelizeConnectionRefusedError`, `ECONNREFUSED`, `ETIMEDOUT`, etc.).
   - Em chamadas normais de navegação, renderiza `views/erros/banco.ejs` com TailwindCSS e CSS embutido autônomo (para manter a estética mesmo se a conexão externa falhar), instruindo a checagem de internet do dispositivo e o contato imediato com o suporte, sem expor mensagens técnicas ou de depuração tanto em dev quanto em prod. Em chamadas AJAX, retorna JSON estruturado com status HTTP 503.
-- **LGPD Compliance**: CPF armazenado criptografado via AES-256-CBC + HMAC-SHA256 Blind Index. Registros de consentimento em `LogLgpd`.
+- **RF-38 (Módulo de Auditoria e Rastreabilidade Completa - Exclusivo Administrador)**:
+  - Todas as mutações e eventos de acesso (CRIAR, ATUALIZAR, EXCLUIR, CANCELAR, CONFIRMAR_PRESENCA, ADIAR_PRESENCA, LOGIN, LOGIN_FALHA, LOGOUT) são persistidos na tabela `logs_auditoria` via `AuditoriaService`.
+  - Captura IP de origem, User-Agent, usuário autenticado e histórico de dados anteriores vs novos com mascaramento e conformidade LGPD.
+  - Painel administrativo (`/auditoria`) com filtros combináveis por período, usuário, tipo de ação, módulo e termo de busca livre.
+  - Visualização de relatórios limpos (`/auditoria/relatorio`) com cabeçalho institucional AUTEC, folha de estilo para impressão física/PDF nativo (`@media print`) e exportação em planilha CSV.
+- **RF-39 (Tabela e Classificação Formal de Níveis de Acesso)**:
+  - Tabela `niveis_acesso` com campos `id`, `nome` (admin, gerente, atendente, mecanico, cliente), `titulo`, `descricao` e `nivel_hierarquia`.
+  - Relacionamento 1:N com `Usuario`, preservando total integridade referencial com os middlewares de autorização RBAC (`temPapel`).
+- **RF-40 (Termo de Conformidade e Governança LGPD no Menu)**:
+  - Rota `/lgpd` exibida como a última opção do menu lateral com o rótulo **LGPD**. Apresenta formalmente as bases legais de tratamento, o compromisso de não comercialização/compartilhamento externo de dados e botões para impressão física e exportação direta do documento para PDF (`html2pdf.js`).
+- **RF-41 (Cadastro e Gestão de Usuários com Níveis de Acesso no Cadastro Base)**:
+  - Bloco exclusivo para o perfil Administrador no painel `/cadastros` que permite cadastrar novos usuários com definição de nome, e-mail, senha criptografada (`bcryptjs`) e seleção do nível de acesso (`niveis_acesso`).
+  - Lista de usuários ativos com identificação visual do perfil, data de cadastro e opção de exclusão protegida contra auto-exclusão e deleção do administrador raiz (`id: 1`).
+  - Todas as inclusões e exclusões de usuários disparam automaticamente registros na trilha de auditoria (`logs_auditoria`).
+- **RF-42 (Abertura Sob Demanda de Formulários em Cadastros Base)**:
+  - Formulários de inserção das 7 seções de `/cadastros` recolhidos por padrão, liberados via botões gatilho interativos com alternância de ícones, barra de atalhos rápidos e suporte a deep-link via hash `#usuarios-sistema`.
+- **RF-43 (Sanfona de Visualização de Itens e Filtro em Tempo Real por Palavra-Chave)**:
+  - As listagens/tabelas de itens cadastrados em cada seção iniciam recolhidas por padrão dentro de elementos do tipo sanfona (`sanfona-box-...`), otimizando o carregamento visual da página.
+  - Cada cabeçalho possui o botão gatilho **"Ver Itens (<qtd>)"** com chevron rotativo e transição fluida, alternando dinamicamente o texto para **"Ocultar Itens"** ao ser aberto.
+  - Cada sanfona aberta apresenta um campo de busca por palavra-chave com ícone de lupa e botão de limpar imediato. O filtro em JavaScript opera em tempo real comparando termos sem distinção de acentos (`normalize('NFD')`) ou caixa alta/baixa contra o atributo `data-texto-busca` das linhas/cards, exibindo mensagens de estado vazio amigáveis caso a busca não retorne correspondências.
+- **RF-44 (Inativação de Clientes e Veículos com Checagem Proativa de Pendências e Feedback Personalizado)**:
+  - Nas telas de edição de cliente (`/clientes/:id/editar`) e veículo (`/veiculos/:id/editar`), o operador pode gerenciar o ciclo de vida do registro alternando entre os status `Ativo` e `Inativo`.
+  - **Checagem Proativa e Rotas Dedicadas de Pendências**: Ao selecionar a opção `Inativo` no dropdown ou ao submeter o formulário, o frontend realiza consulta assíncrona imediata via `GET /veiculos/:id/pendencias-inativacao` ou `GET /clientes/:id/pendencias-inativacao`. Havendo agendamentos em aberto (status `agendado`), o sistema alerta proativamente o usuário através de um banner inline estilizado e de um modal SweetAlert2 detalhado com data, horário, motivo de cada pendência e botão de atalho para a ficha de detalhes.
+  - **Compatibilidade com Turbo Drive e Status HTTP 422**: Caso a requisição de alteração chegue ao backend com pendências ou inconsistências cadastrais, a resposta é enviada com código HTTP 422 (Unprocessable Entity), garantindo que o Turbo Drive realize a troca de DOM perfeitamente e exiba as mensagens e modais informativos, eliminando sensações de travamento.
+  - **Motivo Obrigatório com Opção "Outros"**: Para efetivar a inativação, é obrigatório selecionar uma justificativa pré-definida (*"Mudou para concorrente"*, *"Falecimento"*, *"Vendeu o veículo"*, *"Mudou de cidade"*, *"Perda total / Sinistro"*, etc.) ou selecionar *"Outros"*, que abre dinamicamente um campo de texto livre para detalhamento obrigatório.
+  - **Bloqueio Operacional para Inativos**: Cadastros inativos são impedidos de criar novos agendamentos e solicitações de manutenção. Recebem badges coloridos nas listagens e banners de destaque em suas páginas de detalhes. Ações de inativação e reativação são auditadas em `logs_auditoria`.
+- **LGPD Compliance**: CPF armazenado criptografado via AES-256-CBC + HMAC-SHA256 Blind Index. Registros de consentimento em `LogLgpd`. Dados sensíveis mascarados na auditoria.

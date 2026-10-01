@@ -46,7 +46,8 @@ Este documento descreve o passo a passo completo, detalhado e validado para real
 4. Você pode:
    - **Opção A**: Clicar em *Escolher arquivo*, selecionar o arquivo `banco.sql` do projeto e clicar em **Executar**.
    - **Opção B**: Abrir o arquivo [scripts_bd_producao.md](file:///c:/Projetos/RevSys/scripts_bd_producao.md), copiar todo o bloco SQL da Seção 2, colar na aba **SQL** do phpMyAdmin e executar.
-5. Verifique se todas as tabelas foram criadas com sucesso (`usuarios`, `clientes`, `veiculos`, `pecas`, `servicos`, `oficinas`, `registros_troca`, `registros_servico`, `agendamentos`, `notificacoes`, `logs_lgpd`, `sessoes`).
+   - **Opção C (Bancos Já Ativos / Atualização Incremental)**: Caso o banco de produção já esteja em operação, copie e execute o script SQL da **Seção 4 de scripts_bd_producao.md**, que cria as tabelas `niveis_acesso` e `logs_auditoria`, adiciona as colunas de inativação e controle de status em `clientes` e `veiculos` (`ativo`, `motivo_inativacao`, `inativado_em`) e atualiza a tabela `usuarios` sem perda de dados existentes.
+5. Verifique se todas as tabelas foram criadas com sucesso (`niveis_acesso`, `usuarios`, `clientes`, `veiculos`, `pecas`, `servicos`, `oficinas`, `registros_troca`, `registros_servico`, `agendamentos`, `notificacoes`, `logs_auditoria`, `logs_lgpd`, `sessoes`).
 
 ---
 

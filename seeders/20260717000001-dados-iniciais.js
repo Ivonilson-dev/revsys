@@ -3,6 +3,55 @@ const bcrypt = require('bcryptjs');
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
+    // 0. Inserir Níveis de Acesso
+    await queryInterface.bulkInsert('niveis_acesso', [
+      {
+        id: 1,
+        nome: 'admin',
+        titulo: 'Administrador',
+        descricao: 'Acesso irrestrito a todas as funcionalidades do sistema, relatórios gerenciais e módulo de auditoria.',
+        nivel_hierarquia: 1,
+        criado_em: new Date(),
+        atualizado_em: new Date()
+      },
+      {
+        id: 2,
+        nome: 'gerente',
+        titulo: 'Gerente',
+        descricao: 'Gerenciamento operacional completo, clientes, veículos, revisões e relatórios analíticos.',
+        nivel_hierarquia: 2,
+        criado_em: new Date(),
+        atualizado_em: new Date()
+      },
+      {
+        id: 3,
+        nome: 'atendente',
+        titulo: 'Atendente',
+        descricao: 'Cadastro de clientes, veículos, gestão da agenda de revisões e confirmação de presença.',
+        nivel_hierarquia: 3,
+        criado_em: new Date(),
+        atualizado_em: new Date()
+      },
+      {
+        id: 4,
+        nome: 'mecanico',
+        titulo: 'Mecânico',
+        descricao: 'Execução e registro técnico de trocas de peças, serviços avulsos e histórico de veículos.',
+        nivel_hierarquia: 4,
+        criado_em: new Date(),
+        atualizado_em: new Date()
+      },
+      {
+        id: 5,
+        nome: 'cliente',
+        titulo: 'Cliente',
+        descricao: 'Acesso exclusivo de visualização aos próprios veículos, agendamentos e histórico.',
+        nivel_hierarquia: 5,
+        criado_em: new Date(),
+        atualizado_em: new Date()
+      }
+    ], {});
+
     // 1. Inserir Usuários Oficina
     const salt = await bcrypt.genSalt(10);
     const senhaAdmin = await bcrypt.hash('admin123', salt);
@@ -12,37 +61,45 @@ module.exports = {
 
     await queryInterface.bulkInsert('usuarios', [
       {
+        id: 1,
         nome: 'Administrador',
         email: 'admin@revsys.com',
         senha_hash: senhaAdmin,
         papel: 'admin',
+        nivel_acesso_id: 1,
         telefone: '11999999991',
         criado_em: new Date(),
         atualizado_em: new Date()
       },
       {
+        id: 2,
         nome: 'Gerente Oficina',
         email: 'gerente@revsys.com',
         senha_hash: senhaGerente,
         papel: 'gerente',
+        nivel_acesso_id: 2,
         telefone: '11999999992',
         criado_em: new Date(),
         atualizado_em: new Date()
       },
       {
+        id: 3,
         nome: 'Atendente Oficina',
         email: 'atendente@revsys.com',
         senha_hash: senhaAtendente,
         papel: 'atendente',
+        nivel_acesso_id: 3,
         telefone: '11999999993',
         criado_em: new Date(),
         atualizado_em: new Date()
       },
       {
+        id: 4,
         nome: 'Mecânico Oficina',
         email: 'mecanico@revsys.com',
         senha_hash: senhaMecanico,
         papel: 'mecanico',
+        nivel_acesso_id: 4,
         telefone: '11999999994',
         criado_em: new Date(),
         atualizado_em: new Date()

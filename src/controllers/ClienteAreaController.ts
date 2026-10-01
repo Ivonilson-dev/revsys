@@ -210,6 +210,16 @@ export class ClienteAreaController {
         return;
       }
 
+      if (!veiculo.cliente?.ativo) {
+        res.redirect('/cliente/veiculos?erro=Seu cadastro de cliente encontra-se inativo no sistema. Entre em contato com a oficina para atendimento.');
+        return;
+      }
+
+      if (!veiculo.ativo) {
+        res.redirect(`/cliente/veiculos?erro=O veículo ${veiculo.placa} encontra-se inativo no sistema e não pode receber novas solicitações.`);
+        return;
+      }
+
       const funcionarios = await Usuario.findAll({
         where: {
           papel: ['admin', 'gerente', 'atendente']

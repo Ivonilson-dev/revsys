@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { Op } from 'sequelize';
 import { 
   sequelize, 
   Cliente, 
@@ -9,10 +10,12 @@ import {
   MarcaVeiculo, 
   Agendamento 
 } from '../../models';
+import { TipoAcaoAuditoria } from '../../models/LogAuditoria';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { cpf } = require('cpf-cnpj-validator');
 import crypto from 'crypto';
 import { isDatabaseConnectionError, tratarErroRequisicao } from '../utils/erros';
+import AuditoriaService from '../services/AuditoriaService';
 
 export interface ICadastroClienteBody {
   nome?: string;
@@ -40,6 +43,9 @@ export interface IEdicaoClienteBody {
   estado?: string;
   cep?: string;
   telefone_whatsapp?: string;
+  ativo?: string | boolean;
+  motivo_inativacao_opcao?: string;
+  motivo_inativacao_outro?: string;
 }
 
 export class ClienteController {
@@ -183,6 +189,16 @@ export class ClienteController {
 
       await t.commit();
 
+      // Registro de Auditoria
+      await AuditoriaService.registrar({
+        req,
+        acao: 'CRIAR',
+        recurso: 'Clientes',
+        registro_id: novoCliente.id,
+        descricao: `Cadastrou o novo cliente ${nome} (${email}).`,
+        dados_novos: { nome, email, telefone, logradouro, numero, bairro, cidade, estado, cep }
+      });
+
       try {
         console.log(`[E-mail enviado para ${email}] Senha provisória: ${senhaProvisoria}`);
       } catch (mailErr) {
@@ -277,7 +293,8 @@ export class ClienteController {
     const { 
       nome, email, telefone, 
       logradouro, numero, bairro, cidade, estado, cep,
-      telefone_whatsapp 
+      telefone_whatsapp,
+      ativo, motivo_inativacao_opcao, motivo_inativacao_outro
     } = req.body;
 
     const t = await sequelize.transaction();
@@ -293,13 +310,161 @@ export class ClienteController {
         return;
       }
 
+      const dadosAnt = {
+        nome: cliente.usuario?.nome,
+        email: cliente.usuario?.email,
+        telefone: cliente.usuario?.telefone,
+        logradouro: cliente.logradouro,
+        cidade: cliente.cidade,
+        estado: cliente.estado,
+        ativo: cliente.ativo,
+        motivo_inativacao: cliente.motivo_inativacao
+      };
+
+      // 1. Processar Status Ativo / Inativo
+      const querInativar = ativo !== undefined && (ativo === '0' || ativo === false || ativo === 'false' || ativo === 'inativo');
+      const querReativar = ativo !== undefined && (ativo === '1' || ativo === true || ativo === 'true' || ativo === 'ativo');
+
+      let novoAtivo = cliente.ativo;
+      let novoMotivoInativacao = cliente.motivo_inativacao;
+      let novoInativadoEm = cliente.inativado_em;
+      let acaoAuditoria: TipoAcaoAuditoria = 'ATUALIZAR';
+      let descricaoAuditoria = `Atualizou os dados cadastrais do cliente ${cliente.usuario?.nome || ''}.`;
+
+      if (querInativar && cliente.ativo) {
+        // REGRA DE OURO: Só é possível inativar se não houver pendências (agendamentos pendentes)
+        const agendamentosClientePendentes = await Agendamento.findAll({
+          where: {
+            cliente_id: cliente.id,
+            status: 'agendado'
+          },
+          transaction: t
+        });
+
+        const veiculosDoCliente = await Veiculo.findAll({
+          where: { cliente_id: cliente.id },
+          attributes: ['id'],
+          transaction: t
+        });
+        const veiculosIds = veiculosDoCliente.map(v => v.id);
+
+        let agendamentosVeiculosPendentes: Agendamento[] = [];
+        if (veiculosIds.length > 0) {
+          agendamentosVeiculosPendentes = await Agendamento.findAll({
+            where: {
+              veiculo_id: veiculosIds,
+              status: 'agendado'
+            },
+            transaction: t
+          });
+        }
+
+        const opcao = (motivo_inativacao_opcao || '').trim();
+
+        const clienteParaExibir = {
+          ...cliente.toJSON(),
+          usuario: {
+            ...(cliente.usuario ? cliente.usuario.toJSON() : {}),
+            nome: nome || cliente.usuario?.nome,
+            email: email || cliente.usuario?.email,
+            telefone: telefone !== undefined ? telefone : cliente.usuario?.telefone
+          },
+          telefone_whatsapp: telefone_whatsapp !== undefined ? telefone_whatsapp : cliente.telefone_whatsapp,
+          logradouro: logradouro !== undefined ? logradouro : cliente.logradouro,
+          numero: numero !== undefined ? numero : cliente.numero,
+          bairro: bairro !== undefined ? bairro : cliente.bairro,
+          cidade: cidade !== undefined ? cidade : cliente.cidade,
+          estado: estado !== undefined ? estado : cliente.estado,
+          cep: cep !== undefined ? cep : cliente.cep,
+          ativo: false,
+          motivo_inativacao: opcao === 'Outros' 
+            ? `Outros: ${motivo_inativacao_outro || ''}` 
+            : (opcao || cliente.motivo_inativacao)
+        };
+
+        const totalPendencias = agendamentosClientePendentes.length + agendamentosVeiculosPendentes.length;
+        if (totalPendencias > 0) {
+          await t.rollback();
+          const todosPendentes = [...agendamentosClientePendentes, ...agendamentosVeiculosPendentes];
+          const pendenciasFormatadas = todosPendentes.map(a => ({
+            id: a.id,
+            data: a.data_agendada ? new Date(a.data_agendada).toLocaleDateString('pt-BR') : '',
+            horario: a.horario_agendado || '',
+            motivo: a.motivo_revisao || 'Revisão / Manutenção Geral'
+          }));
+
+          res.status(422).render('clientes/editar', {
+            titulo: `Editar Cliente: ${cliente.usuario?.nome || 'Cliente'}`,
+            cliente: clienteParaExibir,
+            pendenciasAgendamentos: pendenciasFormatadas,
+            erro: `Não é possível inativar este cliente: existem ${totalPendencias} agendamento(s) com status "Agendado" vinculados a ele ou aos seus veículos. Conclua ou cancele todos os agendamentos pendentes antes de inativar o cadastro.`
+          });
+          return;
+        }
+
+        // Validação estrita do motivo da inativação
+        if (!opcao) {
+          await t.rollback();
+          res.status(422).render('clientes/editar', {
+            titulo: `Editar Cliente: ${cliente.usuario?.nome || 'Cliente'}`,
+            cliente: clienteParaExibir,
+            erro: 'Para inativar o cliente, é obrigatório selecionar o motivo da inativação.'
+          });
+          return;
+        }
+
+        let motivoFinal = opcao;
+        if (opcao === 'Outros') {
+          const outroTexto = (motivo_inativacao_outro || '').trim();
+          if (!outroTexto) {
+            await t.rollback();
+            res.status(422).render('clientes/editar', {
+              titulo: `Editar Cliente: ${cliente.usuario?.nome || 'Cliente'}`,
+              cliente: clienteParaExibir,
+              erro: 'Ao escolher a opção de motivo "Outros", você deve descrever detalhadamente o motivo no campo de texto.'
+            });
+            return;
+          }
+          motivoFinal = `Outros: ${outroTexto}`;
+        }
+
+        novoAtivo = false;
+        novoMotivoInativacao = motivoFinal;
+        novoInativadoEm = new Date();
+        acaoAuditoria = 'INATIVAR';
+        descricaoAuditoria = `Inativou o cliente ${cliente.usuario?.nome || ''} (Motivo: ${motivoFinal}).`;
+      } else if (querReativar && !cliente.ativo) {
+        novoAtivo = true;
+        novoMotivoInativacao = null;
+        novoInativadoEm = null;
+        acaoAuditoria = 'REATIVAR';
+        descricaoAuditoria = `Reativou o cadastro do cliente ${cliente.usuario?.nome || ''}.`;
+      }
+
       if (email && cliente.usuario && email !== cliente.usuario.email) {
         const usuarioExistente = await Usuario.findOne({ where: { email }, transaction: t });
         if (usuarioExistente) {
           await t.rollback();
-          res.render('clientes/editar', {
+          const clienteParaExibirEmail = {
+            ...cliente.toJSON(),
+            usuario: {
+              ...(cliente.usuario ? cliente.usuario.toJSON() : {}),
+              nome: nome || cliente.usuario?.nome,
+              email: email,
+              telefone: telefone !== undefined ? telefone : cliente.usuario?.telefone
+            },
+            telefone_whatsapp: telefone_whatsapp !== undefined ? telefone_whatsapp : cliente.telefone_whatsapp,
+            logradouro: logradouro !== undefined ? logradouro : cliente.logradouro,
+            numero: numero !== undefined ? numero : cliente.numero,
+            bairro: bairro !== undefined ? bairro : cliente.bairro,
+            cidade: cidade !== undefined ? cidade : cliente.cidade,
+            estado: estado !== undefined ? estado : cliente.estado,
+            ativo: novoAtivo,
+            motivo_inativacao: novoMotivoInativacao
+          };
+          res.status(422).render('clientes/editar', {
             titulo: `Editar Cliente: ${cliente.usuario.nome}`,
-            cliente,
+            cliente: clienteParaExibirEmail,
             erro: 'Este endereço de e-mail já está sendo usado por outro usuário.'
           });
           return;
@@ -321,11 +486,35 @@ export class ClienteController {
         cidade: cidade !== undefined ? cidade : cliente.cidade,
         estado: estado !== undefined ? estado : cliente.estado,
         cep: cep !== undefined ? cep : cliente.cep,
-        telefone_whatsapp: telefone_whatsapp !== undefined ? telefone_whatsapp : cliente.telefone_whatsapp
+        telefone_whatsapp: telefone_whatsapp !== undefined ? telefone_whatsapp : cliente.telefone_whatsapp,
+        ativo: novoAtivo,
+        motivo_inativacao: novoMotivoInativacao,
+        inativado_em: novoInativadoEm
       }, { transaction: t });
 
       await t.commit();
-      res.redirect(`/clientes/${cliente.id}?sucesso=Cliente atualizado com sucesso!`);
+
+      // Registro de Auditoria
+      await AuditoriaService.registrar({
+        req,
+        acao: acaoAuditoria,
+        recurso: 'Clientes',
+        registro_id: cliente.id,
+        descricao: descricaoAuditoria,
+        dados_anteriores: dadosAnt,
+        dados_novos: { 
+          nome, email, telefone, logradouro, cidade, estado, 
+          ativo: novoAtivo, motivo_inativacao: novoMotivoInativacao 
+        }
+      });
+
+      const msgSucesso = acaoAuditoria === 'INATIVAR' 
+        ? 'Cliente inativado com sucesso!' 
+        : acaoAuditoria === 'REATIVAR' 
+          ? 'Cliente reativado com sucesso!' 
+          : 'Cliente atualizado com sucesso!';
+
+      res.redirect(`/clientes/${cliente.id}?sucesso=${encodeURIComponent(msgSucesso)}`);
 
     } catch (error) {
       await t.rollback();
@@ -367,11 +556,21 @@ export class ClienteController {
         return;
       }
 
+      const nomeCliente = cliente.usuario?.nome || 'Cliente';
       const usuarioId = cliente.usuario_id;
       await cliente.destroy();
       if (usuarioId) {
         await Usuario.destroy({ where: { id: usuarioId } });
       }
+
+      // Registro de Auditoria
+      await AuditoriaService.registrar({
+        req,
+        acao: 'EXCLUIR',
+        recurso: 'Clientes',
+        registro_id: id,
+        descricao: `Excluiu o cadastro do cliente ${nomeCliente} (ID: ${id}).`
+      });
 
       res.redirect('/clientes?sucesso=Cliente excluído com sucesso!');
     } catch (error) {
@@ -381,6 +580,51 @@ export class ClienteController {
         return;
       }
       res.redirect(`/clientes/${id}?erro=Não foi possível excluir o cliente: restrição de integridade no banco de dados.`);
+    }
+  }
+
+  /**
+   * GET /clientes/:id/pendencias-inativacao
+   * Consulta assíncrona para checagem preventiva de pendências do cliente e de seus veículos
+   */
+  public static async verificarPendenciasInativacao(req: Request<{ id: string }>, res: Response): Promise<void> {
+    const { id } = req.params;
+    try {
+      const clienteId = Number(id);
+      const veiculos = await Veiculo.findAll({
+        where: { cliente_id: clienteId },
+        include: [{ model: ModeloVeiculo, as: 'modelo' }]
+      });
+      const veiculosIds = veiculos.map(v => v.id);
+
+      const agendamentos = await Agendamento.findAll({
+        where: {
+          [Op.or]: [
+            { cliente_id: clienteId },
+            ...(veiculosIds.length > 0 ? [{ veiculo_id: veiculosIds }] : [])
+          ],
+          status: 'agendado'
+        },
+        include: [{ model: Veiculo, as: 'veiculo', include: [{ model: ModeloVeiculo, as: 'modelo' }] }],
+        order: [['data_agendada', 'ASC'], ['horario_agendado', 'ASC']]
+      });
+
+      res.json({
+        sucesso: true,
+        temPendencias: agendamentos.length > 0,
+        totalPendencias: agendamentos.length,
+        pendencias: agendamentos.map(a => ({
+          id: a.id,
+          veiculo: a.veiculo ? `${a.veiculo.modelo?.nome || 'Veículo'} (${a.veiculo.placa})` : 'Geral',
+          data: a.data_agendada ? new Date(a.data_agendada).toLocaleDateString('pt-BR') : '',
+          horario: a.horario_agendado || '',
+          motivo: a.motivo_revisao || 'Revisão / Manutenção Geral',
+          status: a.status
+        }))
+      });
+    } catch (error) {
+      console.error('Erro ao verificar pendencias de cliente:', error);
+      res.status(500).json({ sucesso: false, erro: 'Falha ao consultar pendências do cliente.' });
     }
   }
 }

@@ -100,6 +100,14 @@
             <span>Relatórios</span>
           </a>
         <% } %>
+
+        <!-- Auditoria (Exclusivo Administrador) -->
+        <% if (usuarioLogado && usuarioLogado.papel === 'admin') { %>
+          <a href="/auditoria" class="group flex items-center space-x-3.5 p-3 rounded-xl transition-all duration-150 text-base font-semibold <%= urlAtiva.startsWith('/auditoria') ? 'bg-white text-slate-950 font-bold border border-slate-300 shadow-xs border-l-4 border-l-slate-900' : 'text-slate-700 hover:text-slate-950 hover:bg-slate-300/70' %>">
+            <i data-lucide="shield-check" class="w-5 h-5 shrink-0 <%= urlAtiva.startsWith('/auditoria') ? 'text-slate-900 font-bold' : 'text-slate-600 group-hover:text-slate-950' %>"></i>
+            <span>Auditoria</span>
+          </a>
+        <% } %>
       <% } else if (usuarioLogado && usuarioLogado.papel === 'cliente') { %>
         <!-- Área do Cliente -->
         <a href="/cliente/veiculos" class="group flex items-center space-x-3.5 p-3 rounded-xl transition-all duration-150 text-base font-semibold <%= urlAtiva.startsWith('/cliente') ? 'bg-white text-slate-950 font-bold border border-slate-300 shadow-xs border-l-4 border-l-slate-900' : 'text-slate-700 hover:text-slate-950 hover:bg-slate-300/70' %>">
@@ -107,6 +115,12 @@
           <span>Meus Veículos</span>
         </a>
       <% } %>
+
+      <!-- LGPD - Última opção no menu de navegação -->
+      <a href="/lgpd" class="group flex items-center space-x-3.5 p-3 rounded-xl transition-all duration-150 text-base font-semibold <%= urlAtiva.startsWith('/lgpd') ? 'bg-white text-slate-950 font-bold border border-slate-300 shadow-xs border-l-4 border-l-slate-900' : 'text-slate-700 hover:text-slate-950 hover:bg-slate-300/70' %>">
+        <i data-lucide="shield-check" class="w-5 h-5 shrink-0 <%= urlAtiva.startsWith('/lgpd') ? 'text-slate-900 font-bold' : 'text-slate-600 group-hover:text-slate-950' %>"></i>
+        <span>LGPD</span>
+      </a>
     </nav>
 
     <!-- Rodapé do Menu (Sair) -->

@@ -12,8 +12,9 @@ O **RevSys** é uma plataforma completa e moderna voltada para a gestão prevent
 4. [Compilação e Verificação de Tipos](#4-compilação-e-verificação-de-tipos)
 5. [Execução e Validação dos Testes](#5-execução-e-validação-dos-testes)
 6. [Passo a Passo Completo para Deploy na HostGator](#6-passo-a-passo-completo-para-deploy-na-hostgator)
-7. [Regras de Negócio Críticas (AUTEC)](#7-regras-de-negócio-críticas-autec)
-8. [Regras Invioláveis de Desenvolvimento e Governança](#8-regras-invioláveis-de-desenvolvimento-e-governança)
+7. [Módulo de Auditoria e Níveis de Acesso](#7-módulo-de-auditoria-e-níveis-de-acesso)
+8. [Regras de Negócio Críticas (AUTEC)](#8-regras-de-negócio-críticas-autec)
+9. [Regras Invioláveis de Desenvolvimento e Governança](#9-regras-invioláveis-de-desenvolvimento-e-governança)
 
 ---
 
@@ -49,7 +50,8 @@ RevSys/
 ├── config/
 │   └── config.js                   # Configuração de dialeto e conexão Sequelize
 ├── models/                         # Modelos ORM Sequelize em TypeScript
-│   ├── Usuario.ts                  # Autenticação, perfis e hash bcrypt
+│   ├── NivelAcesso.ts              # Classificação hierárquica e descrição dos papéis de acesso
+│   ├── Usuario.ts                  # Autenticação, perfis e hash bcrypt (vinculado a NivelAcesso)
 │   ├── Cliente.ts                  # Blind index e criptografia AES de dados
 │   ├── Veiculo.ts                  # Cadastro de veículos e proteção anti-regressão de KM
 │   ├── MarcaVeiculo.ts             # Marcas de veículos
@@ -62,6 +64,7 @@ RevSys/
 │   ├── RegistroServico.ts          # Histórico de revisões e serviços executados
 │   ├── Agendamento.ts              # Agenda de revisões, slots, status e presença
 │   ├── Notificacao.ts              # Notificações do sistema para a equipe
+│   ├── LogAuditoria.ts             # Trilha de auditoria completa de operações (CRUD, login, etc.)
 │   ├── LogLgpd.ts                  # Trilha de auditoria de consentimento LGPD
 │   └── index.ts                    # Inicialização tipada e injeção de associações
 ├── src/
@@ -76,10 +79,13 @@ RevSys/
 │   │   ├── alertas.ts              # Motor de cálculo de manutenção (vencido/próximo)
 │   │   ├── erros.ts                # Interceptador e resiliência de conexão ao banco de dados
 │   │   └── sessionStore.ts         # Store de sessão persistente no MySQL
+│   ├── services/
+│   │   └── AuditoriaService.ts     # Serviço centralizado de auditoria com extração de IP e sanitização LGPD
 │   ├── middlewares/
 │   │   └── autorizacao.ts          # Controle de acesso e permissões RBAC
 │   ├── controllers/
 │   │   ├── AutenticacaoController.ts
+│   │   ├── AuditoriaController.ts  # Gerenciamento de auditoria, filtros avançados e relatórios
 │   │   ├── PainelController.ts
 │   │   ├── ClienteController.ts
 │   │   ├── VeiculoController.ts
@@ -89,12 +95,15 @@ RevSys/
 │   │   ├── CadastroBaseController.ts
 │   │   ├── ClienteAreaController.ts
 │   │   ├── RelatorioController.ts
+│   │   ├── LgpdController.ts       # Exibição do termo de conformidade LGPD e governança
 │   │   └── NotificacaoController.ts
 │   └── routes/
 │       └── web.ts                  # Definição e amarração de rotas
 ├── views/                          # Templates EJS renderizados no servidor
 │   ├── partials/                   # Cabeçalho, menu e rodapé
 │   ├── painel/                     # Dashboard e indicadores
+│   ├── auditoria/                  # Painel de auditoria, visualizador de diffs e relatório para PDF/impressão
+│   ├── lgpd/                       # Termo de conformidade LGPD com botões de impressão e PDF
 │   ├── agendamentos/               # Calendário FullCalendar e listagem
 │   ├── clientes/                   # Gestão de clientes e formulários
 │   ├── veiculos/                   # Ficha do veículo e histórico de trocas
@@ -299,7 +308,51 @@ AES_KEY=chave-secreta-aes-256-para-dados-lgpd-32-chars
 
 ---
 
-## 7. Regras de Negócio Críticas (AUTEC)
+## 7. Módulo de Auditoria e Níveis de Acesso
+
+O RevSys possui um módulo robusto e completo de auditoria e rastreabilidade (RF-38 e RF-39), permitindo governança total e conformidade com boas práticas de segurança e LGPD.
+
+### 7.1 Classificação de Níveis de Acesso (`niveis_acesso`)
+O sistema estrutura os perfis de usuários através de uma tabela relacional de níveis de acesso (`niveis_acesso`), vinculada aos usuários via chave estrangeira `nivel_acesso_id`:
+* **Administrador (`admin`)**: Nível hierárquico 100 - Acesso total a todas as funcionalidades do sistema, relatórios gerenciais, cadastros base e visualização exclusiva do Módulo de Auditoria.
+* **Gerente (`gerente`)**: Nível hierárquico 80 - Gestão de clientes, veículos, agendamentos, trocas e relatórios.
+* **Atendente (`atendente`)**: Nível hierárquico 60 - Agendamentos, confirmações de presença e cadastro de clientes e veículos.
+* **Mecânico (`mecanico`)**: Nível hierárquico 40 - Apontamento de serviços executados e trocas de peças preventivas.
+* **Cliente (`cliente`)**: Nível hierárquico 10 - Acesso restrito ao Portal do Cliente para consultar histórico e manutenções de seus veículos.
+
+### 7.2 Rastreabilidade e Trilha de Auditoria (`logs_auditoria`)
+Todas as ações críticas realizadas no sistema são interceptadas de forma transparente através do `AuditoriaService`:
+* **Operações de Autenticação**: Tentativas de login bem-sucedidas (`LOGIN`), falhas de autenticação (`LOGIN_FALHA`) e encerramento de sessão (`LOGOUT`).
+* **Operações de CRUD**: Inclusões (`CRIAR`), alterações (`ATUALIZAR`) e exclusões (`EXCLUIR`) em clientes, veículos, trocas de peças, serviços, agendamentos e tabelas de catálogo/apoio.
+* **Ações Operacionais de Agendamento**: Confirmação de presença (`CONFIRMAR_PRESENCA`), adiamento (`ADIAR_PRESENCA`) e cancelamento com justificativa (`CANCELAR`).
+* **Metadados Capturados**: Identificação do operador (ID, nome, e-mail, papel), ação, recurso, ID do registro, descrição amigável, snapshot de dados anteriores vs novos em JSON, endereço IP real (com suporte a proxies `x-forwarded-for`) e User-Agent do navegador.
+* **Sanitização e Conformidade LGPD**: Senhas, hashes de autenticação e tokens são purgados recursivamente antes da persistência; CPFs são mascarados no formato `***.XXX.XXX-**` para evitar exposição de dados sensíveis na auditoria.
+
+### 7.3 Painel de Auditoria e Recursos da Interface
+* **Acesso Restrito**: Exclusivo para usuários autenticados com papel `admin` (`/auditoria`), protegido pelo middleware `temPapel('admin')` e destacado no menu lateral com ícone de escudo (`ShieldCheck`).
+* **Filtros Customizados**:
+  - Filtro por período de datas (`data_inicio` e `data_fim`).
+  - Filtro por usuário operador (select com ordenação alfabética obrigatória conforme RF-02).
+  - Filtro por tipo de ação (`CRIAR`, `ATUALIZAR`, `EXCLUIR`, `LOGIN`, `LOGIN_FALHA`, `LOGOUT`, etc.).
+  - Filtro por recurso/módulo (`clientes`, `veiculos`, `trocas`, `servicos`, `agendamentos`, `autenticacao`, etc.).
+  - Campo de busca livre por palavras-chave na descrição ou endereço IP.
+* **Modal de Inspeção Visual**: Permite visualizar o histórico completo de qualquer evento com destaque semântico, metadados técnicos e visualizador formatado de diferenças (*diff*) entre dados anteriores e dados novos.
+* **Relatório Formatado para Impressão e PDF**: Rota `/auditoria/relatorio` com cabeçalho institucional AUTEC, filtros aplicados, sumário executivo de métricas, estilos `@media print` otimizados para layout paisagem (A4) e botão de acionamento nativo de impressão/geração de PDF (`window.print()`).
+* **Exportação para Planilhas (CSV)**: Permite exportar instantaneamente a listagem de registros filtrados para formato `.csv` com encoding UTF-8 com BOM (compatível nativamente com Microsoft Excel e Google Planilhas).
+
+### 7.4 Gestão de Usuários e Atribuição de Níveis de Acesso no Cadastro Base (RF-41)
+* **Acesso e Visibilidade Restrita**: O bloco "Usuários do Sistema" na página de Cadastros Base (`/cadastros`) só é exibido e manipulável por usuários com papel `admin`. Usuários com outros níveis de acesso não visualizam o formulário nem a tabela de colaboradores.
+* **Definição Imediata do Nível de Acesso**: Ao cadastrar um novo usuário, o administrador preenche o nome, e-mail, senha provisória e define seu nível de privilégios (`nivel_acesso_id`) diretamente a partir da tabela `niveis_acesso`, populada com ordenação alfabética obrigatória (RF-02).
+* **Mecanismos de Proteção e Governança**:
+  - Senhas são armazenadas exclusivamente sob hash criptográfico com salt (`bcryptjs`).
+  - Bloqueio estrito de auto-exclusão: um administrador conectado não pode remover a si próprio.
+  - Bloqueio de exclusão do administrador raiz (`id: 1` / `admin@revsys.com`).
+  - Validação de integridade referencial: usuários com agendamentos vinculados não podem ser deletados sem tratamento prévio.
+  - Rastreabilidade total: inclusões e exclusões de usuários disparam automaticamente registros detalhados na trilha de auditoria (`logs_auditoria`).
+
+---
+
+## 8. Regras de Negócio Críticas (AUTEC)
 
 O RevSys opera estritamente sob as regras de atendimento e oficina da **AUTEC**:
 
@@ -325,10 +378,27 @@ O RevSys opera estritamente sob as regras de atendimento e oficina da **AUTEC**:
    - O sistema valida preventivamente no formulário e, em caso de erro no processamento, exibe alerta modal personalizado (**SweetAlert2**) acompanhado de banner estilizado (**TailwindCSS + Lucide Icons**), instruindo o operador a conferir o hodômetro real do veículo e impedindo telas em branco com texto puro.
 8. **Notificações Internas Detalhadas com Veículo e Proprietário (RF-36)**:
    - Ao confirmar presença de um agendamento (`confirmarPresenca`), o sistema cria dinamicamente uma notificação interna (`lembrete_agendamento`) que exibe no Dashboard o modelo do veículo, a placa e o nome do cliente proprietário (ex: *Agendamento de revisão confirmado para o veículo Corolla (BRA2E19) - Cliente: Carlos Eduardo Silva no dia 05/10/2026 às 09:00.*), permitindo identificação imediata sem necessidade de abrir a ficha completa do veículo.
+9. **Auditoria e Rastreabilidade Total (RF-38 e RF-39)**:
+   - Toda operação de escrita, autenticação, exclusão e alteração de agendamentos gera registros imutáveis em `logs_auditoria`, permitindo aos administradores investigar incidentes, auditar ações de colaboradores e auditar a conformidade de dados sem interrupção de fluxo.
+10. **Termo de Conformidade e Governança LGPD no Menu (RF-40)**:
+    - O sistema disponibiliza para todos os operadores e clientes a rota `/lgpd`, posicionada como a última opção do menu lateral com o rótulo **LGPD**. A página formaliza os termos de privacidade, detalha a criptografia militar do CPF (AES-256 e Blind Index), reforça a proibição absoluta de venda ou compartilhamento externo de dados para terceiros e fornece botões dedicados para impressão e exportação direta do documento para PDF.
+11. **Gestão de Usuários e Níveis de Acesso no Cadastro Base (RF-41)**:
+    - Apenas usuários com nível Administrador possuem acesso à inclusão e exclusão de operadores na rota `/cadastros`. Ao incluir, o nível de acesso é definido através da tabela `niveis_acesso`, com hash bcrypt para senhas e registro obrigatório na auditoria.
+12. **Interface Sob Demanda nos Cadastros Base (RF-42)**:
+    - Para proporcionar uma experiência de uso limpa, ágil e sem sobrecarga visual, os formulários de cadastro da rota `/cadastros` permanecem recolhidos por padrão e abrem sob demanda acionados por gatilhos interativos com alternância visual (`+ Novo...` / `Cancelar`), atalhos rápidos e suporte a âncoras diretas na URL.
+13. **Sanfona de Visualização e Busca por Palavra-Chave nos Cadastros Base (RF-43)**:
+    - As listagens dos itens já cadastrados nas 7 seções de `/cadastros` ficam organizadas dentro de sanfonas (accordions) recolhidas por padrão. O botão "Ver Itens" exibe o total cadastrado, expande a sanfona de forma suave e alterna dinamicamente para "Ocultar Itens".
+    - Cada sanfona aberta contém uma barra de busca rápida por palavra-chave que filtra os itens em tempo real (tolerante a acentos e minúsculas/maiúsculas), permitindo ao operador localizar instantaneamente marcas, modelos, peças, serviços, oficinas ou usuários sem recarregar a tela.
+14. **Inativação de Clientes e Veículos com Checagem Proativa de Pendências e Feedback Personalizado (RF-44)**:
+    - As telas de edição de clientes (`/clientes/:id/editar`) e veículos (`/veiculos/:id/editar`) possuem a funcionalidade de alternar a situação do cadastro entre **Ativo** e **Inativo**.
+    - **Checagem Proativa e Rotas de Consulta Assíncrona**: Ao selecionar "Inativo" no dropdown ou tentar submeter o formulário, o sistema efetua uma chamada assíncrona para `/veiculos/:id/pendencias-inativacao` ou `/clientes/:id/pendencias-inativacao`. Havendo agendamentos em aberto (`agendado`), a inativação é prevenida na origem, disparando um modal humanizado do **SweetAlert2** e exibindo um banner inline de alerta com badges detalhados (data, hora e motivo) e botão de atalho para a ficha de detalhes do veículo/cliente.
+    - **Compatibilidade com Turbo Drive e Status HTTP 422**: As validações do backend retornam respostas com código HTTP 422 (Unprocessable Entity). Essa padronização permite que o motor do Turbo Drive intercepte o erro de validação e atualize o DOM da página sem descartar o formulário ou causar sensações de travamento.
+    - **Motivo de Inativação Obrigatório**: A inativação exige a seleção de um motivo pré-definido (*ex: Mudou para concorrente, Falecimento, Vendeu o veículo, Mudou de cidade, Perda total / Sinistro, Outros*). Ao selecionar **Outros**, o formulário exibe sob demanda um campo de texto livre obrigatório para detalhamento.
+    - **Proteção Operacional e Rastreabilidade**: Clientes ou veículos inativos são impedidos de registrar novos agendamentos ou solicitações de manutenção, exibem badges de identificação nas listagens/detalhes e todas as inativações ou reativações são gravadas na trilha de auditoria (`logs_auditoria`).
 
 ---
 
-## 8. Regras Invioláveis de Desenvolvimento e Governança
+## 9. Regras Invioláveis de Desenvolvimento e Governança
 
 Para manter a consistência, segurança e qualidade arquitetural do projeto, todos os agentes de IA e desenvolvedores devem seguir as **10 regras invioláveis** consolidadas em [rules.md](file:///c:/Projetos/RevSys/rules.md) e [AGENTS.md](file:///c:/Projetos/RevSys/AGENTS.md):
 

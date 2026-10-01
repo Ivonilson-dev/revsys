@@ -15,11 +15,14 @@ export interface VeiculoAttributes {
   cor: string;
   km_atual: number;
   condicao: 'novo' | 'usado';
+  ativo: boolean;
+  motivo_inativacao?: string | null;
+  inativado_em?: Date | null;
   criado_em?: Date;
   atualizado_em?: Date;
 }
 
-export interface VeiculoCreationAttributes extends Optional<VeiculoAttributes, 'id' | 'condicao' | 'criado_em' | 'atualizado_em'> {}
+export interface VeiculoCreationAttributes extends Optional<VeiculoAttributes, 'id' | 'condicao' | 'ativo' | 'motivo_inativacao' | 'inativado_em' | 'criado_em' | 'atualizado_em'> {}
 
 export class Veiculo extends Model<VeiculoAttributes, VeiculoCreationAttributes> implements VeiculoAttributes {
   declare id: number;
@@ -30,6 +33,9 @@ export class Veiculo extends Model<VeiculoAttributes, VeiculoCreationAttributes>
   declare cor: string;
   declare km_atual: number;
   declare condicao: 'novo' | 'usado';
+  declare ativo: boolean;
+  declare motivo_inativacao: string | null;
+  declare inativado_em: Date | null;
   declare readonly criado_em: Date;
   declare readonly atualizado_em: Date;
 
@@ -119,6 +125,19 @@ export function initVeiculo(sequelize: Sequelize): typeof Veiculo {
       type: DataTypes.ENUM('novo', 'usado'),
       allowNull: false,
       defaultValue: 'usado'
+    },
+    ativo: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true
+    },
+    motivo_inativacao: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    inativado_em: {
+      type: DataTypes.DATE,
+      allowNull: true
     }
   }, {
     sequelize,

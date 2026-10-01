@@ -1,0 +1,511 @@
+<%- include('../parciais/cabecalho') %>
+<%- include('../parciais/menu') %>
+
+<div class="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 md:p-8 pb-24 md:pb-8 smooth-scroll">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Topo / Cabeçalho da Página -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-800 border border-amber-500/20">
+            <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-amber-600"></i>
+            Acesso Restrito: Administrador
+          </span>
+          <span class="text-slate-400 text-sm">•</span>
+          <span class="text-slate-500 text-xs font-semibold">LGPD & Segurança</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mt-1">
+          Auditoria e Rastreabilidade
+        </h1>
+        <p class="text-slate-600 text-sm sm:text-base mt-1">
+          Histórico consolidado de todas as operações, alterações cadastrais, acessos e eventos do sistema.
+        </p>
+      </div>
+
+      <!-- Ações do Topo: Relatório / Impressão -->
+      <div class="flex items-center gap-3">
+        <% 
+          const queryParams = new URLSearchParams();
+          if (filtros.data_inicio) queryParams.set('data_inicio', filtros.data_inicio);
+          if (filtros.data_fim) queryParams.set('data_fim', filtros.data_fim);
+          if (filtros.usuario_id && filtros.usuario_id !== 'todos') queryParams.set('usuario_id', filtros.usuario_id);
+          if (filtros.acao && filtros.acao !== 'todas') queryParams.set('acao', filtros.acao);
+          if (filtros.recurso && filtros.recurso !== 'todos') queryParams.set('recurso', filtros.recurso);
+          if (filtros.busca) queryParams.set('busca', filtros.busca);
+          const urlRelatorio = `/auditoria/relatorio?${queryParams.toString()}`;
+        %>
+        <a href="<%= urlRelatorio %>" 
+           target="_blank"
+           class="inline-flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-5 rounded-xl shadow-sm hover:shadow active:scale-[0.98] transition-all text-sm shrink-0">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          <span>Relatório para Impressão / PDF</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Cards de Estatísticas Rápidas -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Eventos Filtrados</span>
+          <div class="text-2xl font-black text-slate-900 mt-0.5"><%= estatisticas.totalItens %></div>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700">
+          <i data-lucide="list-filter" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-purple-600">Acessos & Sessões</span>
+          <div class="text-2xl font-black text-purple-900 mt-0.5"><%= estatisticas.totalLogins %></div>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600">
+          <i data-lucide="key-round" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Novos Registros (CRIAR)</span>
+          <div class="text-2xl font-black text-emerald-900 mt-0.5"><%= estatisticas.totalCriacoes %></div>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+          <i data-lucide="plus-circle" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Modificações / Exclusões</span>
+          <div class="text-2xl font-black text-amber-900 mt-0.5"><%= estatisticas.totalAlteracoesExclusoes %></div>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+          <i data-lucide="file-edit" class="w-6 h-6"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Painel de Filtros Customizáveis -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+      <form action="/auditoria" method="GET" class="space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center space-x-2 text-slate-800 font-bold text-base">
+            <i data-lucide="filter" class="w-5 h-5 text-slate-600"></i>
+            <span>Filtros Customizados de Pesquisa</span>
+          </div>
+          <% if (filtros.data_inicio || filtros.data_fim || (filtros.usuario_id && filtros.usuario_id !== 'todos') || (filtros.acao && filtros.acao !== 'todas') || (filtros.recurso && filtros.recurso !== 'todos') || filtros.busca) { %>
+            <a href="/auditoria" class="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              Limpar Filtros
+            </a>
+          <% } %>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+          <!-- Data Início -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Data Início</label>
+            <input type="date" 
+                   name="data_inicio" 
+                   value="<%= filtros.data_inicio %>"
+                   class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all">
+          </div>
+
+          <!-- Data Fim -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Data Fim</label>
+            <input type="date" 
+                   name="data_fim" 
+                   value="<%= filtros.data_fim %>"
+                   class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all">
+          </div>
+
+          <!-- Usuário -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Usuário</label>
+            <select name="usuario_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all">
+              <option value="todos">Todos os Usuários</option>
+              <% usuarios.forEach(u => { %>
+                <option value="<%= u.id %>" <%= String(filtros.usuario_id) === String(u.id) ? 'selected' : '' %>>
+                  <%= u.nome %> (<%= u.papel.toUpperCase() %>)
+                </option>
+              <% }) %>
+            </select>
+          </div>
+
+          <!-- Tipo de Ação -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Ação</label>
+            <select name="acao" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all">
+              <option value="todas">Todas as Ações</option>
+              <option value="LOGIN" <%= filtros.acao === 'LOGIN' ? 'selected' : '' %>>LOGIN (Acesso)</option>
+              <option value="LOGIN_FALHA" <%= filtros.acao === 'LOGIN_FALHA' ? 'selected' : '' %>>LOGIN_FALHA (Falha)</option>
+              <option value="LOGOUT" <%= filtros.acao === 'LOGOUT' ? 'selected' : '' %>>LOGOUT (Saída)</option>
+              <option value="CRIAR" <%= filtros.acao === 'CRIAR' ? 'selected' : '' %>>CRIAR (Inclusão)</option>
+              <option value="ATUALIZAR" <%= filtros.acao === 'ATUALIZAR' ? 'selected' : '' %>>ATUALIZAR (Edição)</option>
+              <option value="EXCLUIR" <%= filtros.acao === 'EXCLUIR' ? 'selected' : '' %>>EXCLUIR (Remoção)</option>
+              <option value="CANCELAR" <%= filtros.acao === 'CANCELAR' ? 'selected' : '' %>>CANCELAR</option>
+              <option value="CONFIRMAR_PRESENCA" <%= filtros.acao === 'CONFIRMAR_PRESENCA' ? 'selected' : '' %>>CONFIRMAR_PRESENCA</option>
+              <option value="ADIAR_PRESENCA" <%= filtros.acao === 'ADIAR_PRESENCA' ? 'selected' : '' %>>ADIAR_PRESENCA</option>
+            </select>
+          </div>
+
+          <!-- Módulo / Recurso -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Módulo / Recurso</label>
+            <select name="recurso" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all">
+              <option value="todos">Todos os Módulos</option>
+              <% recursosPredefinidos.forEach(rec => { %>
+                <option value="<%= rec %>" <%= filtros.recurso === rec ? 'selected' : '' %>><%= rec %></option>
+              <% }) %>
+            </select>
+          </div>
+
+          <!-- Termo de Busca Livre -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Palavra-chave / IP</label>
+            <input type="text" 
+                   name="busca" 
+                   value="<%= filtros.busca %>"
+                   placeholder="Ex: placa, nome, IP..."
+                   class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all">
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-2">
+          <button type="submit" class="inline-flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-6 rounded-xl shadow-xs transition-all active:scale-[0.98] text-sm">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <span>Aplicar Filtros</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tabela de Logs de Auditoria -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-4 border-b border-slate-200 bg-slate-100/60 flex items-center justify-between">
+        <span class="text-sm font-bold text-slate-700">
+          Exibindo <%= logs.length %> de <%= paginacao.totalItens %> registros encontrados
+        </span>
+        <span class="text-xs text-slate-500 font-medium">
+          Página <%= paginacao.paginaAtual %> de <%= paginacao.totalPaginas %>
+        </span>
+      </div>
+
+      <!-- Tabela Desktop -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-100/90 border-b border-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider">
+              <th class="p-3.5 pl-6">Data & Hora</th>
+              <th class="p-3.5">Usuário Responsável</th>
+              <th class="p-3.5">Ação</th>
+              <th class="p-3.5">Módulo / Recurso</th>
+              <th class="p-3.5">Descrição da Operação</th>
+              <th class="p-3.5">Origem (IP)</th>
+              <th class="p-3.5 pr-6 text-center">Detalhes</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-slate-800 text-sm">
+            <% if (logs.length === 0) { %>
+              <tr>
+                <td colspan="7" class="p-12 text-center text-slate-500">
+                  <i data-lucide="clipboard-x" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
+                  <p class="font-bold text-base text-slate-700">Nenhum registro de auditoria encontrado</p>
+                  <p class="text-xs text-slate-500 mt-1">Tente ajustar os filtros de data, módulo ou termo de busca.</p>
+                </td>
+              </tr>
+            <% } else { %>
+              <% logs.forEach(log => { 
+                   // Definição visual do badge da ação
+                   let badgeCor = 'bg-slate-100 text-slate-700 border-slate-200';
+                   let badgeIcone = 'activity';
+                   if (log.acao === 'CRIAR') {
+                     badgeCor = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+                     badgeIcone = 'plus-circle';
+                   } else if (log.acao === 'ATUALIZAR') {
+                     badgeCor = 'bg-sky-50 text-sky-800 border-sky-200';
+                     badgeIcone = 'edit-3';
+                   } else if (log.acao === 'EXCLUIR' || log.acao === 'CANCELAR') {
+                     badgeCor = 'bg-rose-50 text-rose-800 border-rose-200';
+                     badgeIcone = 'trash-2';
+                   } else if (log.acao === 'LOGIN') {
+                     badgeCor = 'bg-purple-50 text-purple-800 border-purple-200';
+                     badgeIcone = 'log-in';
+                   } else if (log.acao === 'LOGIN_FALHA') {
+                     badgeCor = 'bg-amber-50 text-amber-800 border-amber-200';
+                     badgeIcone = 'shield-alert';
+                   } else if (log.acao === 'LOGOUT') {
+                     badgeCor = 'bg-slate-100 text-slate-800 border-slate-300';
+                     badgeIcone = 'log-out';
+                   } else if (log.acao === 'CONFIRMAR_PRESENCA') {
+                     badgeCor = 'bg-teal-50 text-teal-800 border-teal-200';
+                     badgeIcone = 'check-check';
+                   }
+                   
+                   // Formatação de data/hora
+                   const d = new Date(log.criado_em);
+                   const dataFormatada = d.toLocaleDateString('pt-BR');
+                   const horaFormatada = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+              %>
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                  <!-- Data e Hora -->
+                  <td class="p-3.5 pl-6 whitespace-nowrap">
+                    <div class="font-bold text-slate-900"><%= dataFormatada %></div>
+                    <div class="text-xs text-slate-500 font-mono"><%= horaFormatada %></div>
+                  </td>
+
+                  <!-- Usuário -->
+                  <td class="p-3.5">
+                    <div class="font-bold text-slate-900 leading-tight">
+                      <%= log.usuario_nome || 'Sistema' %>
+                    </div>
+                    <% if (log.usuario_email) { %>
+                      <div class="text-xs text-slate-500 leading-tight"><%= log.usuario_email %></div>
+                    <% } %>
+                    <% if (log.usuario_papel) { %>
+                      <span class="inline-block mt-0.5 text-[10px] uppercase font-extrabold px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                        <%= log.usuario_papel %>
+                      </span>
+                    <% } %>
+                  </td>
+
+                  <!-- Ação -->
+                  <td class="p-3.5 whitespace-nowrap">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border <%= badgeCor %>">
+                      <i data-lucide="<%= badgeIcone %>" class="w-3.5 h-3.5"></i>
+                      <%= log.acao %>
+                    </span>
+                  </td>
+
+                  <!-- Módulo / Recurso -->
+                  <td class="p-3.5 whitespace-nowrap">
+                    <span class="font-semibold text-slate-800 text-sm">
+                      <%= log.recurso %>
+                    </span>
+                    <% if (log.registro_id) { %>
+                      <span class="text-xs text-slate-500 font-mono block">#ID: <%= log.registro_id %></span>
+                    <% } %>
+                  </td>
+
+                  <!-- Descrição -->
+                  <td class="p-3.5 text-slate-700">
+                    <p class="line-clamp-2 text-sm leading-relaxed" title="<%= log.descricao %>">
+                      <%= log.descricao %>
+                    </p>
+                  </td>
+
+                  <!-- IP e Dispositivo -->
+                  <td class="p-3.5 whitespace-nowrap font-mono text-xs text-slate-600">
+                    <div><%= log.ip || '127.0.0.1' %></div>
+                    <span class="text-[11px] text-slate-400 truncate max-w-[120px] block" title="<%= log.user_agent %>">
+                      <%= log.user_agent ? log.user_agent.substring(0, 25) + '...' : '' %>
+                    </span>
+                  </td>
+
+                  <!-- Botão de Detalhes -->
+                  <td class="p-3.5 pr-6 text-center whitespace-nowrap">
+                    <button type="button" 
+                            onclick="abrirModalDetalhes('<%= log.id %>')"
+                            class="inline-flex items-center justify-center p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 transition-all active:scale-95 shadow-2xs"
+                            title="Ver histórico detalhado">
+                      <i data-lucide="eye" class="w-4 h-4"></i>
+                    </button>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginação -->
+      <% if (paginacao.totalPaginas > 1) { %>
+        <div class="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+          <div class="text-xs text-slate-600 font-medium">
+            Página <%= paginacao.paginaAtual %> de <%= paginacao.totalPaginas %>
+          </div>
+          
+          <div class="flex items-center space-x-1">
+            <% 
+              const linkPaginacao = (pag) => {
+                const params = new URLSearchParams();
+                if (filtros.data_inicio) params.set('data_inicio', filtros.data_inicio);
+                if (filtros.data_fim) params.set('data_fim', filtros.data_fim);
+                if (filtros.usuario_id && filtros.usuario_id !== 'todos') params.set('usuario_id', filtros.usuario_id);
+                if (filtros.acao && filtros.acao !== 'todas') params.set('acao', filtros.acao);
+                if (filtros.recurso && filtros.recurso !== 'todos') params.set('recurso', filtros.recurso);
+                if (filtros.busca) params.set('busca', filtros.busca);
+                params.set('pagina', pag);
+                return `/auditoria?${params.toString()}`;
+              };
+            %>
+
+            <% if (paginacao.paginaAtual > 1) { %>
+              <a href="<%= linkPaginacao(paginacao.paginaAtual - 1) %>" 
+                 class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all shadow-2xs">
+                Anterior
+              </a>
+            <% } %>
+
+            <% for (let p = Math.max(1, paginacao.paginaAtual - 2); p <= Math.min(paginacao.totalPaginas, paginacao.paginaAtual + 2); p++) { %>
+              <a href="<%= linkPaginacao(p) %>" 
+                 class="px-3 py-1.5 rounded-lg border <%= p === paginacao.paginaAtual ? 'border-slate-900 bg-slate-900 text-white font-bold' : 'border-slate-300 bg-white hover:bg-slate-100 text-slate-700 font-medium' %> text-xs transition-all shadow-2xs">
+                <%= p %>
+              </a>
+            <% } %>
+
+            <% if (paginacao.paginaAtual < paginacao.totalPaginas) { %>
+              <a href="<%= linkPaginacao(paginacao.paginaAtual + 1) %>" 
+                 class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all shadow-2xs">
+                Próxima
+              </a>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal de Detalhes da Auditoria -->
+<div id="modalAuditoriaDetalhes" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden transition-all transform animate-in fade-in duration-200">
+    <!-- Header do Modal -->
+    <div class="p-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-xs">
+          <i data-lucide="shield" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="font-extrabold text-slate-900 text-lg leading-tight">Detalhes do Registro de Auditoria</h3>
+          <p class="text-xs text-slate-500" id="modalLogIdHeader">Carregando...</p>
+        </div>
+      </div>
+      <button type="button" onclick="fecharModalDetalhes()" class="w-8 h-8 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center transition-colors">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Conteúdo do Modal -->
+    <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto smooth-scroll" id="modalCorpo">
+      <div class="flex items-center justify-center py-10">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
+      </div>
+    </div>
+
+    <!-- Rodapé do Modal -->
+    <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-end">
+      <button type="button" onclick="fecharModalDetalhes()" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold shadow-xs transition-all">
+        Fechar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function abrirModalDetalhes(id) {
+    const modal = document.getElementById('modalAuditoriaDetalhes');
+    const corpo = document.getElementById('modalCorpo');
+    const headerId = document.getElementById('modalLogIdHeader');
+
+    modal.classList.remove('hidden');
+    headerId.innerText = 'Consultando registro #' + id + '...';
+    corpo.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-12 text-slate-500">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900 mb-2"></div>
+        <span class="text-sm font-medium">Carregando dados da trilha de auditoria...</span>
+      </div>
+    `;
+
+    try {
+      const resp = await fetch('/auditoria/' + id + '/detalhes');
+      const data = await resp.json();
+
+      if (!data.sucesso || !data.log) {
+        corpo.innerHTML = '<div class="p-4 bg-red-50 text-red-700 rounded-xl text-sm font-bold">Registro não encontrado ou inacessível.</div>';
+        return;
+      }
+
+      const log = data.log;
+      headerId.innerText = 'Registro #' + log.id + ' • ' + new Date(log.criado_em).toLocaleString('pt-BR');
+
+      const formatarJson = (obj) => {
+        if (!obj || Object.keys(obj).length === 0) return '<span class="text-slate-400 italic">Nenhum dado registrado</span>';
+        return '<pre class="bg-slate-900 text-emerald-400 p-3 rounded-xl text-xs font-mono overflow-x-auto max-h-48">' + 
+               JSON.stringify(obj, null, 2)
+                 .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + 
+               '</pre>';
+      };
+
+      corpo.innerHTML = `
+        <div class="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div>
+            <span class="text-slate-500 font-bold block uppercase">Usuário:</span>
+            <span class="text-slate-900 font-extrabold text-sm">${log.usuario_nome || 'Sistema'}</span>
+            <span class="text-slate-500 block">${log.usuario_email || '-'} (${log.usuario_papel || '-'})</span>
+          </div>
+          <div>
+            <span class="text-slate-500 font-bold block uppercase">Operação:</span>
+            <span class="text-slate-900 font-extrabold text-sm">${log.acao}</span>
+            <span class="text-slate-500 block">Módulo: ${log.recurso}</span>
+          </div>
+          <div class="col-span-2 pt-2 border-t border-slate-200">
+            <span class="text-slate-500 font-bold block uppercase">Origem da Conexão:</span>
+            <span class="font-mono text-slate-800">IP: ${log.ip || '127.0.0.1'}</span>
+            <div class="text-slate-500 text-[11px] truncate mt-0.5" title="${log.user_agent || ''}">Navegador: ${log.user_agent || 'Desconhecido'}</div>
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Descrição Completa</label>
+          <div class="p-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 leading-relaxed font-medium">
+            ${log.descricao}
+          </div>
+        </div>
+
+        ${log.dados_anteriores ? `
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1">
+              <span>Dados Anteriores à Alteração</span>
+            </label>
+            ${formatarJson(log.dados_anteriores)}
+          </div>
+        ` : ''}
+
+        ${log.dados_novos ? `
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
+              <span>Dados Novos Gravados</span>
+            </label>
+            ${formatarJson(log.dados_novos)}
+          </div>
+        ` : ''}
+      `;
+
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    } catch (err) {
+      corpo.innerHTML = '<div class="p-4 bg-red-50 text-red-700 rounded-xl text-sm font-bold">Erro ao carregar detalhes do registro.</div>';
+    }
+  }
+
+  function fecharModalDetalhes() {
+    document.getElementById('modalAuditoriaDetalhes').classList.add('hidden');
+  }
+
+  // Fecha o modal ao clicar fora ou na tecla ESC
+  document.getElementById('modalAuditoriaDetalhes')?.addEventListener('click', function(e) {
+    if (e.target === this) fecharModalDetalhes();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') fecharModalDetalhes();
+  });
+</script>
+
+<%- include('../parciais/rodape') %>

@@ -4,13 +4,42 @@
 <div class="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 md:p-8 pb-24 md:pb-8 smooth-scroll">
   <div class="max-w-7xl mx-auto space-y-6 sm:space-y-8">
     
-    <!-- Cabeçalho -->
-    <div>
-      <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Tabelas Auxiliares</h1>
-      <p class="text-slate-600 text-sm sm:text-base md:text-lg mt-1 font-normal">Gerencie os dados básicos que alimentam os cadastros de clientes, veículos e peças.</p>
+    <!-- Cabeçalho Principal -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Cadastros Base</h1>
+        <p class="text-slate-600 text-sm sm:text-base md:text-lg mt-1 font-normal">
+          Gerencie os dados mestres e configurações de suporte do sistema AUTEC.
+        </p>
+      </div>
+
+      <!-- Barra de Ações Rápidas -->
+      <div class="flex items-center flex-wrap gap-2 text-xs font-semibold">
+        <span class="text-slate-500 mr-1 hidden sm:inline-block">Ações Rápidas:</span>
+        <button type="button" onclick="abrirSanfonaSecao('sanfona-box-marca-veiculo', 'btn-accordion-marca-veiculo', 'secao-marcas-veiculo')" class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:text-slate-950 hover:bg-slate-100 shadow-2xs transition-colors cursor-pointer">
+          Marcas (<%= marcasVeiculo.length %>)
+        </button>
+        <button type="button" onclick="abrirSanfonaSecao('sanfona-box-modelo-veiculo', 'btn-accordion-modelo-veiculo', 'secao-modelos-veiculo')" class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:text-slate-950 hover:bg-slate-100 shadow-2xs transition-colors cursor-pointer">
+          Modelos (<%= modelosVeiculo.length %>)
+        </button>
+        <button type="button" onclick="abrirSanfonaSecao('sanfona-box-peca', 'btn-accordion-peca', 'secao-pecas')" class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:text-slate-950 hover:bg-slate-100 shadow-2xs transition-colors cursor-pointer">
+          Peças (<%= pecas.length %>)
+        </button>
+        <button type="button" onclick="abrirSanfonaSecao('sanfona-box-servico', 'btn-accordion-servico', 'secao-servicos')" class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:text-slate-950 hover:bg-slate-100 shadow-2xs transition-colors cursor-pointer">
+          Serviços (<%= servicos.length %>)
+        </button>
+        <button type="button" onclick="abrirSanfonaSecao('sanfona-box-oficina', 'btn-accordion-oficina', 'secao-oficinas')" class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:text-slate-950 hover:bg-slate-100 shadow-2xs transition-colors cursor-pointer">
+          Oficinas (<%= oficinas.length %>)
+        </button>
+        <% if (usuarioLogado && usuarioLogado.papel === 'admin') { %>
+          <button type="button" onclick="abrirSanfonaSecao('sanfona-box-usuario', 'btn-accordion-usuario', 'usuarios-sistema')" class="px-2.5 py-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 shadow-2xs transition-colors cursor-pointer font-bold">
+            Usuários (<%= typeof usuariosSistema !== 'undefined' ? usuariosSistema.length : 0 %>)
+          </button>
+        <% } %>
+      </div>
     </div>
 
-    <!-- Alertas -->
+    <!-- Alertas Globais -->
     <% if (erro) { %>
       <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-800 text-base font-medium flex items-start space-x-2 shadow-sm">
         <i data-lucide="alert-circle" class="w-5 h-5 shrink-0 mt-0.5 text-red-600"></i>
@@ -25,316 +54,915 @@
       </div>
     <% } %>
 
-    <!-- Tabs/Grid de Tabelas Auxiliares -->
+    <!-- Grid de Seções de Tabelas Auxiliares -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
       
-      <!-- Bloco: Marcas de Veículo -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5">
-        <div>
-          <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2.5">
-            <i data-lucide="car" class="w-6 h-6 text-brand-500"></i>
-            <span>Marcas de Veículos</span>
-          </h2>
-          <p class="text-xs sm:text-sm text-slate-500 mt-1">Cadastre novas fabricantes de automóveis.</p>
-        </div>
-
-        <form action="/marcas-veiculo" method="POST" class="flex flex-col xs:flex-row gap-2.5">
-          <input type="text" name="nome" required placeholder="Ex: Toyota, Honda, Ford..."
-                 class="flex-1 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
-          <button type="submit" class="w-full xs:w-auto bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-5 rounded-xl text-base transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
-            <i data-lucide="plus" class="w-5 h-5"></i>
-            <span>Cadastrar</span>
-          </button>
-        </form>
-
-        <div class="border border-slate-200 rounded-xl max-h-[200px] overflow-y-auto divide-y divide-slate-100 pr-1">
-          <% marcasVeiculo.forEach(m => { %>
-            <div class="p-3 text-sm md:text-base text-slate-800 font-semibold flex justify-between items-center hover:bg-slate-50/70 transition-colors">
-              <span><%= m.nome %></span>
-              <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
-                <form action="/marcas-veiculo/<%= m.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir esta marca de veículo? A exclusão só será permitida se não houver modelos associados.', 'Excluir Marca?'); return false;" class="inline">
-                  <button type="submit" class="text-slate-400 hover:text-red-600 p-1 transition-colors" title="Excluir marca">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                  </button>
-                </form>
-              <% } %>
+      <!-- 1. BLOCO: MARCAS DE VEÍCULO -->
+      <section id="secao-marcas-veiculo" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4">
+        <!-- Cabeçalho com Gatilhos (Ver Itens & Nova Marca) -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center shrink-0">
+              <i data-lucide="car" class="w-5 h-5"></i>
             </div>
-          <% }) %>
-        </div>
-      </section>
-
-      <!-- Bloco: Modelos de Veículo -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5">
-        <div>
-          <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2.5">
-            <i data-lucide="car-front" class="w-6 h-6 text-brand-500"></i>
-            <span>Modelos de Veículos</span>
-          </h2>
-          <p class="text-xs sm:text-sm text-slate-500 mt-1">Associe novos modelos a marcas existentes.</p>
-        </div>
-
-        <form action="/modelos-veiculo" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-          <select name="marca_veiculo_id" required
-                  class="bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3 text-sm md:text-base focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
-            <option value="" disabled selected>Marca...</option>
-            <% marcasVeiculo.forEach(m => { %>
-              <option value="<%= m.id %>"><%= m.nome %></option>
-            <% }) %>
-          </select>
-          <input type="text" name="nome" required placeholder="Ex: Corolla, Civic..."
-                 class="bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
-          <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl text-base transition-all flex items-center justify-center gap-1.5 shadow-sm">
-            <i data-lucide="plus" class="w-5 h-5"></i>
-            <span>Cadastrar</span>
-          </button>
-        </form>
-
-        <div class="border border-slate-200 rounded-xl max-h-[200px] overflow-y-auto divide-y divide-slate-100 pr-1">
-          <% modelosVeiculo.forEach(mod => { %>
-            <div class="p-3 text-sm md:text-base text-slate-800 font-semibold flex justify-between items-center hover:bg-slate-50/70 transition-colors">
-              <div class="flex items-center gap-2">
-                <span><%= mod.nome %></span>
-                <span class="text-xs text-slate-500 uppercase tracking-wider font-bold bg-slate-100 px-2 py-0.5 rounded"><%= mod.marca ? mod.marca.nome : '' %></span>
-              </div>
-              <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
-                <form action="/modelos-veiculo/<%= mod.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir este modelo de veículo? A exclusão só será permitida se não houver veículos cadastrados.', 'Excluir Modelo?'); return false;" class="inline">
-                  <button type="submit" class="text-slate-400 hover:text-red-600 p-1 transition-colors" title="Excluir modelo">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                  </button>
-                </form>
-              <% } %>
+            <div>
+              <h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">Marcas de Veículos</h2>
+              <p class="text-xs text-slate-500"><%= marcasVeiculo.length %> fabricante(s) cadastrada(s)</p>
             </div>
-          <% }) %>
-        </div>
-      </section>
-
-      <!-- Bloco: Marcas de Peça -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5">
-        <div>
-          <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2.5">
-            <i data-lucide="package" class="w-6 h-6 text-brand-500"></i>
-            <span>Fabricantes de Peças</span>
-          </h2>
-          <p class="text-xs sm:text-sm text-slate-500 mt-1">Gerencie os fabricantes e fornecedores de peças.</p>
-        </div>
-
-        <form action="/marcas-peca" method="POST" class="flex flex-col xs:flex-row gap-2.5">
-          <input type="text" name="nome" required placeholder="Ex: Bosch, Fram, Metal Leve..."
-                 class="flex-1 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
-          <button type="submit" class="w-full xs:w-auto bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-5 rounded-xl text-base transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
-            <i data-lucide="plus" class="w-5 h-5"></i>
-            <span>Cadastrar</span>
-          </button>
-        </form>
-
-        <div class="border border-slate-200 rounded-xl max-h-[200px] overflow-y-auto divide-y divide-slate-100 pr-1">
-          <% marcasPeca.forEach(mp => { %>
-            <div class="p-3 text-sm md:text-base text-slate-800 font-semibold flex justify-between items-center hover:bg-slate-50/70 transition-colors">
-              <span><%= mp.nome %></span>
-              <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
-                <form action="/marcas-peca/<%= mp.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir esta fabricante de peças? A exclusão só será permitida se não houver peças associadas.', 'Excluir Fabricante?'); return false;" class="inline">
-                  <button type="submit" class="text-slate-400 hover:text-red-600 p-1 transition-colors" title="Excluir fabricante">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                  </button>
-                </form>
-              <% } %>
-            </div>
-          <% }) %>
-        </div>
-      </section>
-
-      <!-- Bloco: Peças -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5">
-        <div>
-          <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2.5">
-            <i data-lucide="package-search" class="w-6 h-6 text-brand-500"></i>
-            <span>Peças / Componentes</span>
-          </h2>
-          <p class="text-xs sm:text-sm text-slate-500 mt-1">Cadastre componentes de desgaste para monitoramento.</p>
-        </div>
-
-        <form action="/pecas" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-          <select name="marca_peca_id" required
-                  class="bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3 text-sm md:text-base focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
-            <option value="" disabled selected>Marca...</option>
-            <% marcasPeca.forEach(mp => { %>
-              <option value="<%= mp.id %>"><%= mp.nome %></option>
-            <% }) %>
-          </select>
-          <input type="text" name="nome" required placeholder="Ex: Filtro de Óleo, Pastilha..."
-                 class="bg-slate-50 border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
-          <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl text-base transition-all flex items-center justify-center gap-1.5 shadow-sm">
-            <i data-lucide="plus" class="w-5 h-5"></i>
-            <span>Cadastrar</span>
-          </button>
-        </form>
-
-        <div class="border border-slate-200 rounded-xl max-h-[200px] overflow-y-auto divide-y divide-slate-100 pr-1">
-          <% pecas.forEach(p => { %>
-            <div class="p-3 text-sm md:text-base text-slate-800 font-semibold flex justify-between items-center hover:bg-slate-50/70 transition-colors">
-              <div class="flex items-center gap-2">
-                <span><%= p.nome %></span>
-                <span class="text-xs text-slate-500 uppercase tracking-wider font-bold bg-slate-100 px-2 py-0.5 rounded"><%= p.marca ? p.marca.nome : '' %></span>
-              </div>
-              <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
-                <form action="/pecas/<%= p.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir esta peça? A exclusão só será permitida se ela não estiver vinculada a nenhuma manutenção de veículo.', 'Excluir Peça?'); return false;" class="inline">
-                  <button type="submit" class="text-slate-400 hover:text-red-600 p-1 transition-colors" title="Excluir peça">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                  </button>
-                </form>
-              <% } %>
-            </div>
-          <% }) %>
-        </div>
-      </section>
-
-      <!-- Bloco: Serviços da Oficina (CRUD) -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5 lg:col-span-2">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2.5">
-              <i data-lucide="wrench" class="w-6 h-6 text-brand-500"></i>
-              <span>Serviços da Oficina</span>
-            </h2>
-            <p class="text-xs sm:text-sm text-slate-500 mt-1">Cadastre e gerencie serviços automotivos sem substituição de peças (ex: Alinhamento, Balanceamento, Higienização de Ar, etc.).</p>
           </div>
-          <span class="text-xs sm:text-sm font-bold px-3 py-1 bg-slate-100 text-slate-700 rounded-lg self-start sm:self-auto border border-slate-200">
-            Total: <%= servicos.length %> cadastrados
-          </span>
+
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <!-- Gatilho da Sanfona: Ver Itens -->
+            <button type="button" 
+                    id="btn-accordion-marca-veiculo"
+                    onclick="toggleSanfonaItens('sanfona-box-marca-veiculo', this, 'Ver Itens (<%= marcasVeiculo.length %>)', 'Ocultar Itens')"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer">
+              <i data-lucide="chevron-down" class="w-4 h-4 text-slate-600 transition-transform duration-200"></i>
+              <span class="btn-rotulo">Ver Itens (<%= marcasVeiculo.length %>)</span>
+            </button>
+
+            <!-- Gatilho do Formulário: Nova Marca -->
+            <% if (['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
+              <button type="button" 
+                      id="btn-toggle-marca-veiculo"
+                      onclick="toggleFormularioCadastro('form-box-marca-veiculo', this, 'Nova Marca')"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Nova Marca</span>
+              </button>
+            <% } %>
+          </div>
         </div>
 
-        <form action="/servicos" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nome do Serviço *</label>
-            <input type="text" name="nome" required placeholder="Ex: Alinhamento 3D..."
-                   class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all font-medium">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Categoria</label>
-            <input type="text" name="categoria" placeholder="Ex: Suspensão, Freios..."
-                   class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
-          </div>
-          <div class="flex items-end">
-            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-5 rounded-xl text-base transition-all flex items-center justify-center gap-2 shadow-sm">
-              <i data-lucide="plus" class="w-5 h-5"></i>
-              <span>Cadastrar</span>
+        <!-- Formulário Oculto (Abertura Sob Demanda) -->
+        <div id="form-box-marca-veiculo" class="hidden bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 transition-all duration-200">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <i data-lucide="plus-circle" class="w-4 h-4 text-brand-600"></i>
+              Cadastrar Nova Marca
+            </span>
+            <button type="button" onclick="fecharFormularioCadastro('form-box-marca-veiculo', 'btn-toggle-marca-veiculo', 'Nova Marca')" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-200 transition-colors" title="Fechar formulário">
+              <i data-lucide="x" class="w-4 h-4"></i>
             </button>
           </div>
-          <div class="sm:col-span-3">
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Descrição / Detalhes (Opcional)</label>
-            <input type="text" name="descricao" placeholder="Breve descrição dos procedimentos inclusos..."
-                   class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
-          </div>
-        </form>
 
-        <div class="border border-slate-200 rounded-xl max-h-[250px] overflow-y-auto divide-y divide-slate-100 pr-1">
-          <% if (servicos.length === 0) { %>
-            <div class="p-8 text-center text-slate-500 text-base font-medium">Nenhum serviço cadastrado.</div>
-          <% } else { %>
-            <% servicos.forEach(s => { %>
-              <div class="p-3.5 text-base text-slate-800 flex flex-col xs:flex-row xs:items-center justify-between gap-2.5 hover:bg-slate-50/70 transition-colors">
-                <div class="space-y-1">
-                  <div class="font-bold text-slate-900 flex items-center gap-2.5 flex-wrap">
-                    <span><%= s.nome %></span>
-                    <% if (s.categoria) { %>
-                      <span class="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded uppercase tracking-wider"><%= s.categoria %></span>
-                    <% } %>
-                  </div>
-                  <% if (s.descricao) { %>
-                    <p class="text-xs sm:text-sm text-slate-500 italic"><%= s.descricao %></p>
+          <form action="/marcas-veiculo" method="POST" class="flex flex-col xs:flex-row gap-2.5">
+            <input type="text" name="nome" required placeholder="Ex: Toyota, Honda, Ford..."
+                   class="flex-1 bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3.5 text-sm md:text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all font-medium">
+            <button type="submit" class="w-full xs:w-auto bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-5 rounded-xl text-sm md:text-base transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-sm cursor-pointer">
+              <i data-lucide="check" class="w-4 h-4"></i>
+              <span>Salvar Marca</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- SANFONA: Itens Cadastrados (Inicia Recolhido) -->
+        <div id="sanfona-box-marca-veiculo" class="hidden space-y-3 pt-1 transition-all duration-300">
+          <!-- Campo de Busca por Palavra-Chave -->
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+            <input type="text" 
+                   oninput="filtrarListaItens('lista-marcas-veiculo', this.value, 'empty-marcas-veiculo')"
+                   placeholder="Pesquisar marca por palavra-chave..."
+                   class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
+            <button type="button" onclick="limparBuscaInput(this, 'lista-marcas-veiculo', 'empty-marcas-veiculo')" class="hidden text-slate-400 hover:text-slate-600 absolute right-3 top-2.5" title="Limpar pesquisa">
+              <i data-lucide="x-circle" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Mensagem se busca vazia -->
+          <div id="empty-marcas-veiculo" class="hidden p-4 text-center text-xs sm:text-sm text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            Nenhuma marca encontrada com essa palavra-chave.
+          </div>
+
+          <!-- Lista de Itens -->
+          <div id="lista-marcas-veiculo" class="border border-slate-200 rounded-xl max-h-[220px] overflow-y-auto divide-y divide-slate-100 pr-1">
+            <% if (marcasVeiculo.length === 0) { %>
+              <div class="p-6 text-center text-slate-500 text-sm">Nenhuma marca cadastrada ainda.</div>
+            <% } else { %>
+              <% marcasVeiculo.forEach(m => { %>
+                <div class="item-filtrável p-2.5 sm:p-3 text-sm md:text-base text-slate-800 font-semibold flex justify-between items-center hover:bg-slate-50/70 transition-colors" data-texto-busca="<%= m.nome %>">
+                  <span><%= m.nome %></span>
+                  <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
+                    <form action="/marcas-veiculo/<%= m.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir esta marca de veículo? A exclusão só será permitida se não houver modelos associados.', 'Excluir Marca?'); return false;" class="inline">
+                      <button type="submit" class="text-slate-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Excluir marca">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      </button>
+                    </form>
                   <% } %>
                 </div>
-                <div class="flex items-center justify-between xs:justify-end space-x-4 shrink-0 pt-2 xs:pt-0 border-t xs:border-t-0 border-slate-100">
-                  <form action="/servicos/<%= s.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir este serviço do catálogo da oficina? A exclusão só será permitida se ele não estiver vinculado a nenhum histórico ou agendamento.', 'Excluir Serviço?'); return false;" class="inline">
-                    <button type="submit" class="text-red-500 hover:text-red-700 p-1.5 transition-colors" title="Excluir serviço">
-                      <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
-                    </button>
-                  </form>
-                </div>
-              </div>
-            <% }) %>
-          <% } %>
+              <% }) %>
+            <% } %>
+          </div>
         </div>
       </section>
 
-      <!-- Bloco: Oficinas Parceiras/Locais -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5 lg:col-span-2">
-        <div>
-          <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2.5">
-            <i data-lucide="home" class="w-6 h-6 text-brand-500"></i>
-            <span>Oficinas Cadastradas</span>
-          </h2>
-          <p class="text-xs sm:text-sm text-slate-500 mt-1">Cadastre as filiais ou oficinas parceiras autorizadas.</p>
+      <!-- 2. BLOCO: MODELOS DE VEÍCULO -->
+      <section id="secao-modelos-veiculo" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4">
+        <!-- Cabeçalho com Gatilhos -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center shrink-0">
+              <i data-lucide="car-front" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">Modelos de Veículos</h2>
+              <p class="text-xs text-slate-500"><%= modelosVeiculo.length %> modelo(s) cadastrado(s)</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <!-- Gatilho Sanfona -->
+            <button type="button" 
+                    id="btn-accordion-modelo-veiculo"
+                    onclick="toggleSanfonaItens('sanfona-box-modelo-veiculo', this, 'Ver Itens (<%= modelosVeiculo.length %>)', 'Ocultar Itens')"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer">
+              <i data-lucide="chevron-down" class="w-4 h-4 text-slate-600 transition-transform duration-200"></i>
+              <span class="btn-rotulo">Ver Itens (<%= modelosVeiculo.length %>)</span>
+            </button>
+
+            <% if (['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
+              <button type="button" 
+                      id="btn-toggle-modelo-veiculo"
+                      onclick="toggleFormularioCadastro('form-box-modelo-veiculo', this, 'Novo Modelo')"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Novo Modelo</span>
+              </button>
+            <% } %>
+          </div>
         </div>
 
-        <form action="/oficinas" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nome Oficina *</label>
-            <input type="text" name="nome" required placeholder="Ex: Oficina Central, Filial..."
-                   class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all font-medium">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">CNPJ *</label>
-            <input type="text" name="cnpj" id="cnpj" data-mask="cnpj" required placeholder="00.000.000/0000-00"
-                   class="w-full bg-white border border-slate-300 text-slate-900 font-mono rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">WhatsApp de Contato</label>
-            <input type="text" name="whatsapp_numero" id="whatsapp_numero" data-mask="telefone" placeholder="(00) 00000-0000"
-                   class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
-          </div>
-          <div class="sm:col-span-2">
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Endereço Completo</label>
-            <input type="text" name="endereco" placeholder="Rua, número, bairro..."
-                   class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">E-mail</label>
-            <input type="email" name="email" placeholder="contato@oficina.com..."
-                   class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
-          </div>
-          
-          <div class="sm:col-span-3 flex justify-end">
-            <button type="submit" class="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-7 rounded-xl text-base transition-all flex items-center justify-center gap-2 shadow-sm">
-              <i data-lucide="plus" class="w-5 h-5"></i>
-              <span>Cadastrar Oficina</span>
+        <!-- Formulário Oculto (Abertura Sob Demanda) -->
+        <div id="form-box-modelo-veiculo" class="hidden bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 transition-all duration-200">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <i data-lucide="plus-circle" class="w-4 h-4 text-brand-600"></i>
+              Cadastrar Novo Modelo
+            </span>
+            <button type="button" onclick="fecharFormularioCadastro('form-box-modelo-veiculo', 'btn-toggle-modelo-veiculo', 'Novo Modelo')" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-200 transition-colors" title="Fechar formulário">
+              <i data-lucide="x" class="w-4 h-4"></i>
             </button>
           </div>
-        </form>
 
-        <div class="border border-slate-200 rounded-xl divide-y divide-slate-100 overflow-x-auto">
-          <table class="w-full text-left text-sm sm:text-base text-slate-800">
-            <thead>
-              <tr class="bg-slate-100/80 font-bold uppercase tracking-wider text-slate-700 text-xs sm:text-sm border-b border-slate-200">
-                <th class="p-3.5 pl-4 sm:pl-5">Nome</th>
-                <th class="p-3.5">CNPJ</th>
-                <th class="p-3.5">WhatsApp</th>
-                <th class="p-3.5">E-mail</th>
-                <th class="p-3.5 pr-4 sm:pr-5 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              <% oficinas.forEach(o => { %>
-                <tr class="hover:bg-slate-50/70 transition-colors">
-                  <td class="p-3.5 pl-4 sm:pl-5 font-bold text-slate-900"><%= o.nome %></td>
-                  <td class="p-3.5 font-mono text-xs sm:text-sm font-semibold text-slate-700"><%= formatarCNPJ(o.cnpj) %></td>
-                  <td class="p-3.5 font-medium"><%= o.whatsapp_numero ? formatarTelefone(o.whatsapp_numero) : 'N/I' %></td>
-                  <td class="p-3.5 text-slate-600"><%= o.email || 'N/I' %></td>
-                  <td class="p-3.5 pr-4 sm:pr-5 text-right">
+          <form action="/modelos-veiculo" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <select name="marca_veiculo_id" required
+                    class="bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3 text-sm focus:outline-none focus:border-brand-500 transition-all font-medium">
+              <option value="" disabled selected>Marca...</option>
+              <% marcasVeiculo.forEach(m => { %>
+                <option value="<%= m.id %>"><%= m.nome %></option>
+              <% }) %>
+            </select>
+            <input type="text" name="nome" required placeholder="Ex: Corolla, Civic..."
+                   class="bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3.5 text-sm md:text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all font-medium">
+            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-4 rounded-xl text-sm md:text-base transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
+              <i data-lucide="check" class="w-4 h-4"></i>
+              <span>Salvar Modelo</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- SANFONA: Itens Cadastrados -->
+        <div id="sanfona-box-modelo-veiculo" class="hidden space-y-3 pt-1 transition-all duration-300">
+          <!-- Campo de Busca por Palavra-Chave -->
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+            <input type="text" 
+                   oninput="filtrarListaItens('lista-modelos-veiculo', this.value, 'empty-modelos-veiculo')"
+                   placeholder="Pesquisar modelo ou marca..."
+                   class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
+            <button type="button" onclick="limparBuscaInput(this, 'lista-modelos-veiculo', 'empty-modelos-veiculo')" class="hidden text-slate-400 hover:text-slate-600 absolute right-3 top-2.5" title="Limpar pesquisa">
+              <i data-lucide="x-circle" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div id="empty-modelos-veiculo" class="hidden p-4 text-center text-xs sm:text-sm text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            Nenhum modelo encontrado com essa palavra-chave.
+          </div>
+
+          <div id="lista-modelos-veiculo" class="border border-slate-200 rounded-xl max-h-[220px] overflow-y-auto divide-y divide-slate-100 pr-1">
+            <% if (modelosVeiculo.length === 0) { %>
+              <div class="p-6 text-center text-slate-500 text-sm">Nenhum modelo cadastrado ainda.</div>
+            <% } else { %>
+              <% modelosVeiculo.forEach(mod => { %>
+                <div class="item-filtrável p-2.5 sm:p-3 text-sm md:text-base text-slate-800 font-semibold flex justify-between items-center hover:bg-slate-50/70 transition-colors" data-texto-busca="<%= mod.nome %> <%= mod.marca ? mod.marca.nome : '' %>">
+                  <div class="flex items-center gap-2">
+                    <span><%= mod.nome %></span>
+                    <span class="text-xs text-slate-500 uppercase tracking-wider font-bold bg-slate-100 px-2 py-0.5 rounded border border-slate-200"><%= mod.marca ? mod.marca.nome : '' %></span>
+                  </div>
+                  <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
+                    <form action="/modelos-veiculo/<%= mod.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir este modelo de veículo? A exclusão só será permitida se não houver veículos cadastrados.', 'Excluir Modelo?'); return false;" class="inline">
+                      <button type="submit" class="text-slate-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Excluir modelo">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      </button>
+                    </form>
+                  <% } %>
+                </div>
+              <% }) %>
+            <% } %>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. BLOCO: FABRICANTES DE PEÇA -->
+      <section id="secao-marcas-peca" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4">
+        <!-- Cabeçalho com Gatilhos -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center shrink-0">
+              <i data-lucide="package" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">Fabricantes de Peças</h2>
+              <p class="text-xs text-slate-500"><%= marcasPeca.length %> fabricante(s) cadastrada(s)</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <button type="button" 
+                    id="btn-accordion-marca-peca"
+                    onclick="toggleSanfonaItens('sanfona-box-marca-peca', this, 'Ver Itens (<%= marcasPeca.length %>)', 'Ocultar Itens')"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer">
+              <i data-lucide="chevron-down" class="w-4 h-4 text-slate-600 transition-transform duration-200"></i>
+              <span class="btn-rotulo">Ver Itens (<%= marcasPeca.length %>)</span>
+            </button>
+
+            <% if (['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
+              <button type="button" 
+                      id="btn-toggle-marca-peca"
+                      onclick="toggleFormularioCadastro('form-box-marca-peca', this, 'Nova Fabricante')"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Nova Fabricante</span>
+              </button>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Formulário Oculto (Abertura Sob Demanda) -->
+        <div id="form-box-marca-peca" class="hidden bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 transition-all duration-200">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <i data-lucide="plus-circle" class="w-4 h-4 text-brand-600"></i>
+              Cadastrar Fabricante de Peças
+            </span>
+            <button type="button" onclick="fecharFormularioCadastro('form-box-marca-peca', 'btn-toggle-marca-peca', 'Nova Fabricante')" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-200 transition-colors" title="Fechar formulário">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <form action="/marcas-peca" method="POST" class="flex flex-col xs:flex-row gap-2.5">
+            <input type="text" name="nome" required placeholder="Ex: Bosch, Fram, Metal Leve..."
+                   class="flex-1 bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3.5 text-sm md:text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all font-medium">
+            <button type="submit" class="w-full xs:w-auto bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-5 rounded-xl text-sm md:text-base transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-sm cursor-pointer">
+              <i data-lucide="check" class="w-4 h-4"></i>
+              <span>Salvar Fabricante</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- SANFONA: Itens Cadastrados -->
+        <div id="sanfona-box-marca-peca" class="hidden space-y-3 pt-1 transition-all duration-300">
+          <!-- Campo de Busca por Palavra-Chave -->
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+            <input type="text" 
+                   oninput="filtrarListaItens('lista-marcas-peca', this.value, 'empty-marcas-peca')"
+                   placeholder="Pesquisar fabricante por palavra-chave..."
+                   class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
+            <button type="button" onclick="limparBuscaInput(this, 'lista-marcas-peca', 'empty-marcas-peca')" class="hidden text-slate-400 hover:text-slate-600 absolute right-3 top-2.5" title="Limpar pesquisa">
+              <i data-lucide="x-circle" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div id="empty-marcas-peca" class="hidden p-4 text-center text-xs sm:text-sm text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            Nenhuma fabricante encontrada com essa palavra-chave.
+          </div>
+
+          <div id="lista-marcas-peca" class="border border-slate-200 rounded-xl max-h-[220px] overflow-y-auto divide-y divide-slate-100 pr-1">
+            <% if (marcasPeca.length === 0) { %>
+              <div class="p-6 text-center text-slate-500 text-sm">Nenhuma fabricante cadastrada ainda.</div>
+            <% } else { %>
+              <% marcasPeca.forEach(mp => { %>
+                <div class="item-filtrável p-2.5 sm:p-3 text-sm md:text-base text-slate-800 font-semibold flex justify-between items-center hover:bg-slate-50/70 transition-colors" data-texto-busca="<%= mp.nome %>">
+                  <span><%= mp.nome %></span>
+                  <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
+                    <form action="/marcas-peca/<%= mp.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir esta fabricante de peças? A exclusão só será permitida se não houver peças associadas.', 'Excluir Fabricante?'); return false;" class="inline">
+                      <button type="submit" class="text-slate-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Excluir fabricante">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      </button>
+                    </form>
+                  <% } %>
+                </div>
+              <% }) %>
+            <% } %>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. BLOCO: PEÇAS / COMPONENTES -->
+      <section id="secao-pecas" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4">
+        <!-- Cabeçalho com Gatilhos -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center shrink-0">
+              <i data-lucide="package-search" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">Peças / Componentes</h2>
+              <p class="text-xs text-slate-500"><%= pecas.length %> componente(s) cadastrado(s)</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <button type="button" 
+                    id="btn-accordion-peca"
+                    onclick="toggleSanfonaItens('sanfona-box-peca', this, 'Ver Itens (<%= pecas.length %>)', 'Ocultar Itens')"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer">
+              <i data-lucide="chevron-down" class="w-4 h-4 text-slate-600 transition-transform duration-200"></i>
+              <span class="btn-rotulo">Ver Itens (<%= pecas.length %>)</span>
+            </button>
+
+            <% if (['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
+              <button type="button" 
+                      id="btn-toggle-peca"
+                      onclick="toggleFormularioCadastro('form-box-peca', this, 'Nova Peça')"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Nova Peça</span>
+              </button>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Formulário Oculto (Abertura Sob Demanda) -->
+        <div id="form-box-peca" class="hidden bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 transition-all duration-200">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <i data-lucide="plus-circle" class="w-4 h-4 text-brand-600"></i>
+              Cadastrar Nova Peça
+            </span>
+            <button type="button" onclick="fecharFormularioCadastro('form-box-peca', 'btn-toggle-peca', 'Nova Peça')" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-200 transition-colors" title="Fechar formulário">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <form action="/pecas" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <select name="marca_peca_id" required
+                    class="bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3 text-sm focus:outline-none focus:border-brand-500 transition-all font-medium">
+              <option value="" disabled selected>Fabricante...</option>
+              <% marcasPeca.forEach(mp => { %>
+                <option value="<%= mp.id %>"><%= mp.nome %></option>
+              <% }) %>
+            </select>
+            <input type="text" name="nome" required placeholder="Ex: Filtro de Óleo, Pastilha..."
+                   class="bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3.5 text-sm md:text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all font-medium">
+            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-4 rounded-xl text-sm md:text-base transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
+              <i data-lucide="check" class="w-4 h-4"></i>
+              <span>Salvar Peça</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- SANFONA: Itens Cadastrados -->
+        <div id="sanfona-box-peca" class="hidden space-y-3 pt-1 transition-all duration-300">
+          <!-- Campo de Busca por Palavra-Chave -->
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+            <input type="text" 
+                   oninput="filtrarListaItens('lista-pecas', this.value, 'empty-pecas')"
+                   placeholder="Pesquisar peça ou fabricante..."
+                   class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
+            <button type="button" onclick="limparBuscaInput(this, 'lista-pecas', 'empty-pecas')" class="hidden text-slate-400 hover:text-slate-600 absolute right-3 top-2.5" title="Limpar pesquisa">
+              <i data-lucide="x-circle" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div id="empty-pecas" class="hidden p-4 text-center text-xs sm:text-sm text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            Nenhuma peça encontrada com essa palavra-chave.
+          </div>
+
+          <div id="lista-pecas" class="border border-slate-200 rounded-xl max-h-[220px] overflow-y-auto divide-y divide-slate-100 pr-1">
+            <% if (pecas.length === 0) { %>
+              <div class="p-6 text-center text-slate-500 text-sm">Nenhuma peça cadastrada ainda.</div>
+            <% } else { %>
+              <% pecas.forEach(p => { %>
+                <div class="item-filtrável p-2.5 sm:p-3 text-sm md:text-base text-slate-800 font-semibold flex justify-between items-center hover:bg-slate-50/70 transition-colors" data-texto-busca="<%= p.nome %> <%= p.marca ? p.marca.nome : '' %>">
+                  <div class="flex items-center gap-2">
+                    <span><%= p.nome %></span>
+                    <span class="text-xs text-slate-500 uppercase tracking-wider font-bold bg-slate-100 px-2 py-0.5 rounded border border-slate-200"><%= p.marca ? p.marca.nome : '' %></span>
+                  </div>
+                  <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
+                    <form action="/pecas/<%= p.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir esta peça? A exclusão só será permitida se ela não estiver vinculada a nenhuma manutenção de veículo.', 'Excluir Peça?'); return false;" class="inline">
+                      <button type="submit" class="text-slate-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Excluir peça">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      </button>
+                    </form>
+                  <% } %>
+                </div>
+              <% }) %>
+            <% } %>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. BLOCO: SERVIÇOS DA OFICINA (LARGURA TOTAL) -->
+      <section id="secao-servicos" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4 lg:col-span-2">
+        <!-- Cabeçalho com Gatilhos -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center shrink-0">
+              <i data-lucide="wrench" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">Serviços da Oficina</h2>
+                <span class="text-xs font-bold px-2.5 py-0.5 bg-slate-100 text-slate-700 rounded-full border border-slate-200">
+                  <%= servicos.length %> cadastrado(s)
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">Serviços automotivos sem substituição de peças (ex: Alinhamento 3D, Sangria de Freio, etc.).</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <button type="button" 
+                    id="btn-accordion-servico"
+                    onclick="toggleSanfonaItens('sanfona-box-servico', this, 'Ver Itens (<%= servicos.length %>)', 'Ocultar Itens')"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer">
+              <i data-lucide="chevron-down" class="w-4 h-4 text-slate-600 transition-transform duration-200"></i>
+              <span class="btn-rotulo">Ver Itens (<%= servicos.length %>)</span>
+            </button>
+
+            <% if (['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
+              <button type="button" 
+                      id="btn-toggle-servico"
+                      onclick="toggleFormularioCadastro('form-box-servico', this, 'Novo Serviço')"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Novo Serviço</span>
+              </button>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Formulário Oculto (Abertura Sob Demanda) -->
+        <div id="form-box-servico" class="hidden bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 space-y-3 transition-all duration-200">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <i data-lucide="plus-circle" class="w-4 h-4 text-brand-600"></i>
+              Cadastrar Novo Serviço no Catálogo
+            </span>
+            <button type="button" onclick="fecharFormularioCadastro('form-box-servico', 'btn-toggle-servico', 'Novo Serviço')" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-200 transition-colors" title="Fechar formulário">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <form action="/servicos" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nome do Serviço *</label>
+              <input type="text" name="nome" required placeholder="Ex: Alinhamento 3D..."
+                     class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all font-medium">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Categoria</label>
+              <input type="text" name="categoria" placeholder="Ex: Suspensão, Freios, Elétrica..."
+                     class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+            </div>
+            <div class="flex items-end">
+              <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-5 rounded-xl text-base transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+                <i data-lucide="check" class="w-5 h-5"></i>
+                <span>Salvar Serviço</span>
+              </button>
+            </div>
+            <div class="sm:col-span-3">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Descrição / Detalhes (Opcional)</label>
+              <input type="text" name="descricao" placeholder="Breve descrição dos procedimentos operacionais inclusos..."
+                     class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+            </div>
+          </form>
+        </div>
+
+        <!-- SANFONA: Serviços Cadastrados -->
+        <div id="sanfona-box-servico" class="hidden space-y-3 pt-1 transition-all duration-300">
+          <!-- Campo de Busca por Palavra-Chave -->
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+            <input type="text" 
+                   oninput="filtrarListaItens('lista-servicos', this.value, 'empty-servicos')"
+                   placeholder="Pesquisar serviço por nome, categoria ou procedimentos inclusos..."
+                   class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
+            <button type="button" onclick="limparBuscaInput(this, 'lista-servicos', 'empty-servicos')" class="hidden text-slate-400 hover:text-slate-600 absolute right-3 top-2.5" title="Limpar pesquisa">
+              <i data-lucide="x-circle" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div id="empty-servicos" class="hidden p-4 text-center text-xs sm:text-sm text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            Nenhum serviço encontrado com essa palavra-chave.
+          </div>
+
+          <div id="lista-servicos" class="border border-slate-200 rounded-xl max-h-[260px] overflow-y-auto divide-y divide-slate-100 pr-1">
+            <% if (servicos.length === 0) { %>
+              <div class="p-8 text-center text-slate-500 text-base font-medium">Nenhum serviço cadastrado.</div>
+            <% } else { %>
+              <% servicos.forEach(s => { %>
+                <div class="item-filtrável p-3.5 text-base text-slate-800 flex flex-col xs:flex-row xs:items-center justify-between gap-2.5 hover:bg-slate-50/70 transition-colors" data-texto-busca="<%= s.nome %> <%= s.categoria || '' %> <%= s.descricao || '' %>">
+                  <div class="space-y-1">
+                    <div class="font-bold text-slate-900 flex items-center gap-2.5 flex-wrap">
+                      <span><%= s.nome %></span>
+                      <% if (s.categoria) { %>
+                        <span class="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded uppercase tracking-wider border border-slate-200"><%= s.categoria %></span>
+                      <% } %>
+                    </div>
+                    <% if (s.descricao) { %>
+                      <p class="text-xs sm:text-sm text-slate-500 italic"><%= s.descricao %></p>
+                    <% } %>
+                  </div>
+                  <div class="flex items-center justify-between xs:justify-end space-x-4 shrink-0 pt-2 xs:pt-0 border-t xs:border-t-0 border-slate-100">
                     <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
-                      <form action="/oficinas/<%= o.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir esta oficina? A exclusão só será permitida se não houver manutenções vinculadas a ela.', 'Excluir Oficina?'); return false;" class="inline">
-                        <button type="submit" class="text-slate-400 hover:text-red-600 p-1 transition-colors" title="Excluir oficina">
-                          <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      <form action="/servicos/<%= s.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir este serviço do catálogo da oficina? A exclusão só será permitida se ele não estiver vinculado a nenhum histórico ou agendamento.', 'Excluir Serviço?'); return false;" class="inline">
+                        <button type="submit" class="text-slate-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Excluir serviço">
+                          <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
                         </button>
                       </form>
                     <% } %>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               <% }) %>
-            </tbody>
-          </table>
+            <% } %>
+          </div>
         </div>
       </section>
+
+      <!-- 6. BLOCO: OFICINAS PARCEIRAS / LOCAIS (LARGURA TOTAL) -->
+      <section id="secao-oficinas" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4 lg:col-span-2">
+        <!-- Cabeçalho com Gatilhos -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center shrink-0">
+              <i data-lucide="home" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">Oficinas Cadastradas</h2>
+                <span class="text-xs font-bold px-2.5 py-0.5 bg-slate-100 text-slate-700 rounded-full border border-slate-200">
+                  <%= oficinas.length %> filial(is)
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">Filiais e oficinas parceiras homologadas para atendimento.</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <button type="button" 
+                    id="btn-accordion-oficina"
+                    onclick="toggleSanfonaItens('sanfona-box-oficina', this, 'Ver Itens (<%= oficinas.length %>)', 'Ocultar Itens')"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer">
+              <i data-lucide="chevron-down" class="w-4 h-4 text-slate-600 transition-transform duration-200"></i>
+              <span class="btn-rotulo">Ver Itens (<%= oficinas.length %>)</span>
+            </button>
+
+            <% if (['admin', 'gerente', 'atendente'].includes(usuarioLogado.papel)) { %>
+              <button type="button" 
+                      id="btn-toggle-oficina"
+                      onclick="toggleFormularioCadastro('form-box-oficina', this, 'Nova Oficina')"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Nova Oficina</span>
+              </button>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Formulário Oculto (Abertura Sob Demanda) -->
+        <div id="form-box-oficina" class="hidden bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 space-y-4 transition-all duration-200">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <i data-lucide="plus-circle" class="w-4 h-4 text-brand-600"></i>
+              Cadastrar Nova Oficina
+            </span>
+            <button type="button" onclick="fecharFormularioCadastro('form-box-oficina', 'btn-toggle-oficina', 'Nova Oficina')" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-200 transition-colors" title="Fechar formulário">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <form action="/oficinas" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nome Oficina *</label>
+              <input type="text" name="nome" required placeholder="Ex: Oficina Central, Filial..."
+                     class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all font-medium">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">CNPJ *</label>
+              <input type="text" name="cnpj" id="cnpj" data-mask="cnpj" required placeholder="00.000.000/0000-00"
+                     class="w-full bg-white border border-slate-300 text-slate-900 font-mono rounded-xl py-2 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">WhatsApp de Contato</label>
+              <input type="text" name="whatsapp_numero" id="whatsapp_numero" data-mask="telefone" placeholder="(00) 00000-0000"
+                     class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Endereço Completo</label>
+              <input type="text" name="endereco" placeholder="Rua, número, bairro..."
+                     class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">E-mail</label>
+              <input type="email" name="email" placeholder="contato@oficina.com..."
+                     class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+            </div>
+            
+            <div class="sm:col-span-3 flex justify-end">
+              <button type="submit" class="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-7 rounded-xl text-base transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+                <i data-lucide="check" class="w-5 h-5"></i>
+                <span>Salvar Oficina</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- SANFONA: Oficinas Cadastradas -->
+        <div id="sanfona-box-oficina" class="hidden space-y-3 pt-1 transition-all duration-300">
+          <!-- Campo de Busca por Palavra-Chave -->
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+            <input type="text" 
+                   oninput="filtrarListaItens('lista-oficinas', this.value, 'empty-oficinas')"
+                   placeholder="Pesquisar oficina por nome, CNPJ, WhatsApp, e-mail ou endereço..."
+                   class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
+            <button type="button" onclick="limparBuscaInput(this, 'lista-oficinas', 'empty-oficinas')" class="hidden text-slate-400 hover:text-slate-600 absolute right-3 top-2.5" title="Limpar pesquisa">
+              <i data-lucide="x-circle" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div id="empty-oficinas" class="hidden p-4 text-center text-xs sm:text-sm text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            Nenhuma oficina encontrada com essa palavra-chave.
+          </div>
+
+          <div id="lista-oficinas" class="border border-slate-200 rounded-xl divide-y divide-slate-100 overflow-x-auto">
+            <table class="w-full text-left text-sm sm:text-base text-slate-800">
+              <thead>
+                <tr class="bg-slate-100/80 font-bold uppercase tracking-wider text-slate-700 text-xs sm:text-sm border-b border-slate-200">
+                  <th class="p-3 pl-4 sm:pl-5">Nome</th>
+                  <th class="p-3">CNPJ</th>
+                  <th class="p-3">WhatsApp</th>
+                  <th class="p-3">E-mail</th>
+                  <th class="p-3 pr-4 sm:pr-5 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <% if (oficinas.length === 0) { %>
+                  <tr>
+                    <td colspan="5" class="p-6 text-center text-slate-500 text-sm">Nenhuma oficina cadastrada.</td>
+                  </tr>
+                <% } else { %>
+                  <% oficinas.forEach(o => { %>
+                    <tr class="item-filtrável hover:bg-slate-50/70 transition-colors" data-texto-busca="<%= o.nome %> <%= o.cnpj %> <%= o.whatsapp_numero || '' %> <%= o.email || '' %> <%= o.endereco || '' %>">
+                      <td class="p-3 pl-4 sm:pl-5 font-bold text-slate-900"><%= o.nome %></td>
+                      <td class="p-3 font-mono text-xs sm:text-sm font-semibold text-slate-700"><%= formatarCNPJ(o.cnpj) %></td>
+                      <td class="p-3 font-medium"><%= o.whatsapp_numero ? formatarTelefone(o.whatsapp_numero) : 'N/I' %></td>
+                      <td class="p-3 text-slate-600"><%= o.email || 'N/I' %></td>
+                      <td class="p-3 pr-4 sm:pr-5 text-right">
+                        <% if (['admin', 'gerente'].includes(usuarioLogado.papel)) { %>
+                          <form action="/oficinas/<%= o.id %>?_method=DELETE" method="POST" onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja excluir esta oficina? A exclusão só será permitida se não houver manutenções vinculadas a ela.', 'Excluir Oficina?'); return false;" class="inline">
+                            <button type="submit" class="text-slate-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Excluir oficina">
+                              <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                          </form>
+                        <% } %>
+                      </td>
+                    </tr>
+                  <% }) %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. BLOCO: USUÁRIOS DO SISTEMA (EXCLUSIVO ADMINISTRADOR) -->
+      <% if (usuarioLogado && usuarioLogado.papel === 'admin') { %>
+        <section id="usuarios-sistema" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4 lg:col-span-2">
+          <!-- Cabeçalho com Gatilhos -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <i data-lucide="user-plus" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">Usuários do Sistema</h2>
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                    Acesso Administrador
+                  </span>
+                </div>
+                <p class="text-xs text-slate-500 mt-0.5"><%= typeof usuariosSistema !== 'undefined' ? usuariosSistema.length : 0 %> usuário(s) ativos no sistema.</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 self-start sm:self-auto">
+              <!-- Gatilho Sanfona: Ver Itens -->
+              <button type="button" 
+                      id="btn-accordion-usuario"
+                      onclick="toggleSanfonaItens('sanfona-box-usuario', this, 'Ver Itens (<%= typeof usuariosSistema !== 'undefined' ? usuariosSistema.length : 0 %>)', 'Ocultar Itens')"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer">
+                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-600 transition-transform duration-200"></i>
+                <span class="btn-rotulo">Ver Itens (<%= typeof usuariosSistema !== 'undefined' ? usuariosSistema.length : 0 %>)</span>
+              </button>
+
+              <!-- Gatilho Formulário: Novo Usuário -->
+              <button type="button" 
+                      id="btn-toggle-usuario"
+                      onclick="toggleFormularioCadastro('form-box-usuario', this, 'Novo Usuário')"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Novo Usuário</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Formulário Oculto (Abertura Sob Demanda) -->
+          <div id="form-box-usuario" class="hidden bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 space-y-4 transition-all duration-200">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                <i data-lucide="plus-circle" class="w-4 h-4 text-brand-600"></i>
+                Cadastrar Novo Usuário e Definir Nível de Acesso
+              </span>
+              <button type="button" onclick="fecharFormularioCadastro('form-box-usuario', 'btn-toggle-usuario', 'Novo Usuário')" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-200 transition-colors" title="Fechar formulário">
+                <i data-lucide="x" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <form action="/usuarios" method="POST" class="space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Nome Completo -->
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nome Completo *</label>
+                  <input type="text" name="nome" required placeholder="Ex: Carlos Eduardo da Silva"
+                         class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all font-medium">
+                </div>
+
+                <!-- E-mail de Acesso -->
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">E-mail de Acesso (Login) *</label>
+                  <input type="email" name="email" required placeholder="usuario@autec.com.br"
+                         class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+                </div>
+
+                <!-- Nível de Acesso (Tabela niveis_acesso) -->
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nível de Acesso *</label>
+                  <select name="nivel_acesso_id" required
+                          class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3.5 text-base focus:outline-none focus:border-brand-500 transition-all font-semibold">
+                    <option value="" disabled selected>Selecione o nível de acesso...</option>
+                    <% if (typeof niveisAcesso !== 'undefined' && niveisAcesso.length > 0) { %>
+                      <% niveisAcesso.forEach(nivel => { %>
+                        <option value="<%= nivel.id %>">
+                          <%= nivel.titulo %> (<%= nivel.nome.toUpperCase() %>)
+                        </option>
+                      <% }) %>
+                    <% } else { %>
+                      <option value="1">Administrador</option>
+                      <option value="2">Gerente</option>
+                      <option value="3">Atendente</option>
+                      <option value="4">Mecânico</option>
+                    <% } %>
+                  </select>
+                </div>
+
+                <!-- Senha -->
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Senha Provisória *</label>
+                  <input type="password" name="senha" required minlength="6" placeholder="Mínimo de 6 caracteres"
+                         class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+                </div>
+
+                <!-- Confirmação de Senha -->
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Confirmar Senha *</label>
+                  <input type="password" name="confirmar_senha" required minlength="6" placeholder="Repita a senha"
+                         class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2 px-3.5 text-base placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all">
+                </div>
+
+                <!-- Botão Cadastrar -->
+                <div class="sm:col-span-2 lg:col-span-1 flex items-end">
+                  <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-5 rounded-xl text-base transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-95">
+                    <i data-lucide="check" class="w-5 h-5"></i>
+                    <span>Salvar Usuário</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- SANFONA: Usuários Cadastrados -->
+          <div id="sanfona-box-usuario" class="hidden space-y-3 pt-1 transition-all duration-300">
+            <!-- Campo de Busca por Palavra-Chave -->
+            <div class="relative">
+              <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+              <input type="text" 
+                     oninput="filtrarListaItens('lista-usuarios', this.value, 'empty-usuarios')"
+                     placeholder="Pesquisar usuário por nome, e-mail ou nível de acesso..."
+                     class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
+              <button type="button" onclick="limparBuscaInput(this, 'lista-usuarios', 'empty-usuarios')" class="hidden text-slate-400 hover:text-slate-600 absolute right-3 top-2.5" title="Limpar pesquisa">
+                <i data-lucide="x-circle" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <div id="empty-usuarios" class="hidden p-4 text-center text-xs sm:text-sm text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+              Nenhum usuário encontrado com essa palavra-chave.
+            </div>
+
+            <div id="lista-usuarios" class="border border-slate-200 rounded-xl divide-y divide-slate-100 overflow-x-auto">
+              <table class="w-full text-left text-sm sm:text-base text-slate-800">
+                <thead>
+                  <tr class="bg-slate-100/80 font-bold uppercase tracking-wider text-slate-700 text-xs sm:text-sm border-b border-slate-200">
+                    <th class="p-3 pl-4 sm:pl-5">Nome do Usuário</th>
+                    <th class="p-3">E-mail (Login)</th>
+                    <th class="p-3">Nível de Acesso</th>
+                    <th class="p-3">Data de Cadastro</th>
+                    <th class="p-3 pr-4 sm:pr-5 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <% if (typeof usuariosSistema !== 'undefined' && usuariosSistema.length > 0) { %>
+                    <% usuariosSistema.forEach(u => { %>
+                      <tr class="item-filtrável hover:bg-slate-50/70 transition-colors" data-texto-busca="<%= u.nome %> <%= u.email %> <%= u.papel %> <%= u.nivel_acesso ? u.nivel_acesso.titulo : '' %>">
+                        <td class="p-3 pl-4 sm:pl-5">
+                          <div class="flex items-center space-x-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-slate-200 text-slate-800 font-bold flex items-center justify-center text-xs shrink-0 select-none">
+                              <%= u.nome ? u.nome.substring(0, 2).toUpperCase() : 'U' %>
+                            </div>
+                            <div>
+                              <span class="font-bold text-slate-900 block leading-snug"><%= u.nome %></span>
+                              <% if (u.id === usuarioLogado.id) { %>
+                                <span class="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">(Seu Usuário Atual)</span>
+                              <% } %>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="p-3 text-slate-600 text-xs sm:text-sm"><%= u.email %></td>
+                        <td class="p-3">
+                          <% if (u.papel === 'admin') { %>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                              <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                              <%= u.nivel_acesso ? u.nivel_acesso.titulo : 'Administrador' %>
+                            </span>
+                          <% } else if (u.papel === 'gerente') { %>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                              <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
+                              <%= u.nivel_acesso ? u.nivel_acesso.titulo : 'Gerente' %>
+                            </span>
+                          <% } else if (u.papel === 'atendente') { %>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              <i data-lucide="headset" class="w-3.5 h-3.5"></i>
+                              <%= u.nivel_acesso ? u.nivel_acesso.titulo : 'Atendente' %>
+                            </span>
+                          <% } else if (u.papel === 'mecanico') { %>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                              <i data-lucide="wrench" class="w-3.5 h-3.5"></i>
+                              <%= u.nivel_acesso ? u.nivel_acesso.titulo : 'Mecânico' %>
+                            </span>
+                          <% } else { %>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200">
+                              <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                              <%= u.nivel_acesso ? u.nivel_acesso.titulo : 'Cliente' %>
+                            </span>
+                          <% } %>
+                        </td>
+                        <td class="p-3 text-xs text-slate-500 font-medium">
+                          <%= u.criado_em ? new Date(u.criado_em).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/I' %>
+                        </td>
+                        <td class="p-3 pr-4 sm:pr-5 text-right">
+                          <% if (u.id !== usuarioLogado.id && !(u.id === 1 && u.email === 'admin@revsys.com')) { %>
+                            <form action="/usuarios/<%= u.id %>?_method=DELETE" method="POST" 
+                                  onsubmit="confirmarAcaoModal(event, 'Tem certeza que deseja remover o usuário <%= u.nome %>? Essa ação é irreversível.', 'Excluir Usuário?'); return false;" 
+                                  class="inline">
+                              <button type="submit" class="text-slate-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer" title="Excluir usuário">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                              </button>
+                            </form>
+                          <% } else { %>
+                            <span class="text-xs text-slate-400 font-medium italic">Protegido</span>
+                          <% } %>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="5" class="p-6 text-center text-slate-500 text-sm">
+                        Nenhum usuário cadastrado.
+                      </td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      <% } %>
 
     </div>
 
@@ -342,3 +970,207 @@
 </div>
 
 <%- include('../parciais/rodape') %>
+
+<!-- Scripts de Interatividade: Sanfonas, Formulários Sob Demanda e Filtro por Palavra-Chave -->
+<script>
+  /**
+   * Alterna a visibilidade da Sanfona de Itens (Accordion)
+   */
+  function toggleSanfonaItens(sanfonaId, btnElement, textoPadrao, textoAberto) {
+    const box = document.getElementById(sanfonaId);
+    if (!box) return;
+
+    const estaOculto = box.classList.contains('hidden');
+
+    if (estaOculto) {
+      box.classList.remove('hidden');
+      if (btnElement) {
+        btnElement.classList.remove('bg-white', 'text-slate-700');
+        btnElement.classList.add('bg-slate-100', 'text-slate-900', 'border-slate-400');
+        btnElement.innerHTML = `
+          <i data-lucide="chevron-up" class="w-4 h-4 text-slate-800"></i>
+          <span class="btn-rotulo">${textoAberto}</span>
+        `;
+      }
+      // Foca automaticamente no campo de pesquisa da sanfona
+      const inputBusca = box.querySelector('input[type="text"]');
+      if (inputBusca) {
+        setTimeout(() => inputBusca.focus(), 60);
+      }
+    } else {
+      box.classList.add('hidden');
+      if (btnElement) {
+        btnElement.classList.remove('bg-slate-100', 'text-slate-900', 'border-slate-400');
+        btnElement.classList.add('bg-white', 'text-slate-700');
+        btnElement.innerHTML = `
+          <i data-lucide="chevron-down" class="w-4 h-4 text-slate-600"></i>
+          <span class="btn-rotulo">${textoPadrao}</span>
+        `;
+      }
+    }
+
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  }
+
+  /**
+   * Abre uma sanfona específica e rola até a seção (usado nos atalhos do topo)
+   */
+  function abrirSanfonaSecao(sanfonaId, btnId, secaoId) {
+    const box = document.getElementById(sanfonaId);
+    const btn = document.getElementById(btnId);
+    const secao = document.getElementById(secaoId);
+
+    if (box && box.classList.contains('hidden') && btn) {
+      btn.click();
+    }
+
+    if (secao) {
+      secao.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  /**
+   * Alterna a visibilidade do Formulário de Cadastro (Abertura Sob Demanda)
+   */
+  function toggleFormularioCadastro(boxId, btnElement, textoPadrao, textoAberto = 'Cancelar') {
+    const box = document.getElementById(boxId);
+    if (!box) return;
+
+    const estaOculto = box.classList.contains('hidden');
+
+    if (estaOculto) {
+      box.classList.remove('hidden');
+      if (btnElement) {
+        btnElement.classList.remove('bg-slate-900', 'text-white', 'hover:bg-slate-800');
+        btnElement.classList.add('bg-slate-200', 'text-slate-800', 'hover:bg-slate-300');
+        btnElement.innerHTML = `
+          <i data-lucide="x" class="w-4 h-4 text-slate-700"></i>
+          <span>${textoAberto}</span>
+        `;
+      }
+      // Foca automaticamente no primeiro campo do formulário
+      const primeiroInput = box.querySelector('input:not([type="hidden"]), select, textarea');
+      if (primeiroInput) {
+        setTimeout(() => primeiroInput.focus(), 80);
+      }
+    } else {
+      box.classList.add('hidden');
+      if (btnElement) {
+        btnElement.classList.remove('bg-slate-200', 'text-slate-800', 'hover:bg-slate-300');
+        btnElement.classList.add('bg-slate-900', 'text-white', 'hover:bg-slate-800');
+        btnElement.innerHTML = `
+          <i data-lucide="plus" class="w-4 h-4 text-white"></i>
+          <span>${textoPadrao}</span>
+        `;
+      }
+    }
+
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  }
+
+  /**
+   * Fecha o formulário a partir do botão X interno
+   */
+  function fecharFormularioCadastro(boxId, btnId, textoPadrao) {
+    const box = document.getElementById(boxId);
+    const btn = document.getElementById(btnId);
+    if (box) {
+      box.classList.add('hidden');
+    }
+    if (btn) {
+      btn.classList.remove('bg-slate-200', 'text-slate-800', 'hover:bg-slate-300');
+      btn.classList.add('bg-slate-900', 'text-white', 'hover:bg-slate-800');
+      btn.innerHTML = `
+        <i data-lucide="plus" class="w-4 h-4 text-white"></i>
+        <span>${textoPadrao}</span>
+      `;
+    }
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  }
+
+  /**
+   * Filtra os itens de uma lista em tempo real com base no texto digitado
+   */
+  function filtrarListaItens(containerId, termo, emptyMsgId) {
+    const container = document.getElementById(containerId);
+    const emptyMsg = document.getElementById(emptyMsgId);
+    if (!container) return;
+
+    const termoLimpo = termo.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const itens = container.querySelectorAll('.item-filtrável');
+    let visiveis = 0;
+
+    itens.forEach(item => {
+      const texto = (item.getAttribute('data-texto-busca') || item.textContent || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+
+      if (!termoLimpo || texto.includes(termoLimpo)) {
+        item.classList.remove('hidden');
+        visiveis++;
+      } else {
+        item.classList.add('hidden');
+      }
+    });
+
+    if (emptyMsg) {
+      if (visiveis === 0 && termoLimpo !== '') {
+        emptyMsg.classList.remove('hidden');
+      } else {
+        emptyMsg.classList.add('hidden');
+      }
+    }
+
+    // Controlar visibilidade do botão limpar busca
+    const inputEl = event?.target;
+    if (inputEl && inputEl.parentElement) {
+      const btnLimpar = inputEl.parentElement.querySelector('button');
+      if (btnLimpar) {
+        if (termo.length > 0) {
+          btnLimpar.classList.remove('hidden');
+        } else {
+          btnLimpar.classList.add('hidden');
+        }
+      }
+    }
+
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  }
+
+  /**
+   * Limpa o campo de busca e restaura todos os itens da lista
+   */
+  function limparBuscaInput(btnLimpar, containerId, emptyMsgId) {
+    const input = btnLimpar?.parentElement?.querySelector('input');
+    if (input) {
+      input.value = '';
+      filtrarListaItens(containerId, '', emptyMsgId);
+      btnLimpar.classList.add('hidden');
+      input.focus();
+    }
+  }
+
+  // Deep-linking e hash na URL
+  document.addEventListener('DOMContentLoaded', verificarHashAbertura);
+  document.addEventListener('turbo:load', verificarHashAbertura);
+
+  function verificarHashAbertura() {
+    const hash = window.location.hash;
+    if (hash === '#usuarios-sistema') {
+      const btnSanfonaUsuario = document.getElementById('btn-accordion-usuario');
+      if (btnSanfonaUsuario) {
+        btnSanfonaUsuario.click();
+        document.getElementById('usuarios-sistema')?.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }
+</script>

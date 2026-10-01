@@ -27,8 +27,19 @@
     </div>
 
     <!-- Card de Formulário -->
+    <% 
+      let marcaAtualId = null;
+      if (veiculo.modelo && veiculo.modelo.marca_veiculo_id) {
+        marcaAtualId = veiculo.modelo.marca_veiculo_id;
+      } else if (veiculo.modelo_id && typeof modelos !== 'undefined' && modelos.length > 0) {
+        const modEncontrado = modelos.find(m => String(m.id) === String(veiculo.modelo_id));
+        if (modEncontrado) {
+          marcaAtualId = modEncontrado.marca_veiculo_id;
+        }
+      }
+    %>
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
-      <form action="/veiculos/<%= veiculo.id %>?_method=PUT" method="POST" class="space-y-6">
+      <form id="formEditarVeiculo" action="/veiculos/<%= veiculo.id %>?_method=PUT" method="POST" class="space-y-6">
         
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
           
@@ -42,11 +53,11 @@
           <!-- Seleção de Marca -->
           <div>
             <label for="marca_id" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">Marca do Veículo *</label>
-            <select id="marca_id" required
+            <select id="marca_id" name="marca_id" required
                     class="w-full bg-slate-50/50 border border-slate-300 text-slate-900 rounded-xl py-3 px-4 text-base focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-medium">
-              <option value="" disabled selected>Selecione a Marca...</option>
+              <option value="" disabled <%= !marcaAtualId ? 'selected' : '' %>>Selecione a Marca...</option>
               <% marcas.forEach(m => { %>
-                <option value="<%= m.id %>"><%= m.nome %></option>
+                <option value="<%= m.id %>" <%= (marcaAtualId && String(m.id) === String(marcaAtualId)) ? 'selected' : '' %>><%= m.nome %></option>
               <% }) %>
             </select>
           </div>
@@ -54,9 +65,16 @@
           <!-- Seleção de Modelo -->
           <div>
             <label for="modelo_id" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">Modelo do Veículo *</label>
-            <select id="modelo_id" name="modelo_id" required disabled
+            <select id="modelo_id" name="modelo_id" required <%= !marcaAtualId ? 'disabled' : '' %>
                     class="w-full bg-slate-50/50 border border-slate-300 text-slate-900 rounded-xl py-3 px-4 text-base focus:outline-none focus:border-brand-500 focus:bg-white transition-all disabled:opacity-60 disabled:cursor-not-allowed font-medium">
-              <option value="" disabled selected>Selecione primeiro a Marca...</option>
+              <% if (!marcaAtualId) { %>
+                <option value="" disabled selected>Selecione primeiro a Marca...</option>
+              <% } else { %>
+                <option value="" disabled <%= !veiculo.modelo_id ? 'selected' : '' %>>Selecione o Modelo...</option>
+                <% modelos.filter(m => String(m.marca_veiculo_id) === String(marcaAtualId)).forEach(m => { %>
+                  <option value="<%= m.id %>" <%= String(m.id) === String(veiculo.modelo_id) ? 'selected' : '' %>><%= m.nome %></option>
+                <% }) %>
+              <% } %>
             </select>
           </div>
 
@@ -105,6 +123,120 @@
 
         </div>
 
+        <!-- Seção: Status do Veículo e Inativação -->
+        <div class="space-y-4 pt-4 border-t border-slate-100">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h2 class="text-base font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="shield-alert" class="w-4 h-4 text-brand-600"></i>
+              Status do Veículo
+            </h2>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold <%= veiculo.ativo ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200' %>">
+              <span class="w-1.5 h-1.5 rounded-full mr-1.5 <%= veiculo.ativo ? 'bg-emerald-500' : 'bg-amber-500' %>"></span>
+              <%= veiculo.ativo ? 'Veículo Ativo' : 'Veículo Inativo' %>
+            </span>
+          </div>
+
+          <div class="bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200 space-y-4">
+            <div>
+              <label for="ativo" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">Definir Situação do Veículo *</label>
+              <select id="ativo" name="ativo" onchange="alternarCamposInativacaoVeiculo(this.value)"
+                      class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-3 px-4 text-base focus:outline-none focus:border-brand-500 transition-all font-semibold">
+                <option value="1" <%= veiculo.ativo ? 'selected' : '' %>>Ativo (Disponível para revisões, trocas e agendamentos)</option>
+                <option value="0" <%= !veiculo.ativo ? 'selected' : '' %>>Inativo (Bloqueia novos agendamentos e ordens de serviço)</option>
+              </select>
+              <p class="text-xs text-slate-500 mt-1.5 flex items-center gap-1">
+                <i data-lucide="info" class="w-3.5 h-3.5 inline text-slate-400 shrink-0"></i>
+                <span>Apenas é possível inativar veículos que não possuam nenhum agendamento pendente no sistema.</span>
+              </p>
+
+              <!-- Indicador de checagem de pendências -->
+              <div id="indicador-checando-veiculo" class="hidden mt-2 p-2.5 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 text-xs font-medium flex items-center gap-2">
+                <div class="w-3.5 h-3.5 border-2 border-sky-600 border-t-transparent rounded-full animate-spin"></div>
+                <span>Verificando pendências do veículo em tempo real...</span>
+              </div>
+
+              <!-- Alerta Dinâmico de Bloqueio por Pendências Ativas -->
+              <div id="alerta-pendencias-veiculo" class="<%= (typeof pendenciasAgendamentos !== 'undefined' && pendenciasAgendamentos && pendenciasAgendamentos.length > 0) ? '' : 'hidden' %> mt-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-950 space-y-3 shadow-xs">
+                <div class="flex items-start gap-2.5">
+                  <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
+                  <div class="flex-1">
+                    <h4 class="font-bold text-sm sm:text-base text-amber-900" id="titulo-pendencias-veiculo">
+                      Inativação Bloqueada: <%= (typeof pendenciasAgendamentos !== 'undefined' && pendenciasAgendamentos) ? pendenciasAgendamentos.length : 0 %> agendamento(s) pendente(s)
+                    </h4>
+                    <p class="text-xs sm:text-sm text-amber-800 mt-0.5" id="desc-pendencias-veiculo">
+                      Este veículo possui agendamentos marcados com status "Agendado". Conclua ou cancele todos os agendamentos antes de inativá-lo.
+                    </p>
+                  </div>
+                </div>
+
+                <div id="lista-pendencias-veiculo" class="space-y-2 max-h-48 overflow-y-auto pr-1 text-xs">
+                  <% if (typeof pendenciasAgendamentos !== 'undefined' && pendenciasAgendamentos && pendenciasAgendamentos.length > 0) { %>
+                    <% pendenciasAgendamentos.forEach(p => { %>
+                      <div class="p-2.5 bg-white/90 rounded-lg border border-amber-300 flex items-center justify-between gap-2 shadow-2xs">
+                        <div>
+                          <strong class="text-slate-900 block"><%= p.motivo %></strong>
+                          <span class="text-slate-600">Data: <%= p.data %> às <%= p.horario %></span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 uppercase shrink-0">
+                          Agendado
+                        </span>
+                      </div>
+                    <% }) %>
+                  <% } %>
+                </div>
+
+                <div class="pt-2 border-t border-amber-500/20 flex flex-wrap items-center justify-between gap-2">
+                  <a href="/veiculos/<%= veiculo.id %>" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition-colors">
+                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                    <span>Ver Detalhes do Veículo e Agendamentos</span>
+                  </a>
+                  <button type="button" onclick="window.verificarPendenciasVeiculo(true)" class="text-xs text-amber-800 hover:text-amber-950 font-bold underline cursor-pointer">
+                    Atualizar Checagem
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bloco de Motivo de Inativação (Exibido quando selecionar Inativo) -->
+            <div id="container-motivo-inativacao-veiculo" class="<%= veiculo.ativo ? 'hidden' : '' %> space-y-3 pt-3 border-t border-slate-200/80">
+              <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-900 text-xs sm:text-sm font-medium flex items-start gap-2">
+                <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 text-amber-600 mt-0.5"></i>
+                <div>
+                  <strong>Atenção:</strong> O veículo só será inativado se não houver agendamentos em aberto. O motivo da inativação é de preenchimento estritamente obrigatório.
+                </div>
+              </div>
+
+              <div>
+                <label for="motivo_inativacao_opcao" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">Motivo da Inativação *</label>
+                <select id="motivo_inativacao_opcao" name="motivo_inativacao_opcao" onchange="alternarOutroMotivoVeiculo(this.value)"
+                        class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-sm sm:text-base focus:outline-none focus:border-brand-500 transition-all font-medium">
+                  <option value="" disabled <%= !veiculo.motivo_inativacao ? 'selected' : '' %>>Selecione o motivo da inativação...</option>
+                  <option value="Vendido / Transferido para terceiro" <%= veiculo.motivo_inativacao === 'Vendido / Transferido para terceiro' ? 'selected' : '' %>>Vendido / Transferido para terceiro</option>
+                  <option value="Cliente mudou para concorrente" <%= veiculo.motivo_inativacao === 'Cliente mudou para concorrente' ? 'selected' : '' %>>Cliente mudou para concorrente</option>
+                  <option value="Falecimento do proprietário" <%= veiculo.motivo_inativacao === 'Falecimento do proprietário' ? 'selected' : '' %>>Falecimento do proprietário</option>
+                  <option value="Perda total / Sinistro" <%= veiculo.motivo_inativacao === 'Perda total / Sinistro' ? 'selected' : '' %>>Perda total / Sinistro</option>
+                  <option value="Sucateado / Desmanche legal" <%= veiculo.motivo_inativacao === 'Sucateado / Desmanche legal' ? 'selected' : '' %>>Sucateado / Desmanche legal</option>
+                  <option value="Mudou de cidade / região" <%= veiculo.motivo_inativacao === 'Mudou de cidade / região' ? 'selected' : '' %>>Mudou de cidade / região</option>
+                  <option value="Outros" <%= (veiculo.motivo_inativacao && veiculo.motivo_inativacao.startsWith('Outros')) ? 'selected' : '' %>>Outros (especificar)</option>
+                </select>
+              </div>
+
+              <!-- Campo livre quando seleciona 'Outros' -->
+              <div id="container-motivo-outro-veiculo" class="<%= (veiculo.motivo_inativacao && veiculo.motivo_inativacao.startsWith('Outros')) ? '' : 'hidden' %>">
+                <label for="motivo_inativacao_outro" class="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1.5">Descreva o Motivo Detalhado *</label>
+                <textarea id="motivo_inativacao_outro" name="motivo_inativacao_outro" rows="2" placeholder="Digite detalhadamente a justificativa para inativação..."
+                          class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl py-2.5 px-3.5 text-sm sm:text-base focus:outline-none focus:border-brand-500 transition-all font-medium"><%= (veiculo.motivo_inativacao && veiculo.motivo_inativacao.startsWith('Outros: ')) ? veiculo.motivo_inativacao.replace('Outros: ', '') : '' %></textarea>
+              </div>
+
+              <% if (!veiculo.ativo && veiculo.inativado_em) { %>
+                <p class="text-xs text-slate-500 italic">
+                  Inativado em: <%= new Date(veiculo.inativado_em).toLocaleString('pt-BR') %>
+                </p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
         <!-- Botões de Ação -->
         <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-4 border-t border-slate-100">
           <a href="/veiculos/<%= veiculo.id %>" class="w-full sm:w-auto text-center px-5 py-3 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 text-base font-semibold transition-all">
@@ -124,7 +256,134 @@
 </div>
 
 <script>
+  window.pendenciasVeiculoCache = null;
+
+  // Consulta assíncrona de pendências com exibição inline e modal informativo
+  window.verificarPendenciasVeiculo = async function(abrirModalAutomatico = false) {
+    const indicador = document.getElementById('indicador-checando-veiculo');
+    const alertaContainer = document.getElementById('alerta-pendencias-veiculo');
+    const listaContainer = document.getElementById('lista-pendencias-veiculo');
+    const tituloEl = document.getElementById('titulo-pendencias-veiculo');
+    const descEl = document.getElementById('desc-pendencias-veiculo');
+
+    if (indicador) indicador.classList.remove('hidden');
+
+    try {
+      const resp = await fetch('/veiculos/<%= veiculo.id %>/pendencias-inativacao');
+      const dados = await resp.json();
+      window.pendenciasVeiculoCache = dados;
+
+      if (indicador) indicador.classList.add('hidden');
+
+      if (dados.sucesso && dados.temPendencias) {
+        if (alertaContainer) alertaContainer.classList.remove('hidden');
+        if (tituloEl) {
+          tituloEl.textContent = `Inativação Bloqueada: ${dados.totalPendencias} agendamento(s) ativo(s)`;
+        }
+        if (descEl) {
+          descEl.textContent = `Este veículo possui ${dados.totalPendencias} agendamento(s) marcado(s) com status "Agendado". Conclua ou cancele todos os agendamentos antes de inativá-lo.`;
+        }
+
+        if (listaContainer) {
+          listaContainer.innerHTML = dados.pendencias.map(p => `
+            <div class="p-2.5 bg-white/90 rounded-lg border border-amber-300 flex items-center justify-between gap-2 shadow-2xs">
+              <div>
+                <strong class="text-slate-900 block font-semibold text-xs sm:text-sm">${p.motivo}</strong>
+                <span class="text-slate-600 text-[11px] sm:text-xs">Data agendada: <b>${p.data}</b> às <b>${p.horario}</b></span>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 uppercase shrink-0">
+                Agendado
+              </span>
+            </div>
+          `).join('');
+        }
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        if (abrirModalAutomatico && typeof Swal !== 'undefined') {
+          const itensHtml = dados.pendencias.map(p => `
+            <div class="p-2.5 bg-white rounded-lg border border-amber-200 text-left mb-1.5 shadow-xs">
+              <strong class="text-slate-900 text-xs block">${p.motivo}</strong>
+              <span class="text-slate-600 text-[11px]">Data: ${p.data} às ${p.horario} (Status: Agendado)</span>
+            </div>
+          `).join('');
+
+          Swal.fire({
+            icon: 'warning',
+            title: 'Inativação Não Permitida',
+            html: `
+              <div class="text-left space-y-3">
+                <p class="text-sm text-slate-700 leading-relaxed font-medium">
+                  O veículo <b><%= veiculo.placa %></b> não pode ser inativado porque possui <b>${dados.totalPendencias} agendamento(s) pendente(s)</b> ativo(s) na oficina:
+                </p>
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 max-h-48 overflow-y-auto">
+                  ${itensHtml}
+                </div>
+                <p class="text-xs text-slate-500 leading-normal">
+                  Para inativar o cadastro, acesse os agendamentos deste veículo e realize a conclusão ou o cancelamento do serviço pendente.
+                </p>
+              </div>
+            `,
+            confirmButtonText: 'Ver Detalhes do Veículo',
+            showCancelButton: true,
+            cancelButtonText: 'Entendido',
+            confirmButtonColor: '#0284c7',
+            cancelButtonColor: '#64748b',
+            customClass: {
+              popup: 'rounded-2xl font-sans',
+              confirmButton: 'rounded-xl font-bold px-4 py-2.5 text-sm',
+              cancelButton: 'rounded-xl font-bold px-4 py-2.5 text-sm'
+            }
+          }).then((res) => {
+            if (res.isConfirmed) {
+              window.open('/veiculos/<%= veiculo.id %>', '_blank');
+            }
+          });
+        }
+      } else {
+        if (alertaContainer) alertaContainer.classList.add('hidden');
+      }
+    } catch (err) {
+      if (indicador) indicador.classList.add('hidden');
+      console.warn('Erro ao consultar pendências do veículo:', err);
+    }
+  };
+
+  // Funções de alternância de visibilidade de inativação (escopo global para onchange)
+  window.alternarCamposInativacaoVeiculo = function(valor) {
+    const container = document.getElementById('container-motivo-inativacao-veiculo');
+    const selectMotivo = document.getElementById('motivo_inativacao_opcao');
+    if (!container) return;
+
+    if (valor === '0') {
+      container.classList.remove('hidden');
+      if (selectMotivo) selectMotivo.setAttribute('required', 'required');
+      // Disparar checagem proativa com modal explicativo
+      window.verificarPendenciasVeiculo(true);
+    } else {
+      container.classList.add('hidden');
+      if (selectMotivo) selectMotivo.removeAttribute('required');
+      const alertaContainer = document.getElementById('alerta-pendencias-veiculo');
+      if (alertaContainer) alertaContainer.classList.add('hidden');
+    }
+  };
+
+  window.alternarOutroMotivoVeiculo = function(valor) {
+    const containerOutro = document.getElementById('container-motivo-outro-veiculo');
+    const textareaOutro = document.getElementById('motivo_inativacao_outro');
+    if (!containerOutro) return;
+
+    if (valor === 'Outros') {
+      containerOutro.classList.remove('hidden');
+      if (textareaOutro) textareaOutro.setAttribute('required', 'required');
+    } else {
+      containerOutro.classList.add('hidden');
+      if (textareaOutro) textareaOutro.removeAttribute('required');
+    }
+  };
+
   function inicializarFormVeiculoEditar() {
+    const form = document.getElementById('formEditarVeiculo');
     const marcaSelect = document.getElementById('marca_id');
     const modeloSelect = document.getElementById('modelo_id');
     if (!marcaSelect || !modeloSelect) return;
@@ -163,18 +422,17 @@
       modeloSelect.disabled = false;
     }
 
+    // Ouvinte para quando o usuário alterar a marca selecionada
     marcaSelect.addEventListener('change', (e) => {
       atualizarModelos(e.target.value);
     });
 
-    if (modeloSelecionadoId) {
-      const modeloAtual = todosModelos.find(m => String(m.id) === String(modeloSelecionadoId));
-      if (modeloAtual) {
-        marcaSelect.value = modeloAtual.marca_veiculo_id;
-        atualizarModelos(modeloAtual.marca_veiculo_id, modeloSelecionadoId);
-      }
+    // Se o modelo já estiver definido e o select de modelo estiver vazio, inicializa
+    if (marcaSelect.value && modeloSelect.options.length <= 1) {
+      atualizarModelos(marcaSelect.value, modeloSelecionadoId);
     }
 
+    // Máscara e prévia da placa
     const placaInput = document.getElementById('placa');
     const previewBadge = document.getElementById('previewPlacaBadge');
     const previewTipo = document.getElementById('previewPlacaTipo');
@@ -189,39 +447,124 @@
         if (isMercosul) {
           previewBadge.className = 'placa-mercosul px-2.5 py-0.5 text-xs';
           previewBadge.textContent = valor;
-          previewTipo.textContent = '• Padrão Mercosul (Brasil)';
-          previewTipo.className = 'text-[11px] font-bold text-[#003399]';
+          if (previewTipo) {
+            previewTipo.textContent = '• Padrão Mercosul (Brasil)';
+            previewTipo.className = 'text-[11px] font-bold text-[#003399]';
+          }
         } else if (isAntiga) {
           previewBadge.className = 'placa-antiga px-2.5 py-0.5 text-xs';
           previewBadge.textContent = valor.replace(/([A-Z]{3})([0-9]{4})/, '$1-$2');
-          previewTipo.textContent = '• Padrão Anterior (Cinza)';
-          previewTipo.className = 'text-[11px] font-bold text-slate-700';
+          if (previewTipo) {
+            previewTipo.textContent = '• Padrão Anterior (Cinza)';
+            previewTipo.className = 'text-[11px] font-bold text-slate-700';
+          }
         } else {
           previewBadge.className = 'placa-mercosul px-2.5 py-0.5 text-xs';
           previewBadge.textContent = valor;
-          previewTipo.textContent = '';
+          if (previewTipo) previewTipo.textContent = '';
         }
       } else {
         previewBadge.className = 'placa-mercosul px-2.5 py-0.5 text-xs opacity-60';
         previewBadge.textContent = placaInput.value || 'AAA-0000';
-        previewTipo.textContent = '';
+        if (previewTipo) previewTipo.textContent = '';
       }
     }
 
     if (placaInput) {
-      const maskInstance = IMask(placaInput, {
-        mask: [
-          { mask: 'aaa-0000' },
-          { mask: 'aaa0a00' }
-        ],
-        prepare: function (str) {
-          return str.toUpperCase();
-        }
-      });
-      maskInstance.on('accept', atualizarPreviewPlaca);
+      if (typeof IMask !== 'undefined' && !placaInput._imask) {
+        placaInput._imask = IMask(placaInput, {
+          mask: [
+            { mask: 'aaa-0000' },
+            { mask: 'aaa0a00' }
+          ],
+          prepare: function (str) {
+            return str.toUpperCase();
+          }
+        });
+        placaInput._imask.on('accept', atualizarPreviewPlaca);
+      }
       placaInput.addEventListener('input', atualizarPreviewPlaca);
       atualizarPreviewPlaca();
     }
+
+    // Inicializar estado dos campos de inativação
+    const selectAtivo = document.getElementById('ativo');
+    if (selectAtivo) {
+      if (selectAtivo.value === '0') {
+        const container = document.getElementById('container-motivo-inativacao-veiculo');
+        if (container) container.classList.remove('hidden');
+        window.verificarPendenciasVeiculo(false);
+      }
+    }
+    const selectMotivo = document.getElementById('motivo_inativacao_opcao');
+    if (selectMotivo) {
+      window.alternarOutroMotivoVeiculo(selectMotivo.value);
+    }
+
+    // Interceptação com feedback humanizado antes de submeter
+    if (form && !form._interceptorInativacao) {
+      form._interceptorInativacao = true;
+      form.addEventListener('submit', async function(e) {
+        const selectAtivoAtual = document.getElementById('ativo');
+        if (selectAtivoAtual && selectAtivoAtual.value === '0') {
+          const selectMotivoAtual = document.getElementById('motivo_inativacao_opcao');
+          if (!selectMotivoAtual || !selectMotivoAtual.value) {
+            e.preventDefault();
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Motivo Obrigatório',
+                text: 'Por favor, selecione o motivo da inativação para salvar as alterações.',
+                confirmButtonColor: '#0284c7'
+              });
+            }
+            if (selectMotivoAtual) selectMotivoAtual.focus();
+            return;
+          }
+
+          if (selectMotivoAtual.value === 'Outros') {
+            const textareaOutro = document.getElementById('motivo_inativacao_outro');
+            if (!textareaOutro || !textareaOutro.value.trim()) {
+              e.preventDefault();
+              if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                  icon: 'warning',
+                  title: 'Justificativa Obrigatória',
+                  text: 'Ao escolher a opção "Outros", você deve descrever detalhadamente o motivo da inativação.',
+                  confirmButtonColor: '#0284c7'
+                });
+              }
+              if (textareaOutro) textareaOutro.focus();
+              return;
+            }
+          }
+
+          // Se já identificou pendências em cache
+          if (window.pendenciasVeiculoCache && window.pendenciasVeiculoCache.temPendencias) {
+            e.preventDefault();
+            window.verificarPendenciasVeiculo(true);
+            return;
+          }
+        }
+      });
+    }
+
+    // Se houve erro retornado do servidor, abrir modal SweetAlert2 imediatamente
+    <% if (typeof erro !== 'undefined' && erro) { %>
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Atenção na Operação',
+          html: `<p class="text-sm text-slate-700 leading-relaxed font-medium"><%= erro %></p>`,
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#0284c7',
+          customClass: {
+            popup: 'rounded-2xl font-sans',
+            confirmButton: 'rounded-xl font-bold px-5 py-2.5 text-sm'
+          }
+        });
+      }
+    <% } %>
   }
 
   document.addEventListener('turbo:load', inicializarFormVeiculoEditar);

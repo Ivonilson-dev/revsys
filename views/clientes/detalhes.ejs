@@ -57,6 +57,25 @@
       </div>
     <% } %>
 
+    <!-- Alerta Informativo de Inativação -->
+    <% if (!cliente.ativo) { %>
+      <div class="p-4 sm:p-5 rounded-2xl bg-amber-50 border border-amber-200 shadow-sm flex items-start gap-3.5 text-amber-900">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
+          <i data-lucide="alert-octagon" class="w-5 h-5"></i>
+        </div>
+        <div class="space-y-1">
+          <h3 class="text-base font-bold text-amber-900">Cadastro Inativo no Sistema</h3>
+          <p class="text-sm text-amber-800">
+            <strong>Motivo:</strong> <%= cliente.motivo_inativacao || 'Não especificado' %>
+            <% if (cliente.inativado_em) { %>
+              <span class="text-xs text-amber-700 block sm:inline sm:ml-2">• Inativado em <%= new Date(cliente.inativado_em).toLocaleString('pt-BR') %></span>
+            <% } %>
+          </p>
+          <p class="text-xs text-amber-700">Este cliente está bloqueado para novos agendamentos e solicitações. Para reativá-lo, clique em "Editar Cadastro".</p>
+        </div>
+      </div>
+    <% } %>
+
     <!-- Layout: Ficha do Cliente e Veículos -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
       
@@ -68,7 +87,13 @@
               <%= cliente.usuario.nome.substring(0, 2).toUpperCase() %>
             </div>
             <h2 class="text-xl sm:text-2xl font-bold text-slate-900 leading-tight"><%= cliente.usuario.nome %></h2>
-            <span class="text-xs text-slate-500 block mt-1 uppercase font-bold tracking-wider">Cliente cadastrado</span>
+            <div class="flex items-center gap-2 mt-2">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold <%= cliente.ativo ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300' %>">
+                <span class="w-1.5 h-1.5 rounded-full mr-1.5 <%= cliente.ativo ? 'bg-emerald-500' : 'bg-amber-500' %>"></span>
+                <%= cliente.ativo ? 'Ativo' : 'Inativo' %>
+              </span>
+              <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Cliente</span>
+            </div>
           </div>
 
           <div class="p-5 sm:p-6 space-y-4 sm:space-y-5 text-base">

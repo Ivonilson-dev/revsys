@@ -13,6 +13,8 @@ import CadastroBaseController from '../controllers/CadastroBaseController';
 import ClienteAreaController from '../controllers/ClienteAreaController';
 import RelatorioController from '../controllers/RelatorioController';
 import NotificacaoController from '../controllers/NotificacaoController';
+import AuditoriaController from '../controllers/AuditoriaController';
+import LgpdController from '../controllers/LgpdController';
 import { Veiculo, ModeloVeiculo, MarcaVeiculo } from '../../models';
 
 const router = Router();
@@ -36,6 +38,7 @@ router.get('/clientes', estaAutenticado, temPapel('admin', 'gerente', 'atendente
 router.get('/clientes/novo', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), ClienteController.exibirCadastro);
 router.post('/clientes', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), ClienteController.cadastrar);
 router.get('/clientes/:id', estaAutenticado, temPapel('admin', 'gerente', 'atendente', 'mecanico'), ClienteController.exibirDetalhes);
+router.get('/clientes/:id/pendencias-inativacao', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), ClienteController.verificarPendenciasInativacao);
 router.get('/clientes/:id/editar', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), ClienteController.exibirEdicao);
 router.put('/clientes/:id', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), ClienteController.editar);
 router.delete('/clientes/:id', estaAutenticado, temPapel('admin', 'gerente'), ClienteController.deletar);
@@ -45,6 +48,7 @@ router.get('/veiculos', estaAutenticado, temPapel('admin', 'gerente', 'atendente
 router.get('/veiculos/novo', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), VeiculoController.exibirCadastro);
 router.post('/veiculos', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), VeiculoController.cadastrar);
 router.get('/veiculos/:id', estaAutenticado, temPapel('admin', 'gerente', 'atendente', 'mecanico'), VeiculoController.exibirDetalhes);
+router.get('/veiculos/:id/pendencias-inativacao', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), VeiculoController.verificarPendenciasInativacao);
 router.get('/veiculos/:id/editar', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), VeiculoController.exibirEdicao);
 router.put('/veiculos/:id', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), VeiculoController.editar);
 router.delete('/veiculos/:id', estaAutenticado, temPapel('admin', 'gerente'), VeiculoController.deletar);
@@ -82,6 +86,8 @@ router.delete('/oficinas/:id', estaAutenticado, temPapel('admin', 'gerente'), Ca
 router.post('/servicos', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.criarServico);
 router.put('/servicos/:id', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), CadastroBaseController.editarServico);
 router.delete('/servicos/:id', estaAutenticado, temPapel('admin', 'gerente'), CadastroBaseController.deletarServico);
+router.post('/usuarios', estaAutenticado, temPapel('admin'), CadastroBaseController.criarUsuario);
+router.delete('/usuarios/:id', estaAutenticado, temPapel('admin'), CadastroBaseController.deletarUsuario);
 
 // 9. Relatórios
 router.get('/relatorios', estaAutenticado, temPapel('admin', 'gerente', 'atendente'), RelatorioController.exibirMenu);
@@ -111,6 +117,14 @@ router.get('/api/clientes/:id/veiculos', estaAutenticado, async (req: Request, r
     res.status(500).json({ erro: 'Erro ao buscar veículos.' });
   }
 });
+
+// 12. Módulo de Auditoria (Exclusivo para Administrador)
+router.get('/auditoria', estaAutenticado, temPapel('admin'), AuditoriaController.listar);
+router.get('/auditoria/relatorio', estaAutenticado, temPapel('admin'), AuditoriaController.relatorio);
+router.get('/auditoria/:id/detalhes', estaAutenticado, temPapel('admin'), AuditoriaController.detalhes);
+
+// 13. Termo e Conformidade LGPD (Acesso para todos os usuários autenticados)
+router.get('/lgpd', estaAutenticado, LgpdController.exibirConformidade);
 
 export default router;
 

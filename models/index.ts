@@ -13,6 +13,8 @@ import { RegistroServico, initRegistroServico } from './RegistroServico';
 import { Agendamento, initAgendamento } from './Agendamento';
 import { Notificacao, initNotificacao } from './Notificacao';
 import { LogLgpd, initLogLgpd } from './LogLgpd';
+import { NivelAcesso, initNivelAcesso } from './NivelAcesso';
+import { LogAuditoria, initLogAuditoria } from './LogAuditoria';
 
 const env = process.env.NODE_ENV || 'development';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -27,6 +29,7 @@ if (config.use_env_variable) {
 }
 
 // Inicializar modelos
+initNivelAcesso(sequelize);
 initUsuario(sequelize);
 initCliente(sequelize);
 initMarcaVeiculo(sequelize);
@@ -41,10 +44,12 @@ initRegistroServico(sequelize);
 initAgendamento(sequelize);
 initNotificacao(sequelize);
 initLogLgpd(sequelize);
+initLogAuditoria(sequelize);
 
 export interface IDatabaseContext {
   sequelize: Sequelize;
   Sequelize: typeof Sequelize;
+  NivelAcesso: typeof NivelAcesso;
   Usuario: typeof Usuario;
   Cliente: typeof Cliente;
   Veiculo: typeof Veiculo;
@@ -59,44 +64,13 @@ export interface IDatabaseContext {
   Agendamento: typeof Agendamento;
   Notificacao: typeof Notificacao;
   LogLgpd: typeof LogLgpd;
+  LogAuditoria: typeof LogAuditoria;
 }
 
 const db: IDatabaseContext = {
   sequelize,
   Sequelize,
-  Usuario,
-  Cliente,
-  Veiculo,
-  MarcaVeiculo,
-  ModeloVeiculo,
-  MarcaPeca,
-  Peca,
-  Servico,
-  Oficina,
-  RegistroTroca,
-  RegistroServico,
-  Agendamento,
-  Notificacao,
-  LogLgpd
-};
-
-// Executar associações com tipagem estrita
-const modelList = [
-  Usuario, Cliente, Veiculo, MarcaVeiculo, ModeloVeiculo,
-  MarcaPeca, Peca, Servico, Oficina, RegistroTroca,
-  RegistroServico, Agendamento, Notificacao, LogLgpd
-];
-
-modelList.forEach((model) => {
-  const modelComAssociate = model as unknown as { associate?: (context: IDatabaseContext) => void };
-  if (typeof modelComAssociate.associate === 'function') {
-    modelComAssociate.associate(db);
-  }
-});
-
-export {
-  sequelize,
-  Sequelize,
+  NivelAcesso,
   Usuario,
   Cliente,
   Veiculo,
@@ -111,6 +85,42 @@ export {
   Agendamento,
   Notificacao,
   LogLgpd,
+  LogAuditoria
+};
+
+// Executar associações com tipagem estrita
+const modelList = [
+  NivelAcesso, Usuario, Cliente, Veiculo, MarcaVeiculo, ModeloVeiculo,
+  MarcaPeca, Peca, Servico, Oficina, RegistroTroca,
+  RegistroServico, Agendamento, Notificacao, LogLgpd, LogAuditoria
+];
+
+modelList.forEach((model) => {
+  const modelComAssociate = model as unknown as { associate?: (context: IDatabaseContext) => void };
+  if (typeof modelComAssociate.associate === 'function') {
+    modelComAssociate.associate(db);
+  }
+});
+
+export {
+  sequelize,
+  Sequelize,
+  NivelAcesso,
+  Usuario,
+  Cliente,
+  Veiculo,
+  MarcaVeiculo,
+  ModeloVeiculo,
+  MarcaPeca,
+  Peca,
+  Servico,
+  Oficina,
+  RegistroTroca,
+  RegistroServico,
+  Agendamento,
+  Notificacao,
+  LogLgpd,
+  LogAuditoria,
   db
 };
 

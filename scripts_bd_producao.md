@@ -47,6 +47,19 @@ CREATE DATABASE IF NOT EXISTS `revsys`
 USE `revsys`;
 
 -- --------------------------------------------------------
+-- 0. TABELA: niveis_acesso (Classificação Formal de Níveis de Acesso)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `niveis_acesso` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `nome` ENUM('admin', 'gerente', 'atendente', 'mecanico', 'cliente') NOT NULL UNIQUE,
+  `titulo` VARCHAR(100) NOT NULL,
+  `descricao` TEXT NULL,
+  `nivel_hierarquia` INT NOT NULL DEFAULT 5,
+  `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- --------------------------------------------------------
 -- 1. TABELA: usuarios
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `usuarios` (
@@ -55,9 +68,11 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
   `email` VARCHAR(255) NOT NULL UNIQUE,
   `senha_hash` VARCHAR(255) NOT NULL,
   `papel` ENUM('admin', 'gerente', 'atendente', 'mecanico', 'cliente') NOT NULL DEFAULT 'cliente',
+  `nivel_acesso_id` INT NULL,
   `telefone` VARCHAR(20) NULL,
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_usuarios_nivel_acesso` FOREIGN KEY (`nivel_acesso_id`) REFERENCES `niveis_acesso` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   INDEX `idx_usuarios_email` (`email`)
 ) ENGINE=InnoDB;
 
@@ -78,6 +93,9 @@ CREATE TABLE IF NOT EXISTS `clientes` (
   `telefone_whatsapp` TEXT NULL,
   `consentimento_lgpd` TINYINT(1) NOT NULL DEFAULT 0,
   `data_consentimento_lgpd` DATETIME NULL,
+  `ativo` TINYINT(1) NOT NULL DEFAULT 1,
+  `motivo_inativacao` TEXT NULL,
+  `inativado_em` DATETIME NULL,
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT `fk_clientes_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -120,6 +138,9 @@ CREATE TABLE IF NOT EXISTS `veiculos` (
   `cor` VARCHAR(50) NOT NULL,
   `km_atual` INT NOT NULL,
   `condicao` ENUM('novo', 'usado') NOT NULL DEFAULT 'usado',
+  `ativo` TINYINT(1) NOT NULL DEFAULT 1,
+  `motivo_inativacao` TEXT NULL,
+  `inativado_em` DATETIME NULL,
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT `fk_veiculos_modelo` FOREIGN KEY (`modelo_id`) REFERENCES `modelos_veiculo` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -296,17 +317,56 @@ CREATE TABLE IF NOT EXISTS `sessoes` (
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
+-- --------------------------------------------------------
+-- 16. TABELA: logs_auditoria (Rastreabilidade e Trilha de Auditoria)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `logs_auditoria` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `usuario_id` INT NULL,
+  `usuario_nome` VARCHAR(255) NULL,
+  `usuario_email` VARCHAR(255) NULL,
+  `usuario_papel` VARCHAR(50) NULL,
+  `acao` VARCHAR(50) NOT NULL,
+  `recurso` VARCHAR(100) NOT NULL,
+  `registro_id` VARCHAR(100) NULL,
+  `descricao` TEXT NOT NULL,
+  `dados_anteriores` JSON NULL,
+  `dados_novos` JSON NULL,
+  `ip` VARCHAR(45) NULL,
+  `user_agent` VARCHAR(255) NULL,
+  `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_auditoria_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  INDEX `idx_auditoria_criado_em` (`criado_em`),
+  INDEX `idx_auditoria_usuario` (`usuario_id`),
+  INDEX `idx_auditoria_acao` (`acao`),
+  INDEX `idx_auditoria_recurso` (`recurso`)
+) ENGINE=InnoDB;
+
 
 
 -- ========================================================
 -- DADOS INICIAIS ESSENCIAIS PARA PRODUÇÃO (SEEDS MESTRE)
 -- ========================================================
 
+-- 0. Níveis de Acesso
+INSERT INTO `niveis_acesso` (`id`, `nome`, `titulo`, `descricao`, `nivel_hierarquia`) VALUES
+(1, 'admin', 'Administrador', 'Acesso irrestrito a todas as funcionalidades do sistema, relatórios gerenciais e módulo de auditoria.', 1),
+(2, 'gerente', 'Gerente', 'Gerenciamento operacional completo, clientes, veículos, revisões e relatórios analíticos.', 2),
+(3, 'atendente', 'Atendente', 'Cadastro de clientes, veículos, gestão da agenda de revisões e confirmação de presença.', 3),
+(4, 'mecanico', 'Mecânico', 'Execução e registro técnico de trocas de peças, serviços avulsos e histórico de veículos.', 4),
+(5, 'cliente', 'Cliente', 'Acesso exclusivo de visualização aos próprios veículos, agendamentos e histórico.', 5)
+ON DUPLICATE KEY UPDATE `titulo` = VALUES(`titulo`), `descricao` = VALUES(`descricao`), `nivel_hierarquia` = VALUES(`nivel_hierarquia`);
+
 -- 1. Usuário Administrador Inicial do Sistema
 -- Senha inicial: admin123 (DEVE ser alterada imediatamente no primeiro login de produção)
-INSERT INTO `usuarios` (`id`, `nome`, `email`, `senha_hash`, `papel`, `telefone`) VALUES
-(1, 'Administrador do Sistema', 'admin@revsys.com', '$2b$10$5cXzyFEcfdaBHyT/LoDnnOv9yowPKgdTm.btlpiEZ0KLmo/tIrY2G', 'admin', '11999999991')
+INSERT INTO `usuarios` (`id`, `nome`, `email`, `senha_hash`, `papel`, `nivel_acesso_id`, `telefone`) VALUES
+(1, 'Administrador do Sistema', 'admin@revsys.com', '$2b$10$5cXzyFEcfdaBHyT/LoDnnOv9yowPKgdTm.btlpiEZ0KLmo/tIrY2G', 'admin', 1, '11999999991')
 ON DUPLICATE KEY UPDATE `email` = VALUES(`email`);
+
+-- Evento inicial de auditoria
+INSERT INTO `logs_auditoria` (`usuario_id`, `usuario_nome`, `usuario_email`, `usuario_papel`, `acao`, `recurso`, `descricao`, `ip`, `user_agent`)
+VALUES (1, 'Administrador do Sistema', 'admin@revsys.com', 'admin', 'CRIAR', 'Autenticação', 'Módulo de auditoria e rastreabilidade inicializado no sistema RevSys.', '127.0.0.1', 'Migração de Produção');
 
 -- 2. Marcas de Veículo Oficiais
 INSERT INTO `marcas_veiculo` (`id`, `nome`) VALUES
@@ -455,3 +515,84 @@ ON DUPLICATE KEY UPDATE `nome` = VALUES(`nome`);
    - Efetuar login com `admin@revsys.com` / `admin123` e alterar a senha imediatamente na tela de perfil/usuários.
 4. **Verificação de Permissões**:
    - Garantir que o usuário MySQL da aplicação tenha privilégios de `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `CREATE`, `DROP`, `INDEX`, `ALTER` na base `revsys`.
+
+---
+
+## 4. Script de Migração Incremental (Para Bancos já em Produção)
+
+Caso o banco de dados de produção já esteja em operação com dados reais e você precise apenas aplicar o **Módulo de Auditoria**, a **Classificação de Níveis de Acesso** e o **Controle de Status e Inativação de Clientes e Veículos (RF-44)** sem perda de dados:
+
+```sql
+USE `revsys`;
+
+-- 1. Criar tabela niveis_acesso
+CREATE TABLE IF NOT EXISTS `niveis_acesso` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `nome` ENUM('admin', 'gerente', 'atendente', 'mecanico', 'cliente') NOT NULL UNIQUE,
+  `titulo` VARCHAR(100) NOT NULL,
+  `descricao` TEXT NULL,
+  `nivel_hierarquia` INT NOT NULL DEFAULT 5,
+  `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- 2. Popular niveis_acesso
+INSERT INTO `niveis_acesso` (`id`, `nome`, `titulo`, `descricao`, `nivel_hierarquia`) VALUES
+(1, 'admin', 'Administrador', 'Acesso irrestrito a todas as funcionalidades do sistema, relatórios gerenciais e módulo de auditoria.', 1),
+(2, 'gerente', 'Gerente', 'Gerenciamento operacional completo, clientes, veículos, revisões e relatórios analíticos.', 2),
+(3, 'atendente', 'Atendente', 'Cadastro de clientes, veículos, gestão da agenda de revisões e confirmação de presença.', 3),
+(4, 'mecanico', 'Mecânico', 'Execução e registro técnico de trocas de peças, serviços avulsos e histórico de veículos.', 4),
+(5, 'cliente', 'Cliente', 'Acesso exclusivo de visualização aos próprios veículos, agendamentos e histórico.', 5)
+ON DUPLICATE KEY UPDATE `titulo` = VALUES(`titulo`), `descricao` = VALUES(`descricao`), `nivel_hierarquia` = VALUES(`nivel_hierarquia`);
+
+-- 3. Adicionar coluna nivel_acesso_id em usuarios
+ALTER TABLE `usuarios` 
+ADD COLUMN IF NOT EXISTS `nivel_acesso_id` INT NULL AFTER `papel`,
+ADD CONSTRAINT `fk_usuarios_nivel_acesso` FOREIGN KEY (`nivel_acesso_id`) REFERENCES `niveis_acesso` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- 4. Associar usuários existentes ao seu respectivo nível
+UPDATE `usuarios` u
+JOIN `niveis_acesso` na ON na.nome = u.papel
+SET u.nivel_acesso_id = na.id
+WHERE u.nivel_acesso_id IS NULL;
+
+-- 5. Criar tabela logs_auditoria
+CREATE TABLE IF NOT EXISTS `logs_auditoria` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `usuario_id` INT NULL,
+  `usuario_nome` VARCHAR(255) NULL,
+  `usuario_email` VARCHAR(255) NULL,
+  `usuario_papel` VARCHAR(50) NULL,
+  `acao` VARCHAR(50) NOT NULL,
+  `recurso` VARCHAR(100) NOT NULL,
+  `registro_id` VARCHAR(100) NULL,
+  `descricao` TEXT NOT NULL,
+  `dados_anteriores` JSON NULL,
+  `dados_novos` JSON NULL,
+  `ip` VARCHAR(45) NULL,
+  `user_agent` VARCHAR(255) NULL,
+  `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_auditoria_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  INDEX `idx_auditoria_criado_em` (`criado_em`),
+  INDEX `idx_auditoria_usuario` (`usuario_id`),
+  INDEX `idx_auditoria_acao` (`acao`),
+  INDEX `idx_auditoria_recurso` (`recurso`)
+) ENGINE=InnoDB;
+
+-- 6. Log inicial de ativação
+INSERT INTO `logs_auditoria` (`usuario_id`, `usuario_nome`, `usuario_email`, `usuario_papel`, `acao`, `recurso`, `descricao`, `ip`, `user_agent`)
+VALUES (1, 'Administrador do Sistema', 'admin@revsys.com', 'admin', 'CRIAR', 'Autenticação', 'Módulo de auditoria e rastreabilidade inicializado no sistema RevSys.', '127.0.0.1', 'Migração de Produção');
+
+-- 7. Adicionar colunas de inativação e controle de status em clientes
+ALTER TABLE `clientes`
+ADD COLUMN IF NOT EXISTS `ativo` TINYINT(1) NOT NULL DEFAULT 1 AFTER `data_consentimento_lgpd`,
+ADD COLUMN IF NOT EXISTS `motivo_inativacao` TEXT NULL AFTER `ativo`,
+ADD COLUMN IF NOT EXISTS `inativado_em` DATETIME NULL AFTER `motivo_inativacao`;
+
+-- 8. Adicionar colunas de inativação e controle de status em veiculos
+ALTER TABLE `veiculos`
+ADD COLUMN IF NOT EXISTS `ativo` TINYINT(1) NOT NULL DEFAULT 1 AFTER `condicao`,
+ADD COLUMN IF NOT EXISTS `motivo_inativacao` TEXT NULL AFTER `ativo`,
+ADD COLUMN IF NOT EXISTS `inativado_em` DATETIME NULL AFTER `motivo_inativacao`;
+```

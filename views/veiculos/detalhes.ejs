@@ -62,6 +62,25 @@
       </div>
     <% } %>
 
+    <!-- Alerta Informativo de Inativação do Veículo -->
+    <% if (!veiculo.ativo) { %>
+      <div class="p-4 sm:p-5 rounded-2xl bg-amber-50 border border-amber-200 shadow-sm flex items-start gap-3.5 text-amber-900">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
+          <i data-lucide="alert-octagon" class="w-5 h-5"></i>
+        </div>
+        <div class="space-y-1">
+          <h3 class="text-base font-bold text-amber-900">Veículo Inativo no Sistema</h3>
+          <p class="text-sm text-amber-800">
+            <strong>Motivo:</strong> <%= veiculo.motivo_inativacao || 'Não especificado' %>
+            <% if (veiculo.inativado_em) { %>
+              <span class="text-xs text-amber-700 block sm:inline sm:ml-2">• Inativado em <%= new Date(veiculo.inativado_em).toLocaleString('pt-BR') %></span>
+            <% } %>
+          </p>
+          <p class="text-xs text-amber-700">Este veículo está bloqueado para novos agendamentos e serviços. Para reativá-lo, clique no botão "Editar Veículo".</p>
+        </div>
+      </div>
+    <% } %>
+
     <!-- Cabeçalho / Identidade do Veículo -->
     <div class="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 md:p-8 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
       <div class="flex flex-col xs:flex-row xs:items-center gap-4 sm:space-x-6">
@@ -88,9 +107,15 @@
           </div>
         <% } %>
         <div>
-          <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">
-            <%= veiculo.modelo ? veiculo.modelo.marca.nome + ' ' + veiculo.modelo.nome : 'Modelo N/I' %>
-          </h1>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">
+              <%= veiculo.modelo ? veiculo.modelo.marca.nome + ' ' + veiculo.modelo.nome : 'Modelo N/I' %>
+            </h1>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold <%= veiculo.ativo ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30' %>">
+              <span class="w-1.5 h-1.5 rounded-full mr-1.5 <%= veiculo.ativo ? 'bg-emerald-400' : 'bg-amber-400' %>"></span>
+              <%= veiculo.ativo ? 'Ativo' : 'Inativo' %>
+            </span>
+          </div>
           <p class="text-slate-300 mt-1 text-sm sm:text-base font-medium flex flex-wrap items-center gap-2">
             <span>Proprietário: <a href="/clientes/<%= veiculo.cliente_id %>" class="text-brand-400 hover:text-brand-300 font-bold underline"><%= veiculo.cliente.usuario.nome %></a></span>
             <% if (telCliente) { %>
