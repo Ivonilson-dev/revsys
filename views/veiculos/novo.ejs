@@ -14,10 +14,30 @@
 
     <!-- Alerta de Erro -->
     <% if (erro) { %>
-      <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-800 text-base font-medium flex items-start space-x-2 shadow-sm">
+      <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-800 text-base font-medium flex items-start space-x-2 shadow-sm animate-pulse">
         <i data-lucide="alert-circle" class="w-5 h-5 shrink-0 mt-0.5 text-red-600"></i>
         <span><%= erro %></span>
       </div>
+      <script>
+        (function() {
+          function exibirErroSwal() {
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({
+                icon: 'error',
+                title: 'Não foi possível salvar',
+                text: <%- JSON.stringify(erro) %>,
+                confirmButtonColor: '#0284c7',
+                confirmButtonText: 'Revisar Informações'
+              });
+            }
+          }
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', exibirErroSwal);
+          } else {
+            exibirErroSwal();
+          }
+        })();
+      </script>
     <% } %>
 
     <!-- Título -->
@@ -28,7 +48,7 @@
 
     <!-- Card de Formulário -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
-      <form action="/veiculos" method="POST" class="space-y-6">
+      <form action="/veiculos" method="POST" class="space-y-6" data-turbo="false">
         
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
           

@@ -102,20 +102,22 @@ export class ClienteController {
 
     // Validações básicas
     if (!nome || !email || !cpfInput || !consentimento_lgpd) {
-      res.render('clientes/novo', {
+      console.warn('[Cadastro Cliente] Validação falhou: Campos obrigatórios incompletos ou termo LGPD não aceito.', { nome, email, cpfInput, consentimento_lgpd });
+      res.status(422).render('clientes/novo', {
         titulo: 'Cadastrar Novo Cliente',
-        erro: 'Por favor, preencha todos os campos obrigatórios e aceite o termo de consentimento LGPD.',
+        erro: 'Por favor, preencha todos os campos obrigatórios e marque o termo de consentimento LGPD.',
         dados: dadosForm
       });
       return;
     }
 
-    // Validação de CPF
+    // Validação de CPF (dígitos verificadores oficiais da Receita Federal)
     const cpfLimpo = cpfInput.replace(/\D/g, '');
     if (!cpf.isValid(cpfLimpo)) {
-      res.render('clientes/novo', {
+      console.warn(`[Cadastro Cliente] CPF inválido informado: ${cpfInput} (limpo: ${cpfLimpo})`);
+      res.status(422).render('clientes/novo', {
         titulo: 'Cadastrar Novo Cliente',
-        erro: 'CPF informado é inválido.',
+        erro: 'O CPF informado é inválido pelo algoritmo oficial da Receita Federal. Certifique-se de digitar um CPF com dígitos verificadores válidos.',
         dados: dadosForm
       });
       return;
@@ -128,7 +130,8 @@ export class ClienteController {
       const usuarioExistente = await Usuario.findOne({ where: { email }, transaction: t });
       if (usuarioExistente) {
         await t.rollback();
-        res.render('clientes/novo', {
+        console.warn(`[Cadastro Cliente] E-mail já cadastrado: ${email}`);
+        res.status(422).render('clientes/novo', {
           titulo: 'Cadastrar Novo Cliente',
           erro: 'Este endereço de e-mail já está cadastrado no sistema.',
           dados: dadosForm
@@ -141,7 +144,8 @@ export class ClienteController {
       const clienteExistente = await Cliente.findOne({ where: { cpf_hash: cpfHash }, transaction: t });
       if (clienteExistente) {
         await t.rollback();
-        res.render('clientes/novo', {
+        console.warn(`[Cadastro Cliente] CPF já cadastrado (hash: ${cpfHash})`);
+        res.status(422).render('clientes/novo', {
           titulo: 'Cadastrar Novo Cliente',
           erro: 'Este CPF já está cadastrado no sistema.',
           dados: dadosForm
@@ -152,19 +156,21 @@ export class ClienteController {
       // 3. Gerar senha provisória
       const senhaProvisoria = 'RevSys' + cpfLimpo.substring(0, 6);
 
-      // 4. Criar o Usuário com papel 'cliente'
+      // 4. Criar o Usuário com papel 'cliente' e nível de acesso correspondente (id: 5 = cliente)
       const novoUsuario = await Usuario.create({
         nome,
         email,
         senha_hash: senhaProvisoria,
         papel: 'cliente',
+        nivel_acesso_id: 5,
         telefone: telefone || null
       }, { transaction: t });
 
-      // 5. Criar o Cliente
+      // 5. Criar o Cliente com dados criptografados e blind index explícito
       const novoCliente = await Cliente.create({
         usuario_id: novoUsuario.id,
         cpf: cpfLimpo,
+        cpf_hash: cpfHash,
         logradouro: logradouro || null,
         numero: numero || null,
         bairro: bairro || null,
@@ -188,6 +194,7 @@ export class ClienteController {
       }, { transaction: t });
 
       await t.commit();
+      console.log(`[Cadastro Cliente] Sucesso! Cliente criado ID: ${novoCliente.id}, Usuário ID: ${novoUsuario.id}`);
 
       // Registro de Auditoria
       await AuditoriaService.registrar({
@@ -214,9 +221,10 @@ export class ClienteController {
         tratarErroRequisicao(error, req, res);
         return;
       }
-      res.render('clientes/novo', {
+      const msgErro = error instanceof Error ? error.message : 'Erro no servidor ao salvar dados. Tente novamente.';
+      res.status(422).render('clientes/novo', {
         titulo: 'Cadastrar Novo Cliente',
-        erro: 'Erro no servidor ao salvar dados. Tente novamente.',
+        erro: `Erro ao salvar cadastro: ${msgErro}`,
         dados: dadosForm
       });
     }

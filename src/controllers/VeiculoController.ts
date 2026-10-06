@@ -137,7 +137,7 @@ export class VeiculoController {
     const dadosForm = { placa, modelo_id, cliente_id, ano, cor, km_atual, condicao };
 
     if (!placa || !modelo_id || !cliente_id || ano === undefined || !cor || km_atual === undefined || !condicao) {
-      res.render('veiculos/novo', {
+      res.status(422).render('veiculos/novo', {
         titulo: 'Cadastrar Veículo',
         erro: 'Por favor, preencha todos os campos obrigatórios.',
         dados: dadosForm,
@@ -154,7 +154,7 @@ export class VeiculoController {
     const placaRegex = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/;
 
     if (!placaRegex.test(placaLimpa)) {
-      res.render('veiculos/novo', {
+      res.status(422).render('veiculos/novo', {
         titulo: 'Cadastrar Veículo',
         erro: 'Formato de placa inválido (deve ser padrão antigo AAA-9999 ou Mercosul AAA9A99).',
         dados: dadosForm,
@@ -169,7 +169,7 @@ export class VeiculoController {
     const anoInt = parseInt(String(ano), 10);
     const anoMax = new Date().getFullYear() + 1;
     if (isNaN(anoInt) || anoInt < 1900 || anoInt > anoMax) {
-      res.render('veiculos/novo', {
+      res.status(422).render('veiculos/novo', {
         titulo: 'Cadastrar Veículo',
         erro: `O ano de fabricação deve estar entre 1900 e ${anoMax}.`,
         dados: dadosForm,
@@ -183,7 +183,7 @@ export class VeiculoController {
 
     const kmInt = parseInt(String(km_atual), 10);
     if (isNaN(kmInt) || kmInt < 0) {
-      res.render('veiculos/novo', {
+      res.status(422).render('veiculos/novo', {
         titulo: 'Cadastrar Veículo',
         erro: 'A quilometragem atual não pode ser negativa.',
         dados: dadosForm,
@@ -198,7 +198,7 @@ export class VeiculoController {
     try {
       const veiculoExistente = await Veiculo.findOne({ where: { placa: placaLimpa } });
       if (veiculoExistente) {
-        res.render('veiculos/novo', {
+        res.status(422).render('veiculos/novo', {
           titulo: 'Cadastrar Veículo',
           erro: 'Este veículo (placa) já está cadastrado no sistema.',
           dados: dadosForm,
