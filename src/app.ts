@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ override: true });
 
 import express, { Request, Response, NextFunction } from 'express';
 import session from 'express-session';

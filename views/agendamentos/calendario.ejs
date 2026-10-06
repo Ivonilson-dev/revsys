@@ -1069,16 +1069,6 @@
           endTime: '12:00'
         }
       ],
-      datesSet: function(info) {
-        const titleEl = document.querySelector('.fc-toolbar-title');
-        if (titleEl && titleEl.textContent) {
-          let txt = titleEl.textContent;
-          // Garante primeira letra maiúscula do mês e 'de' minúsculo
-          txt = txt.replace(/\bDe\b/g, 'de');
-          txt = txt.charAt(0).toUpperCase() + txt.slice(1);
-          titleEl.textContent = txt;
-        }
-      },
       dateClick: function(info) {
         const dataStr = info.dateStr.split('T')[0];
         const agoraClick = new Date();
