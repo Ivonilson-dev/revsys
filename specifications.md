@@ -13,9 +13,9 @@ O **RevSys** é um sistema web de gestão automotiva e manutenção preventiva p
 - **View Engine**: EJS (Server-Side Rendering com componentes e layouts modulares)
 - **ORM & Banco de Dados**:
   - **Sequelize ORM** (v6) com tipagem estrita de Modelos via classes TypeScript (`declare` attributes)
-  - **MySQL 8.0+** (Ambiente local via XAMPP/MySQL e produção via cPanel/HostGator)
+  - **MySQL 8.0+** (Ambiente local via XAMPP/MySQL e produção remoto via HostGator cPanel)
 - **Servidor de Produção**:
-  - **HostGator cPanel** com Phusion Passenger (inicializador `app.js` apontando para `dist/src/app.js`)
+  - **Render** (Web Service gerenciado conectado ao GitHub com deploy contínuo e SSL automático)
 - **Estilização, UI & Navegação SPA**:
   - TailwindCSS (com design moderno em dark/light contrast, cards com cantos arredondados `rounded-2xl`, micro-interações)
   - **Turbo Drive (@hotwired/turbo)**: Aceleração de navegação estilo SPA sem recarregamento de página (*Zero Refresh*), servido localmente (`/js/turbo.js`) com barra de progresso personalizada AUTEC
@@ -113,8 +113,9 @@ c:\Projetos\RevSys\
 ├── public/                         # Arquivos estáticos servidos pelo Express
 │   └── js/
 │       └── turbo.js                # Turbo Drive UMD compilado para aceleração SPA local
-├── deploy_hostgator.md             # Guia de implantação completo no cPanel da HostGator
+├── deploy_render.md                # Guia de implantação completo no Render com MySQL HostGator
 ├── scripts_bd_producao.md          # Scripts DDL/DML prontos para execução em produção
+├── banco_producao.sql              # Script SQL puro com 16 tabelas e seeds de produção
 ├── tsconfig.json                   # Configurações do compilador TypeScript
 └── package.json                    # Scripts npm (dev, build, typecheck, start) e dependências
 ```

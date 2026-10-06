@@ -11,7 +11,7 @@ O **RevSys** é uma plataforma completa e moderna voltada para a gestão prevent
 3. [Como Rodar Localmente (Desenvolvimento)](#3-como-rodar-localmente-desenvolvimento)
 4. [Compilação e Verificação de Tipos](#4-compilação-e-verificação-de-tipos)
 5. [Execução e Validação dos Testes](#5-execução-e-validação-dos-testes)
-6. [Passo a Passo Completo para Deploy na HostGator](#6-passo-a-passo-completo-para-deploy-na-hostgator)
+6. [Passo a Passo Completo para Deploy no Render (com Banco na HostGator)](#6-passo-a-passo-completo-para-deploy-no-render-com-banco-na-hostgator)
 7. [Módulo de Auditoria e Níveis de Acesso](#7-módulo-de-auditoria-e-níveis-de-acesso)
 8. [Regras de Negócio Críticas (AUTEC)](#8-regras-de-negócio-críticas-autec)
 9. [Regras Invioláveis de Desenvolvimento e Governança](#9-regras-invioláveis-de-desenvolvimento-e-governança)
@@ -28,7 +28,7 @@ O projeto foi integralmente migrado e padronizado em **TypeScript (TS)** com tip
 * **Sessão Persistente no MySQL**: As sessões do usuário são mantidas na tabela `sessoes`, garantindo que reinicializações do servidor ou deploys não desconectem operadores ou clientes.
 * **Segurança e LGPD**: Blind index com SHA-256 e criptografia simétrica AES-256-CBC para dados sensíveis como CPF, endereço e WhatsApp, com consentimento revogável e registro em tabela `logs_lgpd`.
 * **Navegação Instantânea SPA com Turbo Drive (`@hotwired/turbo`)**: Transições fluidas sem recarregamento de tela (*Zero Refresh*), servido localmente (`public/js/turbo.js`), eliminando dependência de CDNs externas e mantendo fallback automático para MPA caso necessário. Inclui barra de progresso customizada na cor oficial AUTEC.
-* **Universal Bridge Entrypoint**: Arquivo raiz `app.js` inteligente que detecta automaticamente se o projeto foi compilado para produção em `dist/src/app.js` (ótimo para Phusion Passenger na HostGator) ou se deve delegar para `src/app.ts` no desenvolvimento.
+* **Universal Bridge Entrypoint**: Arquivo raiz `app.js` inteligente que detecta automaticamente se o projeto foi compilado para produção em `dist/src/app.js` (ótimo para serviços em nuvem gerenciados como Render) ou se deve delegar para `src/app.ts` no desenvolvimento.
 * **Tipagem Estrita sem `any`**: Eliminação de tipos `any` em toda a base de código (`models/`, `src/controllers/`, `src/types/`, `src/utils/`), garantindo `typecheck` e `build` com zero alertas ou falhas e segurança estática absoluta.
 * **Resiliência e Tratamento Amigável de Conexão de Dados**: Interceptador global de falhas de banco e socket (`SequelizeConnectionRefusedError`, `ECONNREFUSED`, `ETIMEDOUT`, etc.), impedindo vazamento de stack traces técnicas tanto em desenvolvimento quanto em produção. Renderiza tela com orientações de checagem de internet e contato com suporte (`views/erros/banco.ejs`) e resposta JSON formatada para chamadas AJAX.
 
@@ -38,11 +38,12 @@ O projeto foi integralmente migrado e padronizado em **TypeScript (TS)** com tip
 
 ```text
 RevSys/
-├── app.js                          # Universal Bridge Entrypoint (Produção / Passenger / Dev)
+├── app.js                          # Universal Bridge Entrypoint (Produção / Render / Dev)
 ├── package.json                    # Dependências, scripts de build, dev e typecheck
 ├── tsconfig.json                   # Configuração estrita do compilador TypeScript
 ├── banco.sql                       # DDL e seeds iniciais do banco MySQL
-├── deploy_hostgator.md             # Guia oficial detalhado de implantação no cPanel HostGator
+├── banco_producao.sql              # Script SQL puro com 16 tabelas e seeds de produção
+├── deploy_render.md                # Guia oficial de implantação no Render com MySQL HostGator
 ├── scripts_bd_producao.md          # Manual e scripts SQL de banco para produção
 ├── public/                         # Arquivos estáticos servidos pelo Express
 │   └── js/
@@ -234,86 +235,52 @@ npx tsx scratch/teste_inconsistencia_km.js
 
 ---
 
-## 6. Passo a Passo Completo para Deploy na HostGator
+## 6. Passo a Passo Completo para Deploy no Render (com Banco na HostGator)
 
-O RevSys foi planejado para rodar nativamente em hospedagens com cPanel (como a HostGator), aproveitando o Node.js sob o Phusion Passenger com o banco de dados MySQL local.
+A arquitetura oficial de produção do RevSys adota um modelo híbrido de alta disponibilidade e modernidade:
+* **Aplicação Web (Node.js/Express + TypeScript)**: Executada no **Render** como um *Web Service*, conectada ao repositório GitHub com deploy contínuo (*CI/CD*) automático.
+* **Banco de Dados (MySQL 8.0+)**: Hospedado no servidor **HostGator (cPanel)**, acessado remotamente pelo Render na porta 3306.
 
 > [!TIP]
-> Para orientações complementares e scripts SQL comentados, consulte também os manuais:
-> - [deploy_hostgator.md](file:///c:/Projetos/RevSys/deploy_hostgator.md)
-> - [scripts_bd_producao.md](file:///c:/Projetos/RevSys/scripts_bd_producao.md)
+> O manual detalhado e completo com todos os passos visuais e telas está disponível em:
+> - [deploy_render.md](file:///c:/Projetos/RevSys/deploy_render.md)
+> - [scripts_bd_producao.md](file:///c:/Projetos/RevSys/scripts_bd_producao.md) / [banco_producao.sql](file:///c:/Projetos/RevSys/banco_producao.sql)
 
-### 6.1 Criação do Banco de Dados no cPanel
-1. Acesse o **cPanel** da sua conta na HostGator.
-2. Acesse **Bancos de dados MySQL**:
-   - Crie o banco: ex: `revsys` (o cPanel gerará algo como `cpaneluser_revsys`).
-   - Crie o usuário: ex: `appuser` (o cPanel gerará algo como `cpaneluser_appuser`) e gere uma senha forte.
-   - Vincule o usuário ao banco de dados e marque **TODOS OS PRIVILÉGIOS** (*ALL PRIVILEGES*).
-3. Abra o **phpMyAdmin**:
-   - Selecione a base criada (`cpaneluser_revsys`).
-   - Clique na aba **Importar** e envie o arquivo `banco.sql` (ou cole o conteúdo de [scripts_bd_producao.md](file:///c:/Projetos/RevSys/scripts_bd_producao.md) na aba **SQL** e execute).
-   - Verifique a criação de todas as tabelas: `niveis_acesso`, `usuarios`, `clientes`, `veiculos`, `marcas_veiculo`, `modelos_veiculo`, `marcas_peca`, `pecas`, `servicos`, `oficinas`, `registros_troca`, `registros_servico`, `agendamentos`, `notificacoes`, `logs_auditoria`, `logs_lgpd`, `sessoes`.
+### 6.1 Preparação do Banco MySQL na HostGator
+1. No cPanel da HostGator, crie a base de dados (ex: `ivonil70_revsys`) e o usuário MySQL com todos os privilégios.
+2. No **phpMyAdmin**, selecione a base e acesse a aba **Importar**, selecionando o arquivo `banco_producao.sql` para criar todas as 16 tabelas e os dados essenciais.
+3. **⚠️ Liberação Remota Obrigatória**:
+   - No cPanel, acesse **Bancos de Dados** -> **MySQL Remoto** (*Remote MySQL*).
+   - Adicione o host `%` (permite conexões autenticadas das instâncias em nuvem do Render).
 
-### 6.2 Upload dos Arquivos (Estratégias de Deploy)
-Crie uma pasta para o projeto fora da `public_html` (ex: `/home/cpaneluser/revsys/`). Escolha uma das duas estratégias:
+### 6.2 Criação do Web Service no Render
+1. Acesse o **[Render Dashboard](https://dashboard.render.com/)** e clique em **New +** -> **Web Service**.
+2. Conecte o repositório GitHub do **RevSys**.
+3. Configure os parâmetros essenciais:
+   - **Runtime**: `Node`
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm start`
+   - **Instance Type**: `Free` (ou plano pago)
 
-* **🌟 Estratégia 1: Build Local Pré-Compilado (Altamente Recomendada)**:
-  - Na sua máquina, execute `npm run build` para gerar a pasta `dist/`.
-  - Envie para `/home/cpaneluser/revsys/`: `dist/`, `views/`, `public/`, `config/`, `app.js`, `package.json`, `package-lock.json`, `.env`.
-  - *(Zero risco de estouro de memória RAM por compilação no cPanel; ativação quase instantânea).*
-
-* **⚙️ Estratégia 2: Build no Servidor**:
-  - Envie para `/home/cpaneluser/revsys/`: `src/`, `models/`, `views/`, `public/`, `config/`, `app.js`, `package.json`, `package-lock.json`, `tsconfig.json`, `.env`.
-
-> [!WARNING]
-> Nunca envie a pasta local `node_modules/`. As dependências devem ser instaladas no servidor.
-
-### 6.3 Configurar o "Setup Node.js App" no cPanel
-1. No cPanel, abra a ferramenta **Setup Node.js App**.
-2. Clique em **Create Application**:
-   - **Node.js version**: Selecione `20.x` (ou `18.x` LTS).
-   - **Application mode**: `Production`.
-   - **Application root**: `revsys` (caminho relativo da pasta dos arquivos).
-   - **Application URL**: O domínio ou subdomínio configurado (ex: `autec.com.br` ou `sistema.autec.com.br`).
-   - **Application startup file**: `app.js`. *(O entrypoint universal detecta `dist/src/app.js` e executa com total compatibilidade com o Phusion Passenger).*
-3. Clique em **Create**.
-
-### 6.4 Configurar o `.env` de Produção
-No Gerenciador de Arquivos do cPanel, crie ou edite o arquivo `.env` dentro de `/home/cpaneluser/revsys/`:
+### 6.3 Configurar Variáveis de Ambiente no Render
+Na aba **Environment** do serviço no Render, adicione:
 ```env
-PORT=3000
 NODE_ENV=production
-
-# MySQL Local HostGator (Baixa latência, porta interna)
-DB_HOST=localhost
+DB_DIALECT=mysql
+DB_HOST=sh00044.hostgator.com.br
 DB_PORT=3306
-DB_NAME=cpaneluser_revsys
-DB_USER=cpaneluser_appuser
-DB_PASS=SuaSenhaForteDoBancoAqui
-
-# Chaves de Segurança e Criptografia LGPD
+DB_NAME=ivonil70_revsys
+DB_USER=ivonil70_appuser
+DB_PASS=SuaSenhaDoBancoAqui
 SESSION_SECRET=revsys_autec_super_secret_production_key_2026
 AES_KEY=chave-secreta-aes-256-para-dados-lgpd-32-chars
 ```
+*(Nota: O Render define dinamicamente a variável `PORT` na porta 10000 e o Express já a escuta nativamente).*
 
-### 6.5 Instalação das Dependências e Ativação do Sistema
-1. Na tela do **Setup Node.js App**, copie o comando de ativação do ambiente virtual fornecido no topo, por exemplo:
-   ```bash
-   source /home/cpaneluser/nodevenv/revsys/20/bin/activate && cd /home/cpaneluser/revsys
-   ```
-2. Abra o **Terminal** do cPanel (ou conecte via SSH) e execute o comando copiado.
-3. Instale as dependências:
-   - **Se utilizou a Estratégia 1 (Build Local):**
-     ```bash
-     npm install --omit=dev
-     ```
-   - **Se utilizou a Estratégia 2 (Build no Servidor):**
-     ```bash
-     npm install --production=false
-     npm run build
-     ```
-4. Volte ao **Setup Node.js App** no cPanel e clique no botão **Restart**.
-5. Acesse o seu domínio configurado. O sistema estará 100% online!
+### 6.4 Ativação e Deploy Contínuo (CI/CD)
+1. Clique em **Create Web Service**. O Render executará o build do TypeScript e iniciará o servidor.
+2. Ao ficar **Live**, acesse a URL gerada com SSL gratuito (ex: `https://revsys-autec.onrender.com`).
+3. Qualquer alteração enviada via `git push origin master` dispara uma nova compilação e deploy automático no Render!
 
 ---
 
@@ -420,11 +387,11 @@ Para manter a consistência, segurança e qualidade arquitetural do projeto, tod
 7. **Sincronização de Banco**: Modelos TypeScript, `banco.sql`, `scripts_bd_producao.md` e seeders devem estar sempre em perfeita paridade.
 8. **Preservação Visual UI/UX**: Estética moderna com TailwindCSS e ícones Lucide Icons, Mobile First.
 9. **Proibição de Acesso ao Navegador**: Agentes de IA **JAMAIS** utilizam automação de browser (browser subagents ou headless). Testes de interface pertencem ao desenvolvedor humano.
-10. **Atualização Contínua de Todos os Arquivos `.md`**: À medida que o desenvolvimento for avançando, **todos** os arquivos Markdown de documentação do projeto (`README.md`, `deploy_hostgator.md`, `scripts_bd_producao.md`, `requisitos.md`, `specifications.md`, `rules.md`, `skills.md`) **DEVEM** ser rigorosamente atualizados para refletir as implementações realizadas, mantendo o repositório 100% documentado e sincronizado.
+10. **Atualização Contínua de Todos os Arquivos `.md`**: À medida que o desenvolvimento for avançando, **todos** os arquivos Markdown de documentação do projeto (`README.md`, `deploy_render.md`, `scripts_bd_producao.md`, `requisitos.md`, `specifications.md`, `rules.md`, `skills.md`) **DEVEM** ser rigorosamente atualizados para refletir as implementações realizadas, mantendo o repositório 100% documentado e sincronizado.
 
 ---
 
 ## 👤 Suporte e Manutenção
 
-Para suporte ou atualizações no sistema, consulte o histórico de alterações ou documentações técnicas em [deploy_hostgator.md](file:///c:/Projetos/RevSys/deploy_hostgator.md).
+Para suporte ou atualizações no sistema, consulte o histórico de alterações ou documentações técnicas em [deploy_render.md](file:///c:/Projetos/RevSys/deploy_render.md).
 
