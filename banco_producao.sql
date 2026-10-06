@@ -1,56 +1,18 @@
-# Scripts de Banco de Dados para Produção (MySQL 8.0+) - RevSys
-
-Este documento contém todos os scripts SQL (DDL e DML inicial) necessários para a implantação (*deploy*) do banco de dados do **RevSys** em ambiente de produção.
-
-> [!IMPORTANT]
-> **REGRA DE MANUTENÇÃO CONTÍNUA DO ARQUIVO:**
-> Sempre que houver qualquer alteração na modelagem do banco em ambiente de desenvolvimento (criação de novas tabelas, alteração/inclusão de colunas, novos índices, ajustes em restrições ou inclusão de dados mestre/essenciais), este arquivo **DEVE ser atualizado imediatamente**, mantendo estrita paridade com os modelos em `models/` e o script `banco.sql`.
-
----
-
-## 1. Instruções para Implantação em Produção
-
-### 1.1 Pré-requisitos
-* **SGBD**: MySQL 8.0 ou superior (ou MariaDB 10.5+ com suporte pleno a InnoDB e JSON/UTF8MB4).
-* **Charset padrão**: `utf8mb4`
-* **Collation**: `utf8mb4_unicode_ci`
-* **Engine**: `InnoDB`
-
-### 1.2 Como Executar o Script
-
-#### 🌟 Opção Recomendada: Importar o Arquivo Puro `banco_producao.sql`
-O projeto disponibiliza na raiz o arquivo **`banco_producao.sql`**, pronto e limpo para execução:
-1. No **phpMyAdmin**, clique no banco criado (ex: `ivonil70_revsys`).
-2. Acesse a aba **Importar**, selecione o arquivo `banco_producao.sql` e clique em **Executar**.
-*(Isso evita qualquer erro de cópia acidental de formatações Markdown ou declarações desnecessárias de `CREATE DATABASE`).*
-
-#### Opção B: Linha de Comando (MySQL CLI / Terminal SSH do Servidor)
-```bash
-mysql -u seu_usuario_producao -p seu_banco_producao < banco_producao.sql
-```
-
-#### Opção C: Copiar e Colar o Bloco SQL abaixo
-Você também pode copiar **estritamente o código SQL dentro do bloco abaixo** (sem copiar os caracteres de crase tripla ``` ou os textos Markdown fora dele) e colar na aba **SQL** do phpMyAdmin.
-
----
-
-## 2. Script SQL Completo de Produção (DDL + Seeds Essenciais)
-
-```sql
 -- ========================================================
--- REVSYS - SCRIPT OFICIAL DE IMPLANTAÇÃO EM PRODUÇÃO
--- Compatível com MySQL 8.0+ (InnoDB / utf8mb4)
+-- REVSYS / AUTEC - SCRIPT SQL PURO PARA PRODUÇÃO
+-- Compatível com MySQL 8.0+ / MariaDB / phpMyAdmin HostGator
+-- 
+-- INSTRUÇÕES DE EXECUÇÃO NO PHPMYADMIN:
+-- 1. No phpMyAdmin do cPanel, selecione o banco já criado (ex: ivonil70_revsys).
+-- 2. Vá na aba "Importar", escolha este arquivo banco_producao.sql e clique em "Executar".
+--    (OU abra a aba "SQL", copie e cole todo o conteúdo deste arquivo e execute).
 -- ========================================================
 
--- Criação da Base de Dados
-CREATE DATABASE IF NOT EXISTS `revsys` 
-  CHARACTER SET utf8mb4 
-  COLLATE utf8mb4_unicode_ci;
-
-USE `revsys`;
+SET FOREIGN_KEY_CHECKS = 0;
+SET NAMES utf8mb4;
 
 -- --------------------------------------------------------
--- 0. TABELA: niveis_acesso (Classificação Formal de Níveis de Acesso)
+-- 0. TABELA: niveis_acesso
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `niveis_acesso` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -60,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `niveis_acesso` (
   `nivel_hierarquia` INT NOT NULL DEFAULT 5,
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- 1. TABELA: usuarios
@@ -77,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT `fk_usuarios_nivel_acesso` FOREIGN KEY (`nivel_acesso_id`) REFERENCES `niveis_acesso` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   INDEX `idx_usuarios_email` (`email`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- 2. TABELA: clientes
@@ -85,8 +47,8 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
 CREATE TABLE IF NOT EXISTS `clientes` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `usuario_id` INT NOT NULL,
-  `cpf` TEXT NOT NULL, -- Criptografado em repouso com AES-256-CBC
-  `cpf_hash` VARCHAR(64) NOT NULL UNIQUE, -- Blind Index SHA256 para busca exata
+  `cpf` TEXT NOT NULL,
+  `cpf_hash` VARCHAR(64) NOT NULL UNIQUE,
   `logradouro` TEXT NULL,
   `numero` TEXT NULL,
   `bairro` TEXT NULL,
@@ -103,7 +65,7 @@ CREATE TABLE IF NOT EXISTS `clientes` (
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT `fk_clientes_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   INDEX `idx_clientes_cpf_hash` (`cpf_hash`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- 3. TABELA: marcas_veiculo
@@ -114,7 +76,7 @@ CREATE TABLE IF NOT EXISTS `marcas_veiculo` (
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX `idx_marcas_veiculo_nome` (`nome`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- 4. TABELA: modelos_veiculo
@@ -127,7 +89,7 @@ CREATE TABLE IF NOT EXISTS `modelos_veiculo` (
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT `fk_modelos_marca` FOREIGN KEY (`marca_veiculo_id`) REFERENCES `marcas_veiculo` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   INDEX `idx_modelos_veiculo_nome` (`nome`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- 5. TABELA: veiculos
@@ -149,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `veiculos` (
   CONSTRAINT `fk_veiculos_modelo` FOREIGN KEY (`modelo_id`) REFERENCES `modelos_veiculo` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_veiculos_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   INDEX `idx_veiculos_placa` (`placa`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- 6. TABELA: marcas_peca
@@ -160,7 +122,7 @@ CREATE TABLE IF NOT EXISTS `marcas_peca` (
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX `idx_marcas_peca_nome` (`nome`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- 7. TABELA: pecas
@@ -173,7 +135,7 @@ CREATE TABLE IF NOT EXISTS `pecas` (
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT `fk_pecas_marca` FOREIGN KEY (`marca_peca_id`) REFERENCES `marcas_peca` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   INDEX `idx_pecas_nome` (`nome`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- 8. TABELA: oficinas
@@ -188,7 +150,7 @@ CREATE TABLE IF NOT EXISTS `oficinas` (
   `whatsapp_numero` VARCHAR(20) NULL,
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- 9. TABELA: registros_troca
@@ -211,7 +173,7 @@ CREATE TABLE IF NOT EXISTS `registros_troca` (
   CONSTRAINT `fk_trocas_peca` FOREIGN KEY (`peca_id`) REFERENCES `pecas` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_trocas_oficina` FOREIGN KEY (`oficina_id`) REFERENCES `oficinas` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   INDEX `idx_trocas_data` (`data_troca`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- 10. TABELA: servicos
@@ -225,7 +187,7 @@ CREATE TABLE IF NOT EXISTS `servicos` (
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX `idx_servicos_nome` (`nome`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- 11. TABELA: registros_servico
@@ -248,7 +210,7 @@ CREATE TABLE IF NOT EXISTS `registros_servico` (
   CONSTRAINT `fk_regservicos_servico` FOREIGN KEY (`servico_id`) REFERENCES `servicos` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_regservicos_oficina` FOREIGN KEY (`oficina_id`) REFERENCES `oficinas` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   INDEX `idx_regservicos_data` (`data_servico`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- 12. TABELA: agendamentos
@@ -259,17 +221,17 @@ CREATE TABLE IF NOT EXISTS `agendamentos` (
   `veiculo_id` INT NOT NULL,
   `servico_id` INT NULL,
   `data_agendada` DATE NOT NULL,
-  `horario_agendado` VARCHAR(5) NOT NULL, -- Formato 'HH:MM' (início)
-  `duracao_minutos` INT NOT NULL DEFAULT 60, -- Duração flexível do agendamento (30, 60, 90, 120, etc.)
-  `horario_fim` VARCHAR(5) NULL, -- Formato 'HH:MM' (término calculado)
+  `horario_agendado` VARCHAR(5) NOT NULL,
+  `duracao_minutos` INT NOT NULL DEFAULT 60,
+  `horario_fim` VARCHAR(5) NULL,
   `status` ENUM('agendado', 'concluido', 'cancelado') NOT NULL DEFAULT 'agendado',
-  `confirmacao_presenca` ENUM('pendente', 'solicitada', 'confirmada') NOT NULL DEFAULT 'pendente', -- Status de presença
-  `confirmacao_solicitada_em` DATETIME NULL, -- Momento do envio da mensagem de WhatsApp
-  `confirmacao_adiada_ate` DATETIME NULL, -- Quando o lembrete foi adiado em 60 min
-  `confirmado_em` DATETIME NULL, -- Momento em que a presença foi confirmada/dado baixa
+  `confirmacao_presenca` ENUM('pendente', 'solicitada', 'confirmada') NOT NULL DEFAULT 'pendente',
+  `confirmacao_solicitada_em` DATETIME NULL,
+  `confirmacao_adiada_ate` DATETIME NULL,
+  `confirmado_em` DATETIME NULL,
   `motivo_revisao` TEXT NOT NULL,
   `observacoes` TEXT NULL,
-  `motivo_cancelamento` TEXT NULL, -- Motivo obrigatório caso o agendamento seja cancelado
+  `motivo_cancelamento` TEXT NULL,
   `criado_por` INT NOT NULL,
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -278,7 +240,7 @@ CREATE TABLE IF NOT EXISTS `agendamentos` (
   CONSTRAINT `fk_agendamentos_servico` FOREIGN KEY (`servico_id`) REFERENCES `servicos` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_agendamentos_criador` FOREIGN KEY (`criado_por`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   INDEX `idx_agendamentos_data_hora` (`data_agendada`, `horario_agendado`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- 13. TABELA: logs_lgpd
@@ -292,7 +254,7 @@ CREATE TABLE IF NOT EXISTS `logs_lgpd` (
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT `fk_logs_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- 14. TABELA: notificacoes
@@ -307,10 +269,10 @@ CREATE TABLE IF NOT EXISTS `notificacoes` (
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT `fk_notificacoes_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   INDEX `idx_notificacoes_usuario_lida` (`usuario_id`, `lida`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 15. TABELA: sessoes (Persistência de Sessões no MySQL)
+-- 15. TABELA: sessoes
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `sessoes` (
   `sid` VARCHAR(128) NOT NULL PRIMARY KEY,
@@ -318,10 +280,10 @@ CREATE TABLE IF NOT EXISTS `sessoes` (
   `expira_em` DATETIME NOT NULL,
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 16. TABELA: logs_auditoria (Rastreabilidade e Trilha de Auditoria)
+-- 16. TABELA: logs_auditoria
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `logs_auditoria` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -344,12 +306,10 @@ CREATE TABLE IF NOT EXISTS `logs_auditoria` (
   INDEX `idx_auditoria_usuario` (`usuario_id`),
   INDEX `idx_auditoria_acao` (`acao`),
   INDEX `idx_auditoria_recurso` (`recurso`)
-) ENGINE=InnoDB;
-
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ========================================================
--- DADOS INICIAIS ESSENCIAIS PARA PRODUÇÃO (SEEDS MESTRE)
+-- DADOS INICIAIS ESSENCIAIS PARA PRODUÇÃO
 -- ========================================================
 
 -- 0. Níveis de Acesso
@@ -361,48 +321,26 @@ INSERT INTO `niveis_acesso` (`id`, `nome`, `titulo`, `descricao`, `nivel_hierarq
 (5, 'cliente', 'Cliente', 'Acesso exclusivo de visualização aos próprios veículos, agendamentos e histórico.', 5)
 ON DUPLICATE KEY UPDATE `titulo` = VALUES(`titulo`), `descricao` = VALUES(`descricao`), `nivel_hierarquia` = VALUES(`nivel_hierarquia`);
 
--- 1. Usuário Administrador Inicial do Sistema
--- Senha inicial: admin123 (DEVE ser alterada imediatamente no primeiro login de produção)
+-- 1. Usuário Administrador Inicial (admin@revsys.com / admin123)
 INSERT INTO `usuarios` (`id`, `nome`, `email`, `senha_hash`, `papel`, `nivel_acesso_id`, `telefone`) VALUES
 (1, 'Administrador do Sistema', 'admin@revsys.com', '$2b$10$5cXzyFEcfdaBHyT/LoDnnOv9yowPKgdTm.btlpiEZ0KLmo/tIrY2G', 'admin', 1, '11999999991')
 ON DUPLICATE KEY UPDATE `email` = VALUES(`email`);
 
--- Evento inicial de auditoria
+-- 2. Log Inicial de Ativação do Sistema
 INSERT INTO `logs_auditoria` (`usuario_id`, `usuario_nome`, `usuario_email`, `usuario_papel`, `acao`, `recurso`, `descricao`, `ip`, `user_agent`)
 VALUES (1, 'Administrador do Sistema', 'admin@revsys.com', 'admin', 'CRIAR', 'Autenticação', 'Módulo de auditoria e rastreabilidade inicializado no sistema RevSys.', '127.0.0.1', 'Migração de Produção');
 
--- 2. Marcas de Veículo Oficiais
+-- 3. Marcas de Veículo Oficiais
 INSERT INTO `marcas_veiculo` (`id`, `nome`) VALUES
-(1, 'Alfa Romeo'),
-(2, 'Audi'),
-(3, 'BMW'),
-(4, 'BYD'),
-(5, 'Caoa Chery'),
-(6, 'Chevrolet'),
-(7, 'Citroën'),
-(8, 'Fiat'),
-(9, 'Ford'),
-(10, 'GWM'),
-(11, 'Honda'),
-(12, 'Hyundai'),
-(13, 'JAC'),
-(14, 'Jeep'),
-(15, 'Kia'),
-(16, 'Land Rover'),
-(17, 'Mercedes-Benz'),
-(18, 'Mitsubishi'),
-(19, 'Nissan'),
-(20, 'Peugeot'),
-(21, 'RAM'),
-(22, 'Renault'),
-(23, 'Suzuki'),
-(24, 'Toyota'),
-(25, 'Troller'),
-(26, 'Volkswagen'),
-(27, 'Volvo')
+(1, 'Alfa Romeo'), (2, 'Audi'), (3, 'BMW'), (4, 'BYD'), (5, 'Caoa Chery'),
+(6, 'Chevrolet'), (7, 'Citroën'), (8, 'Fiat'), (9, 'Ford'), (10, 'GWM'),
+(11, 'Honda'), (12, 'Hyundai'), (13, 'JAC'), (14, 'Jeep'), (15, 'Kia'),
+(16, 'Land Rover'), (17, 'Mercedes-Benz'), (18, 'Mitsubishi'), (19, 'Nissan'), (20, 'Peugeot'),
+(21, 'RAM'), (22, 'Renault'), (23, 'Suzuki'), (24, 'Toyota'), (25, 'Troller'),
+(26, 'Volkswagen'), (27, 'Volvo')
 ON DUPLICATE KEY UPDATE `nome` = VALUES(`nome`);
 
--- 3. Modelos de Veículo Oficiais
+-- 4. Modelos de Veículo Oficiais
 INSERT INTO `modelos_veiculo` (`id`, `nome`, `marca_veiculo_id`) VALUES
 (1, '147', 1), (2, '156', 1), (3, 'Giulia', 1), (4, 'Stelvio', 1),
 (5, 'A3', 2), (6, 'A4', 2), (7, 'A5', 2), (8, 'Q3', 2), (9, 'Q5', 2), (10, 'Q7', 2), (11, 'e-tron', 2),
@@ -433,7 +371,7 @@ INSERT INTO `modelos_veiculo` (`id`, `nome`, `marca_veiculo_id`) VALUES
 (177, 'C40', 27), (178, 'EX30', 27), (179, 'S60', 27), (180, 'XC40', 27), (181, 'XC60', 27), (182, 'XC90', 27)
 ON DUPLICATE KEY UPDATE `nome` = VALUES(`nome`);
 
--- 4. Marcas de Peça Oficiais
+-- 5. Marcas de Peça Oficiais
 INSERT INTO `marcas_peca` (`id`, `nome`) VALUES
 (1, 'Bosch'), (2, 'Castrol'), (3, 'Cobreq'), (4, 'Cofap'), (5, 'Continental / Contitech'),
 (6, 'Delphi'), (7, 'Denso'), (8, 'Fram'), (9, 'Fras-le'), (10, 'Havoline'),
@@ -443,7 +381,7 @@ INSERT INTO `marcas_peca` (`id`, `nome`) VALUES
 (25, 'TRW'), (26, 'Valeo'), (27, 'Wega')
 ON DUPLICATE KEY UPDATE `nome` = VALUES(`nome`);
 
--- 5. Catálogo de Peças Padrão
+-- 6. Catálogo de Peças Padrão
 INSERT INTO `pecas` (`id`, `nome`, `marca_peca_id`) VALUES
 (1, 'Bateria 60Ah High Performance', 1), (2, 'Bobina de Ignição', 1), (3, 'Bomba de Combustível Elétrica', 1),
 (4, 'Disco de Freio Ventilado', 1), (5, 'Jogo de Velas de Ignição Iridium', 1), (6, 'Lâmpada H7 Super White', 1),
@@ -477,12 +415,12 @@ INSERT INTO `pecas` (`id`, `nome`, `marca_peca_id`) VALUES
 (89, 'Filtro de Óleo de Câmbio Automático', 27)
 ON DUPLICATE KEY UPDATE `nome` = VALUES(`nome`);
 
--- 6. Cadastro Base da Oficina Matriz
+-- 7. Cadastro Base da Oficina Matriz
 INSERT INTO `oficinas` (`id`, `nome`, `cnpj`, `telefone`, `endereco`, `email`, `whatsapp_numero`) VALUES
 (1, 'RevSys Oficina Matriz', '12345678000199', '1133334444', 'Av. Principal, 1000 - Centro, São Paulo - SP', 'matriz@revsys.com', '11999998888')
 ON DUPLICATE KEY UPDATE `nome` = VALUES(`nome`);
 
--- 7. Catálogo de Serviços Padrão da Oficina
+-- 8. Catálogo de Serviços Padrão da Oficina
 INSERT INTO `servicos` (`id`, `nome`, `descricao`, `categoria`, `preco_padrao`) VALUES
 (1, 'Alinhamento 3D de Geometria da Suspensão', 'Ajuste de convergência e divergência das rodas dianteiras/traseiras.', 'Geometria e Alinhamento', 120.00),
 (2, 'Análise de Emissões de Gases de Escapamento', 'Medição e verificação dos níveis de emissões conforme normas Conama.', 'Diagnóstico Eletrônico', 90.00),
@@ -500,102 +438,5 @@ INSERT INTO `servicos` (`id`, `nome`, `descricao`, `categoria`, `preco_padrao`) 
 (14, 'Troca e Limpeza do Sistema de Arrefecimento', 'Enxágue do radiador, aplicação de aditivo concentrado e água desmineralizada.', 'Arrefecimento', 160.00),
 (15, 'Verificação e Ajuste de Folga de Válvulas', 'Ajuste mecânico de tuchos e folga de válvulas de admissão/escape.', 'Motor e Injeção', 250.00)
 ON DUPLICATE KEY UPDATE `nome` = VALUES(`nome`);
-```
 
----
-
-## 3. Checklist Pré-Deploy e Pós-Deploy em Produção
-
-1. **Variáveis de Ambiente**:
-   - Assegurar que o arquivo `.env` do servidor de produção possui:
-     - `NODE_ENV=production`
-     - `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME` apontando para a instância MySQL de produção.
-     - `AES_KEY` com chave criptográfica de 32 caracteres gerada exclusivamente para produção.
-     - `SESSION_SECRET` com valor forte e aleatório.
-2. **Execução do Script**:
-   - Rodar o bloco SQL acima.
-3. **Primeiro Acesso**:
-   - Efetuar login com `admin@revsys.com` / `admin123` e alterar a senha imediatamente na tela de perfil/usuários.
-4. **Verificação de Permissões**:
-   - Garantir que o usuário MySQL da aplicação tenha privilégios de `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `CREATE`, `DROP`, `INDEX`, `ALTER` na base `revsys`.
-
----
-
-## 4. Script de Migração Incremental (Para Bancos já em Produção)
-
-Caso o banco de dados de produção já esteja em operação com dados reais e você precise apenas aplicar o **Módulo de Auditoria**, a **Classificação de Níveis de Acesso** e o **Controle de Status e Inativação de Clientes e Veículos (RF-44)** sem perda de dados:
-
-```sql
-USE `revsys`;
-
--- 1. Criar tabela niveis_acesso
-CREATE TABLE IF NOT EXISTS `niveis_acesso` (
-  `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `nome` ENUM('admin', 'gerente', 'atendente', 'mecanico', 'cliente') NOT NULL UNIQUE,
-  `titulo` VARCHAR(100) NOT NULL,
-  `descricao` TEXT NULL,
-  `nivel_hierarquia` INT NOT NULL DEFAULT 5,
-  `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
--- 2. Popular niveis_acesso
-INSERT INTO `niveis_acesso` (`id`, `nome`, `titulo`, `descricao`, `nivel_hierarquia`) VALUES
-(1, 'admin', 'Administrador', 'Acesso irrestrito a todas as funcionalidades do sistema, relatórios gerenciais e módulo de auditoria.', 1),
-(2, 'gerente', 'Gerente', 'Gerenciamento operacional completo, clientes, veículos, revisões e relatórios analíticos.', 2),
-(3, 'atendente', 'Atendente', 'Cadastro de clientes, veículos, gestão da agenda de revisões e confirmação de presença.', 3),
-(4, 'mecanico', 'Mecânico', 'Execução e registro técnico de trocas de peças, serviços avulsos e histórico de veículos.', 4),
-(5, 'cliente', 'Cliente', 'Acesso exclusivo de visualização aos próprios veículos, agendamentos e histórico.', 5)
-ON DUPLICATE KEY UPDATE `titulo` = VALUES(`titulo`), `descricao` = VALUES(`descricao`), `nivel_hierarquia` = VALUES(`nivel_hierarquia`);
-
--- 3. Adicionar coluna nivel_acesso_id em usuarios
-ALTER TABLE `usuarios` 
-ADD COLUMN IF NOT EXISTS `nivel_acesso_id` INT NULL AFTER `papel`,
-ADD CONSTRAINT `fk_usuarios_nivel_acesso` FOREIGN KEY (`nivel_acesso_id`) REFERENCES `niveis_acesso` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- 4. Associar usuários existentes ao seu respectivo nível
-UPDATE `usuarios` u
-JOIN `niveis_acesso` na ON na.nome = u.papel
-SET u.nivel_acesso_id = na.id
-WHERE u.nivel_acesso_id IS NULL;
-
--- 5. Criar tabela logs_auditoria
-CREATE TABLE IF NOT EXISTS `logs_auditoria` (
-  `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `usuario_id` INT NULL,
-  `usuario_nome` VARCHAR(255) NULL,
-  `usuario_email` VARCHAR(255) NULL,
-  `usuario_papel` VARCHAR(50) NULL,
-  `acao` VARCHAR(50) NOT NULL,
-  `recurso` VARCHAR(100) NOT NULL,
-  `registro_id` VARCHAR(100) NULL,
-  `descricao` TEXT NOT NULL,
-  `dados_anteriores` JSON NULL,
-  `dados_novos` JSON NULL,
-  `ip` VARCHAR(45) NULL,
-  `user_agent` VARCHAR(255) NULL,
-  `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  CONSTRAINT `fk_auditoria_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  INDEX `idx_auditoria_criado_em` (`criado_em`),
-  INDEX `idx_auditoria_usuario` (`usuario_id`),
-  INDEX `idx_auditoria_acao` (`acao`),
-  INDEX `idx_auditoria_recurso` (`recurso`)
-) ENGINE=InnoDB;
-
--- 6. Log inicial de ativação
-INSERT INTO `logs_auditoria` (`usuario_id`, `usuario_nome`, `usuario_email`, `usuario_papel`, `acao`, `recurso`, `descricao`, `ip`, `user_agent`)
-VALUES (1, 'Administrador do Sistema', 'admin@revsys.com', 'admin', 'CRIAR', 'Autenticação', 'Módulo de auditoria e rastreabilidade inicializado no sistema RevSys.', '127.0.0.1', 'Migração de Produção');
-
--- 7. Adicionar colunas de inativação e controle de status em clientes
-ALTER TABLE `clientes`
-ADD COLUMN IF NOT EXISTS `ativo` TINYINT(1) NOT NULL DEFAULT 1 AFTER `data_consentimento_lgpd`,
-ADD COLUMN IF NOT EXISTS `motivo_inativacao` TEXT NULL AFTER `ativo`,
-ADD COLUMN IF NOT EXISTS `inativado_em` DATETIME NULL AFTER `motivo_inativacao`;
-
--- 8. Adicionar colunas de inativação e controle de status em veiculos
-ALTER TABLE `veiculos`
-ADD COLUMN IF NOT EXISTS `ativo` TINYINT(1) NOT NULL DEFAULT 1 AFTER `condicao`,
-ADD COLUMN IF NOT EXISTS `motivo_inativacao` TEXT NULL AFTER `ativo`,
-ADD COLUMN IF NOT EXISTS `inativado_em` DATETIME NULL AFTER `motivo_inativacao`;
-```
+SET FOREIGN_KEY_CHECKS = 1;

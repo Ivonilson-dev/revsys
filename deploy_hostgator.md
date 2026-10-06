@@ -41,66 +41,92 @@ Este documento descreve o passo a passo completo, detalhado e validado para real
 
 ### 2.4 Importar a Estrutura (DDL) e Dados Iniciais
 1. Volte à página inicial do cPanel e abra o **phpMyAdmin**.
-2. No menu lateral esquerdo, clique no banco de dados que acabou de criar (`meuuser_revsys`).
+2. No menu lateral esquerdo, clique no banco de dados que acabou de criar (ex: `ivonil70_revsys`).
 3. Clique na aba superior **Importar** (ou na aba **SQL**).
 4. Você pode:
-   - **Opção A**: Clicar em *Escolher arquivo*, selecionar o arquivo `banco.sql` do projeto e clicar em **Executar**.
-   - **Opção B**: Abrir o arquivo [scripts_bd_producao.md](file:///c:/Projetos/RevSys/scripts_bd_producao.md), copiar todo o bloco SQL da Seção 2, colar na aba **SQL** do phpMyAdmin e executar.
-   - **Opção C (Bancos Já Ativos / Atualização Incremental)**: Caso o banco de produção já esteja em operação, copie e execute o script SQL da **Seção 4 de scripts_bd_producao.md**, que cria as tabelas `niveis_acesso` e `logs_auditoria`, adiciona as colunas de inativação e controle de status em `clientes` e `veiculos` (`ativo`, `motivo_inativacao`, `inativado_em`) e atualiza a tabela `usuarios` sem perda de dados existentes.
-5. Verifique se todas as tabelas foram criadas com sucesso (`niveis_acesso`, `usuarios`, `clientes`, `veiculos`, `pecas`, `servicos`, `oficinas`, `registros_troca`, `registros_servico`, `agendamentos`, `notificacoes`, `logs_auditoria`, `logs_lgpd`, `sessoes`).
+   - **Opção A (Recomendada - Arquivo Puro SQL)**: Na aba **Importar**, clique em *Escolher arquivo*, selecione o arquivo dedicado `banco_producao.sql` que criamos na raiz do projeto e clique em **Executar** no final da página. Este arquivo não contém marcações Markdown e não tenta criar banco, sendo executado perfeitamente no banco selecionado.
+   - **Opção B (Cópia Direta)**: Abra o arquivo `banco_producao.sql`, copie todo o seu conteúdo, cole na aba **SQL** do phpMyAdmin e clique em **Executar**.
+   - **Opção C (Bancos Já Ativos / Atualização Incremental)**: Caso o banco de produção já esteja em operação com dados reais, copie e execute o script SQL da **Seção 4 de scripts_bd_producao.md**, que cria as tabelas `niveis_acesso` e `logs_auditoria`, adiciona as colunas de inativação e controle de status em `clientes` e `veiculos` (`ativo`, `motivo_inativacao`, `inativado_em`) e atualiza a tabela `usuarios` sem perda de dados existentes.
+5. Verifique se todas as tabelas foram criadas com sucesso (`niveis_acesso`, `usuarios`, `clientes`, `veiculos`, `marcas_veiculo`, `modelos_veiculo`, `marcas_peca`, `pecas`, `servicos`, `oficinas`, `registros_troca`, `registros_servico`, `agendamentos`, `notificacoes`, `logs_auditoria`, `logs_lgpd`, `sessoes`).
 
 ---
 
 ## 3. Passo 2: Upload dos Arquivos do Projeto para o Servidor
 
-Você pode subir os arquivos via **Git Version Control** (no cPanel), via **FTP (FileZilla)** ou pelo **Gerenciador de Arquivos**:
+Você pode subir os arquivos via **FTP (FileZilla)**, **Gerenciador de Arquivos do cPanel** ou **Git Version Control**:
 
-1. Crie uma pasta para o projeto fora da `public_html`, por exemplo:
-   `/home/meuuser/revsys/`
-2. Envie os arquivos do projeto para essa pasta:
-   - `app.js` (inicializador raiz Passenger)
+Crie uma pasta para o projeto fora da pasta pública `public_html` (para preservar a segurança do código-fonte e das variáveis de ambiente), por exemplo:
+`/home/meuuser/revsys/`
+
+Escolha uma das duas estratégias abaixo para envio:
+
+### 🌟 Estratégia 1: Build Local Pré-Compilado (ALTAMENTE RECOMENDADA)
+> [!TIP]
+> Em hospedagens compartilhadas cPanel (HostGator), o compilador TypeScript (`tsc`) pode falhar ou ter o processo encerrado por limite de memória RAM (CloudLinux LVE). Compilando localmente na sua máquina antes de subir, você elimina qualquer risco de estouro de memória, e o deploy no servidor leva poucos segundos!
+
+1. Na sua máquina local (no terminal do projeto), execute:
+   ```bash
+   npm run build
+   ```
+   *(Isso gera a pasta `dist/` com todo o JavaScript pronto para produção).*
+2. Envie para `/home/meuuser/revsys/` os seguintes arquivos e pastas:
+   - `dist/` *(pasta com o código compilado)*
+   - `views/` *(templates EJS)*
+   - `public/` *(arquivos estáticos, incluindo `public/js/turbo.js`)*
+   - `config/` *(contendo `config/config.js` para conexão do Sequelize)*
+   - `app.js` *(arquivo universal de inicialização Phusion Passenger)*
+   - `package.json` e `package-lock.json`
+   - `.env` *(configurado para o ambiente de produção)*
+3. **Não envie**: `node_modules` local (as dependências serão instaladas nativamente no servidor).
+
+---
+
+### ⚙️ Estratégia 2: Build Direto no Servidor (Para VPS ou Terminais com RAM Suficiente)
+Se preferir compilar diretamente no servidor cPanel:
+1. Envie para `/home/meuuser/revsys/` os seguintes arquivos e pastas:
    - `src/`
    - `models/`
    - `views/`
-   - `public/` (incluindo `public/js/turbo.js` para navegação SPA)
-   - `package.json`
-   - `package-lock.json`
+   - `public/`
+   - `config/`
+   - `app.js`
    - `tsconfig.json`
-   - `.env` (configurado para produção)
-3. **Atenção**: Não envie a pasta local `node_modules`. Ela será gerada no servidor da HostGator para garantir binários compatíveis com o Linux.
+   - `package.json` e `package-lock.json`
+   - `.env`
+2. **Não envie**: a pasta local `node_modules`.
 
 ---
 
 ## 4. Passo 3: Configurar a Aplicação no "Setup Node.js App"
 
-1. No cPanel, vá até a seção **Software** e clique em **Setup Node.js App**.
+1. No cPanel da HostGator, vá até a seção **Software** e clique em **Setup Node.js App**.
 2. Clique no botão **Create Application**.
 3. Preencha os campos exatamente como abaixo:
    - **Node.js version**: Selecione `20.x` (ou `18.x` LTS).
    - **Application mode**: `Production`.
-   - **Application root**: O caminho da pasta do projeto (ex: `revsys`).
-   - **Application URL**: O domínio ou subdomínio (ex: `autec.com.br` ou `sistema.autec.com.br`).
-   - **Application startup file**: `app.js` (ou `dist/src/app.js`). *Recomendamos manter `app.js`, pois o arquivo raiz detecta automaticamente a compilação do TypeScript e delega para `dist/src/app.js` com suporte integral ao Phusion Passenger.*
+   - **Application root**: O caminho relativo da pasta do projeto (ex: `revsys`).
+   - **Application URL**: O domínio ou subdomínio configurado (ex: `autec.com.br` ou `sistema.autec.com.br`).
+   - **Application startup file**: `app.js`. *(O `app.js` na raiz detecta automaticamente a pasta `dist/src/app.js` e executa a aplicação com total compatibilidade com o Phusion Passenger).*
 4. Clique em **Create**.
 
 ### 4.1 Configurar o Arquivo `.env` de Produção
-No Gerenciador de Arquivos, dentro de `/home/meuuser/revsys/`, crie ou edite o arquivo `.env`:
+No Gerenciador de Arquivos do cPanel, dentro de `/home/meuuser/revsys/`, crie ou edite o arquivo `.env`:
 ```env
 PORT=3000
 NODE_ENV=production
 
-# Conexão MySQL Local HostGator
+# Conexão MySQL Local HostGator (Host local na porta padrão)
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=meuuser_revsys
 DB_USER=meuuser_appuser
 DB_PASS=SuaSenhaForteAqui123!#
 
-# Chaves de Segurança
+# Chaves de Segurança e Criptografia LGPD
 SESSION_SECRET=revsys_autec_super_secret_production_key_2026
 AES_KEY=chave-secreta-aes-256-para-dados-lgpd-32-chars
 
-# Configurações de E-mail (Opcional - SMTP HostGator)
+# Configurações de E-mail (Opcional - SMTP HostGator para recuperação de senha)
 SMTP_HOST=mail.autec.com.br
 SMTP_PORT=465
 SMTP_SECURE=true
@@ -108,44 +134,74 @@ SMTP_USER=contato@autec.com.br
 SMTP_PASS=SenhaDoEmailAqui
 ```
 
+> [!NOTE]
+> A chave `AES_KEY` deve conter exatamente 32 caracteres (256 bits) para garantir o funcionamento correto da criptografia AES-256-CBC de dados sensíveis (CPF).
+
 ---
 
-## 5. Passo 4: Instalar Dependências e Compilar o TypeScript
+## 5. Passo 4: Instalar Dependências e Ativar o Sistema
 
 No cPanel, na tela do seu aplicativo Node.js:
-1. No topo, copie o comando de ativação do ambiente virtual fornecido pelo cPanel, algo como:
-   `source /home/meuuser/nodevenv/revsys/20/bin/activate && cd /home/meuuser/revsys`
+1. No topo, copie o comando de ativação do ambiente virtual fornecido pelo cPanel, por exemplo:
+   ```bash
+   source /home/meuuser/nodevenv/revsys/20/bin/activate && cd /home/meuuser/revsys
+   ```
 2. Abra o **Terminal** do cPanel (ou conecte via SSH) e cole esse comando.
 3. Instale as dependências:
+
+   **Se utilizou a Estratégia 1 (Build Local Recomendado):**
+   ```bash
+   npm install --omit=dev
+   ```
+   *(Instalação ultrarrápida contendo apenas dependências de produção, sem sobrecarregar a memória).*
+
+   **Se utilizou a Estratégia 2 (Build no Servidor):**
    ```bash
    npm install --production=false
-   ```
-   *(O `--production=false` garante a instalação do TypeScript e das tipagens necessárias para a compilação).*
-4. Execute o build do TypeScript:
-   ```bash
    npm run build
    ```
-   Isso criará a pasta `dist/` com todos os arquivos compilados e prontos para produção.
-5. Volte à tela do **Setup Node.js App** no cPanel e clique no botão **Restart**.
-6. Acesse o seu domínio no navegador. O sistema estará funcionando!
+   *(Instala o TypeScript, compila os arquivos para `dist/`)*
+
+4. Volte à tela do **Setup Node.js App** no cPanel e clique no botão **Restart**.
+5. Acesse a URL do seu domínio no navegador. O sistema estará em operação!
 
 ---
 
-## 6. Passo 5: Configuração de Tarefas Cron (Manutenção e Alertas)
+## 6. Passo 5: Manutenção, Alertas e Rotina de Backup (Cron)
 
-No cPanel, vá em **Avançado** -> **Tarefas Cron**:
-1. No campo **Configurações comuns**, selecione `Uma vez por dia (à meia-noite)`.
-2. No campo **Comando**, configure a rotina de encerramento automático de agendamentos e verificação de vencimentos:
+### 6.1 Como Funcionam os Alertas no RevSys
+No RevSys, o cálculo de status de peças (Vencido, Próximo, Em Dia), as regras de agendamentos e a fila de presença de 24 horas são **processados dinamicamente em tempo real** diretamente pelo backend (`src/utils/alertas.ts`) a cada requisição ao Dashboard, Agenda ou Ficha do Veículo. Portanto, **não é necessária nenhuma rotina cron externa para calcular vencimentos**.
+
+### 6.2 Rotina de Backup Automático Diário do Banco de Dados (Recomendado)
+Para garantir a segurança dos dados e conformidade operacional, configure uma tarefa Cron no cPanel para gerar backup diário do MySQL:
+
+1. No cPanel, acesse **Avançado** -> **Tarefas Cron**.
+2. Em **Configurações comuns**, selecione `Uma vez por dia (à meia-noite)`.
+3. No campo **Comando**, insira a rotina de dump compactado:
    ```bash
-   /home/meuuser/nodevenv/revsys/20/bin/node /home/meuuser/revsys/dist/scripts/cron_rotina.js
+   mysqldump -u meuuser_appuser -p'SuaSenhaForteAqui123!#' meuuser_revsys | gzip > /home/meuuser/backups/revsys_$(date +\%F).sql.gz
    ```
+   *(Certifique-se de que a pasta `/home/meuuser/backups/` exista).*
 
 ---
 
 ## 7. Checklist de Verificação Pós-Deploy
 
-- [ ] Acessar `/login` e efetuar login com o usuário administrador padrão (`admin@revsys.com` / `admin123`).
-- [ ] Alterar a senha do administrador imediatamente no sistema.
-- [ ] Cadastrar um agendamento e verificar se as datas/horários são respeitadas.
-- [ ] Testar o envio do botão de WhatsApp em veículos atrasados.
-- [ ] Confirmar que os certificados SSL (HTTPS) estão ativos e funcionando pelo cPanel (Let's Encrypt / AutoSSL).
+Após o deploy, realize a checagem operacional:
+
+- [ ] **Autenticação**: Acessar `/login` e efetuar login com o administrador padrão (`admin@revsys.com` / `admin123`).
+- [ ] **Troca de Senha**: Alterar a senha do administrador principal na área de gestão de usuários.
+- [ ] **Cadastros Base (`/cadastros`)**:
+  - Testar a abertura sob demanda dos formulários retráteis com botão `+ Novo...` (RF-42).
+  - Testar a sanfona `Ver Itens` e a pesquisa em tempo real por palavra-chave (RF-43).
+- [ ] **Trilha de Auditoria (`/auditoria`)**:
+  - Verificar se a ação de login e operações recentes foram registradas com sucesso em `logs_auditoria` (RF-38).
+  - Testar a visualização de relatório para impressão e exportação CSV/PDF (`/auditoria/relatorio`).
+- [ ] **Governança LGPD (`/lgpd`)**:
+  - Clicar no link **LGPD** no menu de navegação e testar a exibição da página institucional e botão de download em PDF (RF-40).
+- [ ] **Ciclo de Vida e Inativação (`/veiculos/:id/editar` e `/clientes/:id/editar`)**:
+  - Validar a checagem assíncrona de pendências com SweetAlert2 ao tentar inativar registro com agendamento ativo (RF-44).
+- [ ] **Agendamento e Regras de Horário**:
+  - Validar bloqueio de horários no passado, expediente comercial AUTEC (08h às 18h com almoço 12h-14h) e bloqueio de domingo (RF-34).
+  - Verificar disparo da fila sequencial de confirmação de presença de 24h no Dashboard (RF-35).
+- [ ] **Certificado de Segurança**: Confirmar que o HTTPS / SSL está ativo e forçado (AutoSSL cPanel).

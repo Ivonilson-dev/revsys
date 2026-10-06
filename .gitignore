@@ -2,12 +2,27 @@
 node_modules/
 /node_modules
 
-# Variáveis de ambiente (dados sensíveis)
+# Variáveis de ambiente e segredos (NUNCA versionar)
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+
+# Chaves de segurança, certificados e credenciais SSL/SSH
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+id_rsa*
+
+# Backups e dumps de banco de dados com dados reais
+*.sql.gz
+*.sql.tar.gz
+*.dump
+*.bak
+backups/
+backup/
 
 # Banco de dados local / SQLite
 *.sqlite
@@ -15,12 +30,25 @@ node_modules/
 *.db
 database.sqlite
 
-# Logs
+# Logs de execução e depuração
 logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+
+# Pastas de testes scratch e temporários locais
+scratch/
+temp/
+tmp/
+.temp/
+.tmp/
+
+# Pastas de Build e Cobertura de Testes
+dist/
+build/
+coverage/
 
 # Sistema Operacional
 .DS_Store
@@ -35,8 +63,3 @@ desktop.ini
 *.njsproj
 *.sln
 *.swp
-
-# Pastas de Build e Cobertura de Testes
-dist/
-build/
-coverage/

@@ -252,26 +252,34 @@ O RevSys foi planejado para rodar nativamente em hospedagens com cPanel (como a 
 3. Abra o **phpMyAdmin**:
    - Selecione a base criada (`cpaneluser_revsys`).
    - Clique na aba **Importar** e envie o arquivo `banco.sql` (ou cole o conteúdo de [scripts_bd_producao.md](file:///c:/Projetos/RevSys/scripts_bd_producao.md) na aba **SQL** e execute).
-   - Verifique a criação de todas as tabelas: `usuarios`, `clientes`, `veiculos`, `pecas`, `servicos`, `oficinas`, `registros_troca`, `registros_servico`, `agendamentos`, `notificacoes`, `logs_lgpd`, `sessoes`.
+   - Verifique a criação de todas as tabelas: `niveis_acesso`, `usuarios`, `clientes`, `veiculos`, `marcas_veiculo`, `modelos_veiculo`, `marcas_peca`, `pecas`, `servicos`, `oficinas`, `registros_troca`, `registros_servico`, `agendamentos`, `notificacoes`, `logs_auditoria`, `logs_lgpd`, `sessoes`.
 
-### 6.2 Upload dos Arquivos
-Envie os arquivos do projeto para uma pasta no servidor fora da `public_html` (ex: `/home/cpaneluser/revsys/`):
-- Pastas: `src/`, `models/`, `views/`, `public/`, `config/`.
-- Arquivos: `app.js`, `package.json`, `package-lock.json`, `tsconfig.json`.
-- **Atenção**: **NÃO** envie a pasta local `node_modules/` nem a pasta `dist/`. Elas serão geradas no próprio servidor para garantir binários compatíveis com a arquitetura Linux do servidor.
+### 6.2 Upload dos Arquivos (Estratégias de Deploy)
+Crie uma pasta para o projeto fora da `public_html` (ex: `/home/cpaneluser/revsys/`). Escolha uma das duas estratégias:
+
+* **🌟 Estratégia 1: Build Local Pré-Compilado (Altamente Recomendada)**:
+  - Na sua máquina, execute `npm run build` para gerar a pasta `dist/`.
+  - Envie para `/home/cpaneluser/revsys/`: `dist/`, `views/`, `public/`, `config/`, `app.js`, `package.json`, `package-lock.json`, `.env`.
+  - *(Zero risco de estouro de memória RAM por compilação no cPanel; ativação quase instantânea).*
+
+* **⚙️ Estratégia 2: Build no Servidor**:
+  - Envie para `/home/cpaneluser/revsys/`: `src/`, `models/`, `views/`, `public/`, `config/`, `app.js`, `package.json`, `package-lock.json`, `tsconfig.json`, `.env`.
+
+> [!WARNING]
+> Nunca envie a pasta local `node_modules/`. As dependências devem ser instaladas no servidor.
 
 ### 6.3 Configurar o "Setup Node.js App" no cPanel
 1. No cPanel, abra a ferramenta **Setup Node.js App**.
 2. Clique em **Create Application**:
    - **Node.js version**: Selecione `20.x` (ou `18.x` LTS).
    - **Application mode**: `Production`.
-   - **Application root**: `revsys` (caminho da pasta dos arquivos).
+   - **Application root**: `revsys` (caminho relativo da pasta dos arquivos).
    - **Application URL**: O domínio ou subdomínio configurado (ex: `autec.com.br` ou `sistema.autec.com.br`).
-   - **Application startup file**: `app.js`. *(O arquivo raiz `app.js` detecta a compilação e aciona `dist/src/app.js` com suporte integral ao Passenger).*
+   - **Application startup file**: `app.js`. *(O entrypoint universal detecta `dist/src/app.js` e executa com total compatibilidade com o Phusion Passenger).*
 3. Clique em **Create**.
 
 ### 6.4 Configurar o `.env` de Produção
-No Gerenciador de Arquivos do cPanel, crie o arquivo `.env` dentro de `/home/cpaneluser/revsys/`:
+No Gerenciador de Arquivos do cPanel, crie ou edite o arquivo `.env` dentro de `/home/cpaneluser/revsys/`:
 ```env
 PORT=3000
 NODE_ENV=production
@@ -283,28 +291,29 @@ DB_NAME=cpaneluser_revsys
 DB_USER=cpaneluser_appuser
 DB_PASS=SuaSenhaForteDoBancoAqui
 
-# Chaves de Segurança
+# Chaves de Segurança e Criptografia LGPD
 SESSION_SECRET=revsys_autec_super_secret_production_key_2026
 AES_KEY=chave-secreta-aes-256-para-dados-lgpd-32-chars
 ```
 
-### 6.5 Instalação das Dependências e Compilação no Servidor
-1. Na tela do **Setup Node.js App**, copie o comando de ativação do ambiente virtual (exibido na barra superior), por exemplo:
+### 6.5 Instalação das Dependências e Ativação do Sistema
+1. Na tela do **Setup Node.js App**, copie o comando de ativação do ambiente virtual fornecido no topo, por exemplo:
    ```bash
    source /home/cpaneluser/nodevenv/revsys/20/bin/activate && cd /home/cpaneluser/revsys
    ```
-2. Abra o **Terminal** do cPanel (ou acesse via SSH) e execute o comando copiado.
-3. Instale as dependências completas (incluindo as tipagens e o compilador):
-   ```bash
-   npm install --production=false
-   ```
-4. Compile o TypeScript para binários de produção:
-   ```bash
-   npm run build
-   ```
-   *Isso criará a pasta `dist/` com todos os arquivos compilados.*
-5. Volte ao **Setup Node.js App** no cPanel e clique no botão **Restart**.
-6. Acesse o seu domínio configurado. O sistema estará 100% online!
+2. Abra o **Terminal** do cPanel (ou conecte via SSH) e execute o comando copiado.
+3. Instale as dependências:
+   - **Se utilizou a Estratégia 1 (Build Local):**
+     ```bash
+     npm install --omit=dev
+     ```
+   - **Se utilizou a Estratégia 2 (Build no Servidor):**
+     ```bash
+     npm install --production=false
+     npm run build
+     ```
+4. Volte ao **Setup Node.js App** no cPanel e clique no botão **Restart**.
+5. Acesse o seu domínio configurado. O sistema estará 100% online!
 
 ---
 
