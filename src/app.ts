@@ -15,6 +15,15 @@ import { tratarErroRequisicao } from './utils/erros';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const isProduction = process.env.NODE_ENV === 'production';
+const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || 'revsys.sid';
+
+// Configuração de proxy reverso (Render / Cloudflare / Nginx)
+// Essencial para o Express reconhecer HTTPS e gerenciar cookies seguros corretamente
+if (isProduction) {
+  app.set('trust proxy', 1);
+}
+
 // Configuração do view engine (EJS)
 app.set('view engine', 'ejs');
 app.set('views', path.join(process.cwd(), 'views'));
@@ -28,6 +37,7 @@ app.use(express.static(path.join(process.cwd(), 'public')));
 // Sessão Persistente no Banco de Dados (MySQL)
 // Mantém o usuário logado continuamente até que efetue o logout deliberadamente
 app.use(session({
+  name: SESSION_COOKIE_NAME,
   store: new DatabaseSessionStore(sequelize),
   secret: process.env.SESSION_SECRET || 'revsys_secret_session_key',
   resave: false,
@@ -36,8 +46,9 @@ app.use(session({
   cookie: { 
     maxAge: 365 * 24 * 60 * 60 * 1000, // 1 ano (duração contínua até o logout)
     httpOnly: true,
-    secure: false, // em produção com HTTPS configure para true se necessário
-    sameSite: 'lax'
+    secure: isProduction,
+    sameSite: 'lax',
+    path: '/'
   }
 }));
 

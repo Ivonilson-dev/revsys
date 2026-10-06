@@ -30,8 +30,9 @@ export class DatabaseSessionStore extends session.Store {
           \`dados\` MEDIUMTEXT NOT NULL,
           \`expira_em\` DATETIME NOT NULL,
           \`criado_em\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          \`atualizado_em\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB;
+          \`atualizado_em\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          INDEX \`idx_sessoes_expira_em\` (\`expira_em\`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
     } catch (err: unknown) {
       console.error('Erro ao inicializar tabela de sessões:', err instanceof Error ? err.message : err);
@@ -72,6 +73,12 @@ export class DatabaseSessionStore extends session.Store {
     callback?: (err?: unknown) => void
   ): Promise<void> {
     try {
+      // Se a sessão não contiver usuário autenticado, não deve ser persistida
+      if (!sessao || !sessao.usuario) {
+        if (callback) callback(null);
+        return;
+      }
+
       // Duração de 1 ano para durar até o usuário deslogar deliberadamente
       let expiraEm: Date;
       if (sessao && sessao.cookie && sessao.cookie.expires) {
@@ -112,7 +119,31 @@ export class DatabaseSessionStore extends session.Store {
     sessao: session.SessionData,
     callback?: (err?: unknown) => void
   ): Promise<void> {
-    return this.set(sid, sessao, callback);
+    try {
+      // Se a sessão não possui usuário autenticado, ignora a renovação
+      if (!sessao || !sessao.usuario) {
+        if (callback) callback(null);
+        return;
+      }
+
+      let expiraEm: Date;
+      if (sessao.cookie && sessao.cookie.expires) {
+        expiraEm = new Date(sessao.cookie.expires);
+      } else {
+        expiraEm = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      }
+
+      // CRÍTICO: Touch deve apenas ATUALIZAR registros existentes.
+      // Jamais faz INSERT, para não ressuscitar sessões destruídas pelo logout.
+      await this.sequelize.query(
+        'UPDATE `sessoes` SET `expira_em` = ? WHERE `sid` = ?',
+        { replacements: [expiraEm, sid] }
+      );
+
+      if (callback) callback(null);
+    } catch (err) {
+      if (callback) callback(err);
+    }
   }
 }
 

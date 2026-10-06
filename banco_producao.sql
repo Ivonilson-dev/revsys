@@ -279,7 +279,8 @@ CREATE TABLE IF NOT EXISTS `sessoes` (
   `dados` MEDIUMTEXT NOT NULL,
   `expira_em` DATETIME NOT NULL,
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_sessoes_expira_em` (`expira_em`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------

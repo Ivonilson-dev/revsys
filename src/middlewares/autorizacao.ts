@@ -6,6 +6,11 @@ import { PapelUsuario } from '../types';
  */
 
 export function estaAutenticado(req: Request, res: Response, next: NextFunction): void {
+  // Previne que navegadores guardem em cache páginas autenticadas (Back-Forward Cache / BFCache)
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
   if (req.session && req.session.usuario) {
     // Disponibiliza os dados do usuário para o EJS localmente
     res.locals.usuarioLogado = req.session.usuario;
@@ -19,6 +24,11 @@ export function estaAutenticado(req: Request, res: Response, next: NextFunction)
 }
 
 export function naoAutenticado(req: Request, res: Response, next: NextFunction): void {
+  // Previne cache também nas telas de login/recuperação
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
   if (req.session && req.session.usuario) {
     res.redirect('/painel');
     return;

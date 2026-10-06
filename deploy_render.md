@@ -93,6 +93,7 @@ Na mesma tela de criação do serviço (ou na aba lateral **Environment** após 
 | `DB_USER` | `ivonil70_appuser` | Usuário do MySQL criado no cPanel |
 | `DB_PASS` | `SuaSenhaForteAqui123!#` | Senha do usuário do MySQL |
 | `SESSION_SECRET` | `revsys_autec_super_secret_production_key_2026` | Chave de assinatura para sessões de usuário |
+| `SESSION_COOKIE_NAME` | `revsys.sid` | *(Opcional)* Nome do cookie de sessão assinado |
 | `AES_KEY` | `chave-secreta-aes-256-para-dados-lgpd-32-chars` | Chave de 32 caracteres para criptografia LGPD (CPF) |
 
 > [!IMPORTANT]

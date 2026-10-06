@@ -126,28 +126,59 @@ export class AutenticacaoController {
 
   /**
    * GET /sair
-   * Encerra a sessão e desloga o usuário
+   * Encerra a sessão e desloga o usuário de forma segura e completa
    */
   public static async sair(req: Request, res: Response): Promise<void> {
     const usuarioLogado = req.session?.usuario;
     if (usuarioLogado) {
-      await AuditoriaService.registrar({
-        req,
-        usuario: usuarioLogado,
-        acao: 'LOGOUT',
-        recurso: 'Autenticação',
-        registro_id: usuarioLogado.id,
-        descricao: `Usuário ${usuarioLogado.nome} encerrou sua sessão no sistema.`
-      });
+      try {
+        await AuditoriaService.registrar({
+          req,
+          usuario: usuarioLogado,
+          acao: 'LOGOUT',
+          recurso: 'Autenticação',
+          registro_id: usuarioLogado.id,
+          descricao: `Usuário ${usuarioLogado.nome} encerrou sua sessão no sistema.`
+        });
+      } catch (err) {
+        console.error('Erro ao auditar logout:', err);
+      }
     }
 
-    req.session.destroy((err) => {
-      if (err) {
-        console.error('Erro ao destruir sessão:', err);
-      }
-      res.clearCookie('connect.sid');
+    // 1. Limpa os dados em memória antes da destruição
+    if (req.session) {
+      req.session.usuario = undefined;
+    }
+
+    const cookieNome = process.env.SESSION_COOKIE_NAME || 'revsys.sid';
+    const isProduction = process.env.NODE_ENV === 'production';
+    const cookieOptions = {
+      path: '/',
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax' as const
+    };
+
+    // Previne qualquer cache do navegador durante o processo de logout
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
+    // 2. Destrói a sessão no banco/store e remove os cookies da sessão
+    if (req.session) {
+      req.session.destroy((err) => {
+        if (err) {
+          console.error('Erro ao destruir sessão:', err);
+        }
+        res.clearCookie(cookieNome, cookieOptions);
+        res.clearCookie('connect.sid', cookieOptions);
+        res.redirect('/login');
+      });
+    } else {
+      res.clearCookie(cookieNome, cookieOptions);
+      res.clearCookie('connect.sid', cookieOptions);
       res.redirect('/login');
-    });
+    }
   }
 
   /**

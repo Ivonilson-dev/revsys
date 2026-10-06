@@ -256,7 +256,19 @@ CREATE TABLE IF NOT EXISTS `logs_auditoria` (
   INDEX `idx_auditoria_usuario` (`usuario_id`),
   INDEX `idx_auditoria_acao` (`acao`),
   INDEX `idx_auditoria_recurso` (`recurso`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- TABELA: sessoes (Sessões HTTP persistentes no MySQL)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `sessoes` (
+  `sid` VARCHAR(128) NOT NULL PRIMARY KEY,
+  `dados` MEDIUMTEXT NOT NULL,
+  `expira_em` DATETIME NOT NULL,
+  `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_sessoes_expira_em` (`expira_em`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- ==========================================
